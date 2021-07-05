@@ -7,7 +7,6 @@ class DataGenerator(Sequence):
     """Generates data for Keras
     Sequence based data generator. Suitable for building data generator for training and prediction.
     """
-
     def __init__(self, df, augmentations='None',
                  to_fit=True, batch_size=6, dimension=(256, 256),
                  n_channels=4, shuffle=True):
@@ -109,9 +108,4 @@ class DataGenerator(Sequence):
         img_temp[img_temp > 10000] = 10000
         img_temp = img_temp / 10000
         img_final = np.moveaxis(img_temp, 0, -1)
-        # Reducing image size to close to 40*40 crop so 64*64 from centre based on finding on 12/03 on thaw slump size being avg
-        # 400m so 40 pixels
-        #         startx = 98 #256/2 -64/2
-        #         starty = 98
-        #         img_final = img_final[startx:startx+64,startx:starty+64,:]
         return img_final
