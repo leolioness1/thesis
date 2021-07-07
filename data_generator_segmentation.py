@@ -9,7 +9,7 @@ class DataGenerator_segmentation(Sequence):
 
     def __init__(self, df, augmentations='None',
                  to_fit=True, batch_size=6, dimension=(256, 256),
-                 n_channels=3, shuffle=True):
+                 n_channels=4, shuffle=True):
         """Initialization
         :param list_IDs: list of all file ids to use in the generator
         :param to_fit: True to return X and y, False to return X only
@@ -80,37 +80,37 @@ class DataGenerator_segmentation(Sequence):
             X[i,] = self._load_image(ID)
 
         return X
-    def _generate_Y(self, labels_temp):
-    """Generates data containing batch_size images
-    :param list_IDs_temp: list of label ids to load
-    :return: batch of images
-    """
-    # Initialization
-    Y = np.empty((self.batch_size,1))
-
-    # Generate data
-    for i, ID in enumerate(labels_temp):
-        # Store sample
-        Y[i,] = ID
-
-    return Y
+    # def _generate_Y(self, labels_temp):
+    #     """Generates data containing batch_size images
+    #     :param list_IDs_temp: list of label ids to load
+    #     :return: batch of images
+    #     """
+    #     # Initialization
+    #     Y = np.empty((self.batch_size,1))
+    #
+    #     # Generate data
+    #     for i, ID in enumerate(labels_temp):
+    #         # Store sample
+    #         Y[i,] = ID
+    #
+    #     return Y
     
-#     def _generate_Y(self, list_IDs_temp):
-#         """Generates data containing batch_size images
-#         :param list_IDs_temp: list of label ids to load
-#         :return: batch of images
-#         """
-#         # Initialization
-#         Y = np.empty((self.batch_size, *self.dimension, 1))
+    def _generate_Y(self, list_IDs_temp):
+        """Generates data containing batch_size images
+        :param list_IDs_temp: list of label ids to load
+        :return: batch of images
+        """
+        # Initialization
+        Y = np.empty((self.batch_size, *self.dimension, 1))
 
-#         # Generate data
-#         for i, ID in enumerate(list_IDs_temp):
-#             # Store sample
-#             Y_temp = self._load_mask(ID)
-#             Y[i,] = Y_temp[..., np.newaxis] 
+        # Generate data
+        for i, ID in enumerate(list_IDs_temp):
+            # Store sample
+            Y_temp = self._load_mask(ID)
+            Y[i,] = Y_temp[..., np.newaxis]
 
 
-#         return Y
+        return Y
 
     def _load_image(self, image_path):
         """Load grayscale image
@@ -132,19 +132,19 @@ class DataGenerator_segmentation(Sequence):
 #         img_final = img_final[startx:startx+size,startx:starty+size,:]        
         return img_final
 
-#     #Combine later with image read, as of now inefficient as 2 reads for each file
-#     def _load_mask(self, image_path):
-#         img_object = rasterio.open(image_path)
-#         img=img_object.read()
-#         #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-#         channels=4
-#         size=64
-#         mask = img[-1,:256,:256]
-#         mask_final = np.moveaxis(mask, 0, -1)
-#         np.nan_to_num(mask_final, nan=0,copy=False)#Change nans from data to 0 for mask
-#         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
-#         #400m so 40 pixels
-# #         startx = 98 #(128-size/2)
-# #         starty = 98 #(128-size/2)
-# #         mask_final = mask_final[startx:startx+size,startx:starty+size]   
-#         return mask_final
+    #Combine later with image read, as of now inefficient as 2 reads for each file
+    def _load_mask(self, image_path):
+        img_object = rasterio.open(image_path)
+        img=img_object.read()
+        #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
+        channels=4
+        size=64
+        mask = img[-1,:256,:256]
+        mask_final = np.moveaxis(mask, 0, -1)
+        np.nan_to_num(mask_final, nan=0,copy=False)#Change nans from data to 0 for mask
+        #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
+        #400m so 40 pixels
+#         startx = 98 #(128-size/2)
+#         starty = 98 #(128-size/2)
+#         mask_final = mask_final[startx:startx+size,startx:starty+size]
+        return mask_final

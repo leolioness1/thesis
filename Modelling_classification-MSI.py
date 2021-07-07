@@ -43,56 +43,56 @@ src = rasterio.open('../Perma_Thesis/RGB-thawslump-UTM-Images/thaw/0-20190710_21
 
 
 
-src.crs
-array = src.read()
-array.shape
-
-img_temp = array[:4,:256,:256]
-img_temp = img_temp/1000 # Hack but need to figure out correct value
-img_final = np.moveaxis(img_temp, 0, -1)
-
-np.moveaxis(array, 0, -1).shape # Test moving channel to end
-
-
-img_final.shape
-
-plt.imshow(img_final)
-plt.show()
-
-# Proves that crop to size 40*40 is better but maybe make it 100*100??
-img_cropped = img_final[44:84, 44:84,:]
-plt.imshow(img_cropped)
-plt.show()
-#but still images are very bad quality resolution and need to add more bands!!!!
-
-
-
-array = array[:,98:160,98:160]
-fig, ax = plt.subplots(4,2)
-ax[0][0].imshow(array[0]);
-ax[0][1].imshow(array[1]);
-ax[1][0].imshow(array[2]);
-ax[1][1].imshow(array[3]);
-ax[2][0].imshow(array[4]);
-ax[2][1].imshow(array[5]);
-ax[3][0].imshow(array[6]);
-
-
-np.nan_to_num(array[6], nan=0,copy=False)
+# src.crs
+# array = src.read()
+# array.shape
+#
+# img_temp = array[:4,:256,:256]
+# img_temp = img_temp/1000 # Hack but need to figure out correct value
+# img_final = np.moveaxis(img_temp, 0, -1)
+#
+# np.moveaxis(array, 0, -1).shape # Test moving channel to end
+#
+#
+# img_final.shape
+#
+# plt.imshow(img_final)
+# plt.show()
+#
+# # Proves that crop to size 40*40 is better but maybe make it 100*100??
+# img_cropped = img_final[44:84, 44:84,:]
+# plt.imshow(img_cropped)
+# plt.show()
+# #but still images are very bad quality resolution and need to add more bands!!!!
 
 
 
-np.unique(array[3], return_counts=True) # Should make it 0 when using as mask
+# array = array[:,98:160,98:160]
+# fig, ax = plt.subplots(4,2)
+# ax[0][0].imshow(array[0]);
+# ax[0][1].imshow(array[1]);
+# ax[1][0].imshow(array[2]);
+# ax[1][1].imshow(array[3]);
+# ax[2][0].imshow(array[4]);
+# ax[2][1].imshow(array[5]);
+# ax[3][0].imshow(array[6]);
+#
+#
+# np.nan_to_num(array[6], nan=0,copy=False)
+#
+#
+#
+# np.unique(array[3], return_counts=True) # Should make it 0 when using as mask
 
 
 # #### Changing CRS of shape files (Not required anymore)
 
-
-validated_shape_files = gpd.read_file(VALIDATED_SHAPE_FILE_PATH)
-validated_shape_files = validated_shape_files.to_crs("EPSG:32604")
-shapes = validated_shape_files['geometry']
-
-shapes
+#
+# validated_shape_files = gpd.read_file(VALIDATED_SHAPE_FILE_PATH)
+# validated_shape_files = validated_shape_files.to_crs("EPSG:32604")
+# shapes = validated_shape_files['geometry']
+#
+# shapes
 
 
 # #### Find overlap of tif file and validated thaw slump polygon to build masks (Not required anymore)
@@ -136,6 +136,7 @@ test.describe()
 #as default Imagedatagenertator seems to be throwing error
 
 from data_generator import DataGenerator
+from data_generator_segmentation import DataGenerator_segmentation
 train_generator = DataGenerator(train, dimension=(256, 256),
                  n_channels=4)
 test_generator = DataGenerator(test,dimension=(256, 256),
@@ -178,48 +179,54 @@ model.compile(
         metrics=["accuracy"],
     )
 
-#Was 256 changed to 40 on 12/03 based on thaw slump size info
-def simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256):
-    model = tf.keras.Sequential(
-        [
-            tf.keras.layers.Conv2D(
-                16,
-                3,
-                padding="same",
-                activation="relu",
-                input_shape=(IMG_HEIGHT, IMG_WIDTH, 4),
-            ),
-            tf.keras.layers.MaxPooling2D(),
-            tf.keras.layers.Conv2D(32, 2, padding="same", activation="relu"),
-            tf.keras.layers.MaxPooling2D(),
-            tf.keras.layers.Conv2D(64, 2, padding="same", activation="relu"),
-            tf.keras.layers.MaxPooling2D(),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(128, activation="relu"),
-            tf.keras.layers.Dense(1, activation='sigmoid')
-        ]
-    )
-
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(
-            learning_rate=1e-3
-        ),  # this LR is overriden by base cycle LR if CyclicLR callback used
-        loss="binary_crossentropy",
-        metrics=["accuracy"],
-    )
-
-    #print(model.summary())
-
-    return model
-
-model = simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256)
+# #Was 256 changed to 40 on 12/03 based on thaw slump size info
+# def simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256):
+#     model = tf.keras.Sequential(
+#         [
+#             tf.keras.layers.Conv2D(
+#                 16,
+#                 3,
+#                 padding="same",
+#                 activation="relu",
+#                 input_shape=(IMG_HEIGHT, IMG_WIDTH, 4),
+#             ),
+#             tf.keras.layers.MaxPooling2D(),
+#             tf.keras.layers.Conv2D(32, 2, padding="same", activation="relu"),
+#             tf.keras.layers.MaxPooling2D(),
+#             tf.keras.layers.Conv2D(64, 2, padding="same", activation="relu"),
+#             tf.keras.layers.MaxPooling2D(),
+#             tf.keras.layers.Dropout(0.2),
+#             tf.keras.layers.Flatten(),
+#             tf.keras.layers.Dense(128, activation="relu"),
+#             tf.keras.layers.Dense(1, activation='sigmoid')
+#         ]
+#     )
+#
+#     model.compile(
+#         optimizer=tf.keras.optimizers.Adam(
+#             learning_rate=1e-3
+#         ),  # this LR is overriden by base cycle LR if CyclicLR callback used
+#         loss="binary_crossentropy",
+#         metrics=["accuracy"],
+#     )
+#
+#     #print(model.summary())
+#
+#     return model
+#
+# model = simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256)
 
 tf.config.list_physical_devices('GPU')
 
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 #Add checkpoints to rollback to best performing model
+
+
+import mlflow
+experiment_name = 'Baseline: Not transfer Learning'
+mlflow.set_experiment(experiment_name)
+mlflow.tensorflow.autolog()
 
 history = model.fit(train_generator,
 steps_per_epoch=424//6,shuffle=True, 
@@ -228,81 +235,9 @@ verbose=1,
 validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
 #code works. Not enough data to train a model.
 
-
 # ### Save model
-export_path = tf.contrib.saved_model.save_keras_model(model, 'keras_export')
+export_path = tf.saved_model.save(model, 'keras_export')
 print("Model exported to: ", export_path)
-
-
-# #### Load Pretrained model - MobileNet / Efficientnet
-
-height = 64
-width = 64
-n_channels =3
-
-inputs = Input(shape=(height, width, n_channels), name="MSI")
-#encoder = MobileNetV2(input_tensor=inputs, weights='imagenet', include_top=False)
-
-
-# In[14]:
-import mlflow
-experiment_name = 'Baseline: Transfer Learning'
-mlflow.set_experiment(experiment_name)
-mlflow.keras.autolog()
-
-
-# create the base pre-trained model
-base_model = MobileNetV2(input_tensor=inputs, weights='imagenet', include_top=False)
-
-# add a global spatial average pooling layer
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-# let's add a fully-connected layer
-x = Dense(128, activation='relu')(x)
-# and a logistic layer -- let's say we have 200 classes
-predictions = Dense(1, activation='sigmoid')(x)
-
-# this is the model we will train
-model = Model(inputs=base_model.input, outputs=predictions)
-
-# first: train only the top layers (which were randomly initialized)
-# i.e. freeze all convolutional InceptionV3 layers
-for layer in base_model.layers:
-    layer.trainable = False
-
-# compile the model (should be done *after* setting layers to non-trainable)
-
-model.summary()
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(
-        learning_rate=1e-3
-    ),  # this LR is overriden by base cycle LR if CyclicLR callback used
-    loss="binary_crossentropy",
-    metrics=["accuracy"],
-)
-
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
-reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
-
-from data_generator import DataGenerator
-train_generator = DataGenerator(train, dimension=(256, 256),
-                 n_channels=3)
-test_generator = DataGenerator(test,dimension=(256, 256),
-                 n_channels=3)
-params = {"height": height
-    , "width": width
-    ,"n_channels": n_channels
-    ,"normalisation": ">1000/1000"}
-
-
-with mlflow.start_run() as run:
-    mlflow.log_params(params)
-
-history = model.fit(train_generator,
-steps_per_epoch=424//6,shuffle=True, 
-epochs=30,
-verbose=1,
-validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
 
 hist_df = pd.DataFrame(history.history)
 hist_df.to_csv('history.csv')
@@ -325,8 +260,6 @@ with tempfile.TemporaryDirectory() as temp_dir:
     image_path = os.path.join(temp_dir, "loss_curve.png")
     plt.savefig(image_path)
     mlflow.log_artifact(image_path)
-plt.clf()
 
-x =(train_generator.__getitem__(1))
 
 
