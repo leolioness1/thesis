@@ -141,6 +141,7 @@ train_generator = DataGenerator(train, dimension=(256, 256),
                  n_channels=4)
 test_generator = DataGenerator(test,dimension=(256, 256),
                  n_channels=4)
+
 #Add code for resize
 #Add code for normalize range to 0-1
 #Add code fro augmentations
@@ -149,7 +150,8 @@ train_generator.__getitem__(1)
 
 def build_keras_model(inputShape):
     inputs = keras.Input(shape=inputShape)
-    x = Conv2D(32, (3,3), padding='same', activation='relu')(inputs)
+
+    x = Conv2D(3, (3,3), padding='same', activation='relu')(inputs)
     x = Conv2D(32, (3,3), padding='same', activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), strides=(2,2))(x)
     x = Dropout(0.25)(x)
@@ -178,43 +180,52 @@ model.compile(
         loss="binary_crossentropy",
         metrics=["accuracy"],
     )
+height = 256
+width = 256
+n_channels =3
 
-# #Was 256 changed to 40 on 12/03 based on thaw slump size info
-# def simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256):
-#     model = tf.keras.Sequential(
-#         [
-#             tf.keras.layers.Conv2D(
-#                 16,
-#                 3,
-#                 padding="same",
-#                 activation="relu",
-#                 input_shape=(IMG_HEIGHT, IMG_WIDTH, 4),
-#             ),
-#             tf.keras.layers.MaxPooling2D(),
-#             tf.keras.layers.Conv2D(32, 2, padding="same", activation="relu"),
-#             tf.keras.layers.MaxPooling2D(),
-#             tf.keras.layers.Conv2D(64, 2, padding="same", activation="relu"),
-#             tf.keras.layers.MaxPooling2D(),
-#             tf.keras.layers.Dropout(0.2),
-#             tf.keras.layers.Flatten(),
-#             tf.keras.layers.Dense(128, activation="relu"),
-#             tf.keras.layers.Dense(1, activation='sigmoid')
-#         ]
-#     )
-#
-#     model.compile(
-#         optimizer=tf.keras.optimizers.Adam(
-#             learning_rate=1e-3
-#         ),  # this LR is overriden by base cycle LR if CyclicLR callback used
-#         loss="binary_crossentropy",
-#         metrics=["accuracy"],
-#     )
-#
-#     #print(model.summary())
-#
-#     return model
-#
-# model = simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256)
+import mlflow
+experiment_name = 'Baseline: Transfer Learning'
+mlflow.set_experiment(experiment_name)
+mlflow.tensorflow.autolog()
+
+params = {"height": height
+    , "width": width
+    ,"n_channels": n_channels
+    ,"normalisation": ">1000/1000"
+     ,"augmentation": "flip h& v, rotation 0.2"}
+
+#flipping, blurring, cropping, and scaling huant w]et al 2020
+#Was 256 changed to 40 on 12/03 based on thaw slump size info
+def simple_convnet(IMG_HEIGHT=height, IMG_WIDTH=width, N_CHANNELS=n_channels):
+    model = tf.keras.Sequential([
+        # tf.keras.layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
+        #  tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
+            tf.keras.layers.Conv2D(16,3,padding="same",activation="relu",input_shape=(IMG_HEIGHT, IMG_WIDTH, N_CHANNELS),),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Conv2D(32, 2, padding="same", activation="relu"),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Conv2D(64, 2, padding="same", activation="relu"),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(1, activation='sigmoid')
+        ]
+    )
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(
+            learning_rate=1e-3
+        ),  # this LR is overriden by base cycle LR if CyclicLR callback used
+        loss="binary_crossentropy",
+        metrics=["accuracy"],
+    )
+
+    #print(model.summary())
+
+    return model
+
+model = simple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256, N_CHANNELS=n_channels)
 
 tf.config.list_physical_devices('GPU')
 
@@ -222,11 +233,8 @@ early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, ver
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 #Add checkpoints to rollback to best performing model
 
-
-import mlflow
-experiment_name = 'Baseline: Not transfer Learning'
-mlflow.set_experiment(experiment_name)
-mlflow.tensorflow.autolog()
+with mlflow.start_run() as run:
+    mlflow.log_params(params)
 
 history = model.fit(train_generator,
 steps_per_epoch=424//6,shuffle=True, 

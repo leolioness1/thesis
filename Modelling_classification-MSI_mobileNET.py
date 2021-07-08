@@ -62,6 +62,28 @@ import mlflow
 experiment_name = 'Baseline: Transfer Learning'
 mlflow.set_experiment(experiment_name)
 mlflow.tensorflow.autolog()
+# height = 256
+# width = 256
+# n_channels =4
+#
+# # create the base pre-trained model try adapt to take 4 channels
+# base_model = MobileNetV2( weights='imagenet', include_top=False)
+# input_tensor = Input(shape=(height,width,n_channels))
+# conv= tf.keras.layers.Conv2D(3,(3,3),padding="same",activation="relu")(input_tensor)
+# out = base_model(conv)
+#
+# # add a global spatial average pooling layer
+# x = GlobalAveragePooling2D()(out)
+# # let's add a fully-connected layer
+# x = Dense(128, activation='relu')(x)
+# # and a logistic layer -- let's say we have 200 classes
+# predictions = Dense(1, activation='sigmoid')(x)
+#
+# # this is the model we will train
+# model = Model(inputs=input_tensor, outputs=predictions)
+
+# this is the model we will train  with 3 channels only
+# #### Load Pretrained model - MobileNet / Efficientnet
 height = 256
 width = 256
 n_channels =3
@@ -82,6 +104,10 @@ predictions = Dense(1, activation='sigmoid')(x)
 # this is the model we will train
 model = Model(inputs=base_model.input, outputs=predictions)
 
+params = {"height": height
+    , "width": width
+    ,"n_channels": n_channels
+    ,"normalisation": ">1000/1000"}
 # first: train only the top layers (which were randomly initialized)
 # i.e. freeze all convolutional InceptionV3 layers
 for layer in base_model.layers:
@@ -101,51 +127,46 @@ model.compile(
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 
-train_generator = DataGenerator(train, dimension=(256, 256),
-                 n_channels=3)
-test_generator = DataGenerator(test,dimension=(256, 256),
-                 n_channels=3)
-
-params = {"height": height
-    , "width": width
-    ,"n_channels": n_channels
-    ,"normalisation": ">1000/1000"}
+train_generator = DataGenerator(train, dimension=(height, width),
+                 n_channels=n_channels)
+test_generator = DataGenerator(test,dimension=(height, width),
+                 n_channels=n_channels)
 
 
 with mlflow.start_run() as run:
     mlflow.log_params(params)
 
-history = model.fit(train_generator,
-steps_per_epoch=424//6,shuffle=True, 
-epochs=30,
-verbose=1,
-validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
+    history = model.fit(train_generator,
+    steps_per_epoch=424//6,shuffle=True,
+    epochs=30,
+    verbose=1,
+    validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
 
-hist_df = pd.DataFrame(history.history)
-hist_df.to_csv('history.csv')
-# ### Save model
-export_path = tf.saved_model.save(model, 'keras_export')
-print("Model exported to: ", export_path)
+    hist_df = pd.DataFrame(history.history)
+    hist_df.to_csv('history.csv')
+    # ### Save model
+    export_path = tf.saved_model.save(model, 'keras_export')
+    print("Model exported to: ", export_path)
 
 
-# Removing the first value of the loss
-losses = history.history['loss']
-val_losses = history.history['val_loss']
+    # Removing the first value of the loss
+    losses = history.history['loss']
+    val_losses = history.history['val_loss']
 
-# Looking at the loss curve
-plt.plot(losses)
-plt.plot(val_losses)
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(['train', 'val'], loc='upper left')
-plt.show()
+    # Looking at the loss curve
+    plt.plot(losses)
+    plt.plot(val_losses)
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'val'], loc='upper left')
+    plt.show()
 
-# Log as MLflow artifact
-with tempfile.TemporaryDirectory() as temp_dir:
-    image_path = os.path.join(temp_dir, "loss_curve.png")
-    plt.savefig(image_path)
-    mlflow.log_artifact(image_path)
+    # Log as MLflow artifact
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path = os.path.join(temp_dir, "loss_curve.png")
+        plt.savefig(image_path)
+        mlflow.log_artifact(image_path)
 
 
 

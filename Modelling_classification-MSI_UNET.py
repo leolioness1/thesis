@@ -53,9 +53,9 @@ test.describe()
 #as default Imagedatagenertator seems to be throwing error
 from data_generator_segmentation import DataGenerator_segmentation
 # #### Custom data generator
-train_generator = DataGenerator(train, dimension=(256, 256),
+train_generator = DataGenerator_segmentation(train, dimension=(256, 256),
                  n_channels=4)
-test_generator = DataGenerator(test,dimension=(256, 256),
+test_generator = DataGenerator_segmentation(test,dimension=(256, 256),
                  n_channels=4)
 #Add code for resize
 #Add code for normalize range to 0-1
@@ -92,10 +92,8 @@ METRICS = ['RootMeanSquaredError']
 
 def conv_block(input_tensor, num_filters):
 	encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(input_tensor)
-	encoder = layers.BatchNormalization()(encoder)
 	encoder = layers.Activation('relu')(encoder)
 	encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(encoder)
-	encoder = layers.BatchNormalization()(encoder)
 	encoder = layers.Activation('relu')(encoder)
 	return encoder
 
@@ -107,13 +105,11 @@ def encoder_block(input_tensor, num_filters):
 def decoder_block(input_tensor, concat_tensor, num_filters):
 	decoder = layers.Conv2DTranspose(num_filters, (2, 2), strides=(2, 2), padding='same')(input_tensor)
 	decoder = layers.concatenate([concat_tensor, decoder], axis=-1)
-	decoder = layers.BatchNormalization()(decoder)
 	decoder = layers.Activation('relu')(decoder)
 	decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder)
 	decoder = layers.BatchNormalization()(decoder)
 	decoder = layers.Activation('relu')(decoder)
 	decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder)
-	decoder = layers.BatchNormalization()(decoder)
 	decoder = layers.Activation('relu')(decoder)
 	return decoder
 
@@ -147,7 +143,7 @@ m = get_model()
 m.summary()
 
 # # Load a trained model. 50 epochs. 25 hours. Final RMSE ~0.08.
-# MODEL_DIR = 'gs://ee-docs-demos/fcnn-demo/trainer/model'
+# MODEL_DIR = ''
 # m = tf.keras.models.load_model(MODEL_DIR)
 # m.summary()
 
