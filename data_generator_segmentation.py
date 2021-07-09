@@ -104,8 +104,8 @@ class DataGenerator_segmentation(Sequence):
         img = img_object.read()
         # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
         img_temp = img[:self.n_channels, :256, :256]
-        img_temp[img_temp > 10000] = 10000
-        img_temp = img_temp / 10000
+        img_temp[img_temp > 1000] = 1000
+        img_temp = img_temp / 1000
         img_final = np.moveaxis(img_temp, 0, -1)
         return img_final
     def _generate_Y(self, list_IDs_temp):

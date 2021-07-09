@@ -24,6 +24,7 @@ from tensorflow.python.keras import losses
 from tensorflow.python.keras import models
 from tensorflow.python.keras import metrics
 from tensorflow.python.keras import optimizers
+from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 LOCAL_PATH= '../Perma_Thesis/MSI/'
 
@@ -32,9 +33,10 @@ IMG_HEIGHT=256
 IMG_WIDTH=256
 BATCH_SIZE = 8
 # ##### Load image, preprocess, augment through image data generator
-
+VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
 
 files = glob(LOCAL_PATH + "**/*.tif")
+
 df_dataset = pd.DataFrame()
 df_dataset['image_paths'] = files
 df_dataset['labels_string'] = df_dataset['image_paths'].str.split('\\').str[-2]
@@ -42,7 +44,13 @@ df_dataset['label'] =  df_dataset['labels_string'].apply(lambda x: 1 if x == 'th
 df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
 
 df_dataset
-
+df_val = pd.DataFrame()
+files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
+df_val['image_paths'] = files_val
+df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
+df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
+df_val
 train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
 
 train.describe()
@@ -66,7 +74,7 @@ tf.config.list_physical_devices('GPU')
 #encoder = MobileNetV2(input_tensor=inputs, weights='imagenet', include_top=False)
 
 import mlflow
-experiment_name = 'Baseline:  UNET Transfer Learning'
+experiment_name = 'Baseline:  UNET No Transfer Learning'
 mlflow.set_experiment(experiment_name)
 mlflow.tensorflow.autolog()
 height = 256
@@ -86,6 +94,50 @@ LOSS = 'MeanSquaredError'
 METRICS = ['RootMeanSquaredError']
 
 
+def dice_coef(y_true, y_pred, smooth=1):
+    """
+    Arguments:
+        y_true: (string) ground truth image mask
+        y_pred : (int) predicted image mask
+
+    Returns:
+        Calculated Dice coeffecient
+    """
+    y_true_f = K.flatten(y_true)
+    y_true_f = K.cast(y_true_f, 'float32')
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_loss(y_true, y_pred):
+    """
+    Arguments:
+        y_true: (string) ground truth image mask
+        y_pred : (int) predicted image mask
+
+    Returns:
+        Calculated Dice coeffecient loss
+    """
+    return 1 - dice_coef(y_true, y_pred)
+
+def dice_score(y_true, y_pred, smooth=1, threshold = 0.6):
+    """
+    Arguments:
+        y_true: (string) ground truth image mask
+        y_pred : (int) predicted image mask
+        smooth : (float) smoothening to prevent divison by 0
+        threshold : (float) threshold over which pixel is conidered positive
+
+    Returns:
+        Calculated Dice coeffecient for evaluation metric
+    """
+    y_true_f = K.flatten(y_true)
+    y_true_f = K.cast(y_true_f, 'float32')
+    y_pred = K.cast(y_pred, 'float32')
+    y_pred_f = K.cast(K.greater(K.flatten(y_pred), threshold), 'float32')
+    intersection = y_true_f * y_pred_f
+    score = (2. * K.sum(intersection) + smooth)/ (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    return score
 #
 # inputs = Input(shape=(height, width, n_channels), name="MSI")
 # #### Load Pretrained model - MobileNet / Efficientnet
@@ -130,11 +182,17 @@ def get_model():
 
 	model = models.Model(inputs=[inputs], outputs=[outputs])
 
+	# model.compile(
+	# 	optimizer=optimizers.get(OPTIMIZER),
+	# 	loss=losses.get(LOSS),
+	# 	metrics=[metrics.get(metric) for metric in METRICS])
 	model.compile(
-		optimizer=optimizers.get(OPTIMIZER),
-		loss=losses.get(LOSS),
-		metrics=[metrics.get(metric) for metric in METRICS])
-
+		optimizer=tf.keras.optimizers.Adam(
+			learning_rate=1e-3
+		),  # this LR is overriden by base cycle LR if CyclicLR callback used
+		loss=dice_coef_loss,
+		metrics=dice_score,
+	)
 	return model
 
 
@@ -199,6 +257,13 @@ with tempfile.TemporaryDirectory() as temp_dir:
     image_path = os.path.join(temp_dir, "loss_curve.png")
     plt.savefig(image_path)
     mlflow.log_artifact(image_path)
+
+val_generator = DataGenerator_segmentation(df_val, dimension=(256, 256),
+                 n_channels=4, to_fit=False)
+x=val_generator.__getitem__(1)
+  print('Running predictions...')
+predictions = m.predict(val_generator, verbose=1)
+print(predictions[0])
 
 
 
