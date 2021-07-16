@@ -37,19 +37,38 @@ df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
 
 df_dataset
 
-train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
 
+VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
+
+df_val = pd.DataFrame()
+files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
+df_val['image_paths'] = files_val
+df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
+df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
+df_val
+
+print("Full Dataset label distribution")
+print(df_dataset.groupby('labels_string').count())
+
+train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
+print("\nTrain Dataset label distribution")
+print(train.groupby('labels_string').count())
+print("\nVal Dataset label distribution")
+print(test.groupby('labels_string').count())
+print("\nTest Dataset label distribution")
+print(df_val.groupby('labels_string').count())
 train.describe()
 
 test.describe()
-
+n_channels =3
 #Custom data generator that replaces PIL function on image read of tiff record with rasterio 
 #as default Imagedatagenertator seems to be throwing error
 # #### Custom data generator
 train_generator = DataGenerator(train, dimension=(256, 256),
-                 n_channels=4)
+                 n_channels=n_channels)
 test_generator = DataGenerator(test,dimension=(256, 256),
-                 n_channels=4)
+                 n_channels=n_channels)
 #Add code for resize
 #Add code for normalize range to 0-1
 #Add code fro augmentations
@@ -124,7 +143,7 @@ model.compile(
     metrics=["accuracy"],
 )
 
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=1, mode='auto')
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 
 train_generator = DataGenerator(train, dimension=(height, width),
@@ -138,9 +157,12 @@ with mlflow.start_run() as run:
 
     history = model.fit(train_generator,
     steps_per_epoch=424//6,shuffle=True,
-    epochs=30,
+    epochs=20,
     verbose=1,
-    validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
+    validation_data = test_generator,callbacks=[
+            #early_stopping,
+             reduce_lr]
+                        )
 
     hist_df = pd.DataFrame(history.history)
     hist_df.to_csv('history.csv')
@@ -170,3 +192,11 @@ with mlflow.start_run() as run:
 
 
 
+val_generator = DataGenerator(df_val, dimension=(256, 256),
+                 n_channels=3, to_fit=False)
+x=val_generator.__getitem__(1)
+print('Running predictions...')
+predictions = model.predict(val_generator, verbose=1)
+print(predictions[0])
+
+predictions_bol= predictions >0.5

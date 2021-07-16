@@ -7,7 +7,7 @@ class DataGenerator_segmentation(Sequence):
     Sequence based data generator. Suitable for building data generator for training and prediction.
     """
     def __init__(self, df, augmentations='None',
-                 to_fit=True, batch_size=6, dimension=(256, 256),
+                 to_fit=True, batch_size=3, dimension=(256, 256),
                  n_channels=4, shuffle=True):
         """Initialization
         :param list_IDs: list of all file ids to use in the generator
@@ -104,8 +104,8 @@ class DataGenerator_segmentation(Sequence):
         img = img_object.read()
         # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
         img_temp = img[:self.n_channels, :256, :256]
-        img_temp[img_temp > 1000] = 1000
-        img_temp = img_temp / 1000
+        img_temp[img_temp > 10000] = 10000
+        img_temp = img_temp / 10000
         img_final = np.moveaxis(img_temp, 0, -1)
         return img_final
     def _generate_Y(self, list_IDs_temp):

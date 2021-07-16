@@ -25,15 +25,15 @@ from tensorflow.python.keras import models
 from tensorflow.python.keras import metrics
 from tensorflow.python.keras import optimizers
 from tensorflow.keras import backend as K
+from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 LOCAL_PATH= '../Perma_Thesis/MSI/'
 
 # ### Modelling Pipeline (Test)
 IMG_HEIGHT=256
 IMG_WIDTH=256
-BATCH_SIZE = 8
+BATCH_SIZE = 3
 # ##### Load image, preprocess, augment through image data generator
-VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
 
 files = glob(LOCAL_PATH + "**/*.tif")
 
@@ -44,6 +44,9 @@ df_dataset['label'] =  df_dataset['labels_string'].apply(lambda x: 1 if x == 'th
 df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
 
 df_dataset
+
+VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
+
 df_val = pd.DataFrame()
 files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
 df_val['image_paths'] = files_val
@@ -92,6 +95,30 @@ BUFFER_SIZE = 2000
 OPTIMIZER = 'SGD'
 LOSS = 'MeanSquaredError'
 METRICS = ['RootMeanSquaredError']
+
+smooth = 1e-12
+def jaccard_coef(y_true, y_pred):
+    intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
+    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
+
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+
+    return K.mean(jac)
+
+
+def jaccard_coef_int(y_true, y_pred):
+    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+
+    intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
+    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
+
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+
+    return K.mean(jac)
+
+
+def jaccard_coef_loss(y_true, y_pred):
+    return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
 
 def dice_coef(y_true, y_pred, smooth=1):
@@ -186,12 +213,21 @@ def get_model():
 	# 	optimizer=optimizers.get(OPTIMIZER),
 	# 	loss=losses.get(LOSS),
 	# 	metrics=[metrics.get(metric) for metric in METRICS])
+	# model.compile(
+	# 	optimizer=tf.keras.optimizers.Adam(
+	# 		learning_rate=1e-3
+	# 	),  # this LR is overriden by base cycle LR if CyclicLR callback used
+	# 	loss=dice_coef_loss,
+	# 	metrics=dice_score,
+	# )
 	model.compile(
-		optimizer=tf.keras.optimizers.Adam(
-			learning_rate=1e-3
-		),  # this LR is overriden by base cycle LR if CyclicLR callback used
-		loss=dice_coef_loss,
-		metrics=dice_score,
+		optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
+		# loss=dice_coef_loss,
+		# metrics=dice_score,
+		# loss="binary_crossentropy",
+		# metrics=metrics
+		loss=jaccard_coef_loss,
+		metrics=['binary_crossentropy', jaccard_coef_int]
 	)
 	return model
 
@@ -227,7 +263,7 @@ early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, ver
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 
 history = m.fit(train_generator,
-steps_per_epoch=424//6,shuffle=True,
+steps_per_epoch=250//3,shuffle=True,
 epochs=30,
 verbose=1,
 validation_data = test_generator,callbacks=[early_stopping, reduce_lr])
@@ -261,9 +297,9 @@ with tempfile.TemporaryDirectory() as temp_dir:
 val_generator = DataGenerator_segmentation(df_val, dimension=(256, 256),
                  n_channels=4, to_fit=False)
 x=val_generator.__getitem__(1)
-  print('Running predictions...')
+print('Running predictions...')
 predictions = m.predict(val_generator, verbose=1)
 print(predictions[0])
 
-
-
+plt.imshow(predictions[1])
+plt.show()

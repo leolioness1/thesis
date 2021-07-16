@@ -33,8 +33,9 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 
 
 
-LOCAL_PATH= '../Perma_Thesis/MSI/'
+LOCAL_PATH= '../Perma_Thesis/MSI/thaw'
 
+VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
 
 def load_image(image_path):
       """Load grayscale image
@@ -111,14 +112,26 @@ df_dataset['label'] =  df_dataset['labels_string'].apply(lambda x: 1 if x == 'th
 df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
 df_dataset['image_paths'].str.split('\\').str[-2]
 
+
+df_dataset
+df_val = pd.DataFrame()
+files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
+df_val['image_paths'] = files_val
+df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
+df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
+df_val
+
 print("Full Dataset label distribution")
 print(df_dataset.groupby('labels_string').count())
 
 train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
 print("\nTrain Dataset label distribution")
 print(train.groupby('labels_string').count())
-print("\nTest Dataset label distribution")
+print("\nVal Dataset label distribution")
 print(test.groupby('labels_string').count())
+print("\nTest Dataset label distribution")
+print(df_val.groupby('labels_string').count())
 
 #Custom data generator that replaces PIL function on image read of tiff record with rasterio 
 #as default Imagedatagenertator seems to be throwing error
@@ -128,8 +141,8 @@ from data_generator_segmentation import DataGenerator_segmentation
 height = 256
 width = 256
 n_channels =3
-train_generator = DataGenerator_segmentation(train, n_channels=3)
-test_generator = DataGenerator_segmentation(test, n_channels=3)
+train_generator = DataGenerator_segmentation(train, n_channels=n_channels)
+test_generator = DataGenerator_segmentation(test, n_channels=n_channels)
 
 #Add code for resize
 #Add code for normalize range to 0-1
@@ -138,10 +151,9 @@ test_generator = DataGenerator_segmentation(test, n_channels=3)
 x_ex=train_generator.__getitem__(1)
 
 import mlflow
-experiment_name = 'Baseline Segmentation: Transfer Learning'
+experiment_name = 'Baseline Segmentation: Jaccard Index Transfer Learning, no early stopping'
 mlflow.set_experiment(experiment_name)
 mlflow.tensorflow.autolog()
-
 
 
 params = {"height": height
@@ -267,7 +279,7 @@ def dice_score(y_true, y_pred, smooth=1, threshold = 0.6):
         y_true: (string) ground truth image mask
         y_pred : (int) predicted image mask
         smooth : (float) smoothening to prevent divison by 0
-        threshold : (float) threshold over which pixel is conidered positive
+        threshold : (float) threshold over which pixel is considered positive
 
     Returns:    
         Calculated Dice coeffecient for evaluation metric
@@ -280,29 +292,74 @@ def dice_score(y_true, y_pred, smooth=1, threshold = 0.6):
     score = (2. * K.sum(intersection) + smooth)/ (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
     return score
 
+def iou(y_true, y_pred):
+    def f(y_true, y_pred):
+        intersection = (y_true * y_pred).sum()
+        union = y_true.sum() + y_pred.sum() - intersection
+        x = (intersection + 1e-15) / (union + 1e-15)
+        x = x.astype(np.float32)
+        return x
+    return tf.numpy_function(f, [y_true, y_pred], tf.float32)
 
+smooth = 1e-12
+def jaccard_coef(y_true, y_pred):
+    intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
+    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
+
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+
+    return K.mean(jac)
+
+
+def jaccard_coef_int(y_true, y_pred):
+    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+
+    intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
+    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
+
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+
+    return K.mean(jac)
+
+
+def jaccard_coef_loss(y_true, y_pred):
+    return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
+
+metrics = ["acc",
+          # tf.keras.metrics.Recall(), tf.keras.metrics.Precision(),
+          # tf.keras.metrics.Recall(), tf.keras.metrics.Precision(),
+           iou]
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(
-        learning_rate=1e-4
-    ),  # this LR is overriden by base cycle LR if CyclicLR callback used
-    loss=dice_coef_loss,
-    metrics=dice_score,
+    optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
+    # loss=dice_coef_loss,
+    # metrics=dice_score,
+    # loss="binary_crossentropy",
+    # metrics=metrics
+    loss=jaccard_coef_loss,
+    metrics=['binary_crossentropy', jaccard_coef_int]
 )
 
+# model.fit_generator(
+#     batch_generator(X_train, y_train, batch_size, horizontal_flip=True, vertical_flip=True, swap_axis=True),
+#     nb_epoch=nb_epoch,
+#     verbose=1,
+#     samples_per_epoch=batch_size * 400,
+#     callbacks=callbacks,
+#     nb_worker=8
+#     )
 
 
-
-#early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
+# early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
 reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
 
 with mlflow.start_run() as run:
     mlflow.log_params(params)
     history = model.fit(train_generator,
     steps_per_epoch=424//6,shuffle=True,
-    epochs=30,
+    epochs=50,
     verbose=1,
     validation_data = test_generator,callbacks=[
-            #early_stopping,
+#            early_stopping,
             reduce_lr
                                                 ])
     hist_df = pd.DataFrame(history.history)
@@ -329,8 +386,5 @@ with mlflow.start_run() as run:
         image_path = os.path.join(temp_dir, "loss_curve.png")
         plt.savefig(image_path)
         mlflow.log_artifact(image_path)
-
-
-
 
 
