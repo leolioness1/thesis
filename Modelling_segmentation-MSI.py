@@ -32,11 +32,11 @@ from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
 
-
+#using just positive image labels
 LOCAL_PATH= '../Perma_Thesis/MSI/thaw'
 
 VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
-
+n_channels=4
 def load_image(image_path):
       """Load grayscale image
       :param image_path: path to image to load
@@ -45,18 +45,22 @@ def load_image(image_path):
       img_object = rasterio.open(image_path)
       img=img_object.read()
       #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-      channels=3
       size=64
-      img_temp = img[:channels,:256,:256]
-      img_temp[img_temp > 1000] = 1000
-      img_temp = img_temp / 1000
+      img_temp = img[:n_channels,:256,:256]
+
+      # img_temp[img_temp > 1000] = 1000
+      # img_temp = img_temp / 1000
       img_final = np.moveaxis(img_temp, 0, -1)
-#         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
-#         #400m so 40 pixels
-#         startx = 98 #(128-size/2)
-#         starty = 98 #(128-size/2)
-#         img_final = img_final[startx:startx+size,startx:starty+size,:]        
-      return img_final
+      mask = img[-1, :256, :256]
+      mask_final = np.moveaxis(mask, 0, -1)
+      np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
+        #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
+        #400m so 40 pixels
+      startx = 98 #(128-size/2)
+      starty = 98 #(128-size/2)
+      img_final = img_final[startx:startx+size,startx:starty+size,:]
+      mask_final = mask_final[startx:startx + size, startx:starty + size]
+      return img_final, mask_final
 
 def load_mask(image_path):
     img_object = rasterio.open(image_path)
@@ -68,21 +72,41 @@ def load_mask(image_path):
     np.nan_to_num(mask_final, nan=0,copy=False)#Change nans from data to 0 for mask
     return mask_final
 
+IMAGE_DIR_PATH = '../Perma_Thesis/MSI/thaw/'
+BATCH_SIZE = 4
+
+# create list of PATHS
+image_paths = [os.path.join(IMAGE_DIR_PATH, x) for x in os.listdir(IMAGE_DIR_PATH) if x.endswith('.tif')]
 from data_generator_segmentation import DataGenerator_segmentation
-image_test=load_image(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
+val_list=[]
+# val_it=[]
+# Y = np.empty((len(image_paths), *dimension))
+for i, ID in enumerate(image_paths):
+    print(i, ID)
+    image_test,mask_test=load_image(image_path=ID)
+    # Initialization
 
-mask_test= load_mask(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
+    # Generate data
 
-print( "Test Image dimensions:" + str(image_test.shape))
+        # Store sample
+        # Y_temp = load_mask(ID)
+    # Y[i,] = mask_test
 
-print( "Test Mask dimensions:" + str(mask_test.shape))
+    # mask_test= load_mask(image_path=image)
 
-plt.imshow(image_test)
-plt.show()
+    # print( "Test Image dimensions:" + str(image_test.shape))
+    #
+    # print( "Test Mask dimensions:" + str(mask_test.shape))
+    val_list.append(tf.math.count_nonzero(mask_test).numpy())
+    # val_it.append(tf.math.count_nonzero(Y[i]).numpy())
+    # plt.imshow(image_test)
+    # plt.show()
+    #
+    # plt.imshow(mask_test)
+    # plt.show()
 
-plt.imshow(mask_test)
-plt.show()
 
+val_list_perc= np.multiply(np.divide(val_list,16384),100)
 
 # # Proves that crop to size 40*40 is better but maybe make it 100*100??
 # img_cropped = image_test[44:84, 44:84,:]
@@ -125,7 +149,7 @@ df_val
 print("Full Dataset label distribution")
 print(df_dataset.groupby('labels_string').count())
 
-train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
+train, test = train_test_split(df_dataset, test_size=0.2, random_state=123)
 print("\nTrain Dataset label distribution")
 print(train.groupby('labels_string').count())
 print("\nVal Dataset label distribution")
@@ -133,16 +157,16 @@ print(test.groupby('labels_string').count())
 print("\nTest Dataset label distribution")
 print(df_val.groupby('labels_string').count())
 
-#Custom data generator that replaces PIL function on image read of tiff record with rasterio 
+#Custom data generator that replaces PIL function on image read of tiff record with rasterio
 #as default Imagedatagenertator seems to be throwing error
 
 from data_generator_segmentation import DataGenerator_segmentation
 
 height = 256
 width = 256
-n_channels =3
-train_generator = DataGenerator_segmentation(train, n_channels=n_channels)
-test_generator = DataGenerator_segmentation(test, n_channels=n_channels)
+n_channels =4
+train_generator = DataGenerator_segmentation(train,batch_size=6, n_channels=n_channels)
+test_generator = DataGenerator_segmentation(test,batch_size=6, n_channels=n_channels)
 
 #Add code for resize
 #Add code for normalize range to 0-1
@@ -150,8 +174,10 @@ test_generator = DataGenerator_segmentation(test, n_channels=n_channels)
 
 x_ex=train_generator.__getitem__(1)
 
+plt.imshow(x_ex[-1][0])
+plt.show()
 import mlflow
-experiment_name = 'Baseline Segmentation: Jaccard Index Transfer Learning, no early stopping'
+experiment_name = 'Baseline Segmentation- 128: Jaccard Index Transfer Learning, no early stopping, just thaw imagw'
 mlflow.set_experiment(experiment_name)
 mlflow.tensorflow.autolog()
 
@@ -171,10 +197,10 @@ def convolution_block(x, filters):
     Arguments:
         x: (Layer) previous layer of type Tensorflow.keras.layers
         filters : (int) number of filters
-    Returns:    
+    Returns:
         tensorflow.keras.layers.Conv2D block
 
-    """ 
+    """
     x = Conv2D(filters, (3, 3), padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
@@ -188,22 +214,22 @@ def convolution_block(x, filters):
 def MobileUNet(height, width, n_channels, pretrained=True):
     """
     This function builds the model architecture for MobileUNet
-    
+
     Arguments:
         height : (int) height of image
         width : (int) width of image
         n_channels : (int) number of channels in image
         pretrained : (boolean) whether to use the Imagenet pretrained weights for encoder
 
-    Returns:    
+    Returns:
         tensorflow.keras.Model
 
-    """ 
+    """
     # Defining the number of filters at each stage of the decoder
     filters_layer = [16, 32, 64, 128]
     inputs = Input(shape=(height, width, n_channels), name="input_image")
 
-    #Encoder    
+    #Encoder
     if pretrained=="True":
         encoder = MobileNetV2(input_tensor=inputs, weights='imagenet', include_top=False)
     else:
@@ -253,7 +279,7 @@ def dice_coef(y_true, y_pred, smooth=1):
         y_true: (string) ground truth image mask
         y_pred : (int) predicted image mask
 
-    Returns:    
+    Returns:
         Calculated Dice coeffecient
     """
     y_true_f = K.flatten(y_true)
@@ -268,7 +294,7 @@ def dice_coef_loss(y_true, y_pred):
         y_true: (string) ground truth image mask
         y_pred : (int) predicted image mask
 
-    Returns:    
+    Returns:
         Calculated Dice coeffecient loss
     """
     return 1 - dice_coef(y_true, y_pred)
@@ -281,11 +307,11 @@ def dice_score(y_true, y_pred, smooth=1, threshold = 0.6):
         smooth : (float) smoothening to prevent divison by 0
         threshold : (float) threshold over which pixel is considered positive
 
-    Returns:    
+    Returns:
         Calculated Dice coeffecient for evaluation metric
     """
     y_true_f = K.flatten(y_true)
-    y_true_f = K.cast(y_true_f, 'float32')  
+    y_true_f = K.cast(y_true_f, 'float32')
     y_pred = K.cast(y_pred, 'float32')
     y_pred_f = K.cast(K.greater(K.flatten(y_pred), threshold), 'float32')
     intersection = y_true_f * y_pred_f
@@ -330,7 +356,7 @@ metrics = ["acc",
           # tf.keras.metrics.Recall(), tf.keras.metrics.Precision(),
            iou]
 model.compile(
-    optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
+    optimizer=tf.keras.optimizers.Nadam(learning_rate=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
     # loss=dice_coef_loss,
     # metrics=dice_score,
     # loss="binary_crossentropy",
@@ -355,8 +381,8 @@ reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.0
 with mlflow.start_run() as run:
     mlflow.log_params(params)
     history = model.fit(train_generator,
-    steps_per_epoch=424//6,shuffle=True,
-    epochs=50,
+    steps_per_epoch=250//6,shuffle=True,
+    epochs=70,
     verbose=1,
     validation_data = test_generator,callbacks=[
 #            early_stopping,
@@ -388,3 +414,13 @@ with mlflow.start_run() as run:
         mlflow.log_artifact(image_path)
 
 
+
+val_generator = DataGenerator_segmentation(test, dimension=(256, 256),
+                 n_channels=4)
+x=val_generator.__getitem__(1)
+print('Running predictions...')
+predictions = model.predict(val_generator, verbose=1)
+print(predictions[0])
+
+plt.imshow(predictions[0])
+plt.show()

@@ -138,9 +138,9 @@ test.describe()
 from data_generator import DataGenerator
 from data_generator_segmentation import DataGenerator_segmentation
 train_generator = DataGenerator(train, dimension=(256, 256),
-                 n_channels=4)
+                 n_channels=3)
 test_generator = DataGenerator(test,dimension=(256, 256),
-                 n_channels=4)
+                 n_channels=3)
 
 #Add code for resize
 #Add code for normalize range to 0-1
@@ -148,38 +148,38 @@ test_generator = DataGenerator(test,dimension=(256, 256),
 train_generator.__getitem__(1)
 
 
-def build_keras_model(inputShape):
-    inputs = keras.Input(shape=inputShape)
-
-    x = Conv2D(3, (3,3), padding='same', activation='relu')(inputs)
-    x = Conv2D(32, (3,3), padding='same', activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2,2))(x)
-    x = Dropout(0.25)(x)
-
-    x = Conv2D(64, (3,3), padding='same', activation='relu')(x)
-    x = Conv2D(64, (3,3), padding='same', activation='relu', name='l2-layer')(x)
-    l2_logits = x
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2,2))(x)
-    x = Dropout(0.25)(x)
-
-    x = Flatten()(x)
-    x = Dense(512, activation='relu')(x)
-    x = Dropout(0.5)(x)
-    outputs = Dense(2)(x)
-
-    model = keras.Model(inputs=inputs, outputs=[outputs, l2_logits], name='dct_model')
-    return model
-
-IMG_HEIGHT=256
-IMG_WIDTH=256
-model = build_keras_model((IMG_HEIGHT, IMG_WIDTH, 4))
-model.compile(
-        optimizer=tf.keras.optimizers.Adam(
-            learning_rate=1e-3
-        ),  # this LR is overriden by base cycle LR if CyclicLR callback used
-        loss="binary_crossentropy",
-        metrics=["accuracy"],
-    )
+# def build_keras_model(inputShape):
+#     inputs = keras.Input(shape=inputShape)
+#
+#     x = Conv2D(3, (3,3), padding='same', activation='relu')(inputs)
+#     x = Conv2D(32, (3,3), padding='same', activation='relu')(x)
+#     x = MaxPooling2D(pool_size=(2, 2), strides=(2,2))(x)
+#     x = Dropout(0.25)(x)
+#
+#     x = Conv2D(64, (3,3), padding='same', activation='relu')(x)
+#     x = Conv2D(64, (3,3), padding='same', activation='relu', name='l2-layer')(x)
+#     l2_logits = x
+#     x = MaxPooling2D(pool_size=(2, 2), strides=(2,2))(x)
+#     x = Dropout(0.25)(x)
+#
+#     x = Flatten()(x)
+#     x = Dense(512, activation='relu')(x)
+#     x = Dropout(0.5)(x)
+#     outputs = Dense(2)(x)
+#
+#     model = keras.Model(inputs=inputs, outputs=[outputs, l2_logits], name='dct_model')
+#     return model
+#
+# IMG_HEIGHT=256
+# IMG_WIDTH=256
+# model = build_keras_model((IMG_HEIGHT, IMG_WIDTH, 4))
+# model.compile(
+#         optimizer=tf.keras.optimizers.Adam(
+#             learning_rate=1e-3
+#         ),  # this LR is overriden by base cycle LR if CyclicLR callback used
+#         loss="binary_crossentropy",
+#         metrics=["accuracy"],
+#     )
 height = 256
 width = 256
 n_channels =3

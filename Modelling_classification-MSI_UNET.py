@@ -79,7 +79,7 @@ tf.config.list_physical_devices('GPU')
 import mlflow
 experiment_name = 'Baseline:  UNET No Transfer Learning'
 mlflow.set_experiment(experiment_name)
-mlflow.tensorflow.autolog()
+#mlflow.tensorflow.autolog()
 height = 256
 width = 256
 n_channels =4
@@ -220,6 +220,8 @@ def get_model():
 	# 	loss=dice_coef_loss,
 	# 	metrics=dice_score,
 	# )
+	return model
+
 	model.compile(
 		optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
 		# loss=dice_coef_loss,
@@ -229,9 +231,6 @@ def get_model():
 		loss=jaccard_coef_loss,
 		metrics=['binary_crossentropy', jaccard_coef_int]
 	)
-	return model
-
-
 m = get_model()
 
 m.summary()
@@ -301,5 +300,5 @@ print('Running predictions...')
 predictions = m.predict(val_generator, verbose=1)
 print(predictions[0])
 
-plt.imshow(predictions[1])
+plt.imshow(predictions[-1])
 plt.show()

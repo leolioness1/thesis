@@ -7,7 +7,7 @@ class DataGenerator_segmentation(Sequence):
     Sequence based data generator. Suitable for building data generator for training and prediction.
     """
     def __init__(self, df, augmentations='None',
-                 to_fit=True, batch_size=3, dimension=(256, 256),
+                 to_fit=True, batch_size=6, dimension=(256, 256),
                  n_channels=4, shuffle=True):
         """Initialization
         :param list_IDs: list of all file ids to use in the generator
@@ -95,19 +95,6 @@ class DataGenerator_segmentation(Sequence):
     #
     #     return Y
 
-    def _load_image(self, image_path):
-        """Load grayscale image
-        :param image_path: path to image to load
-        :return: loaded image
-        """
-        img_object = rasterio.open(image_path)
-        img = img_object.read()
-        # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-        img_temp = img[:self.n_channels, :256, :256]
-        img_temp[img_temp > 10000] = 10000
-        img_temp = img_temp / 10000
-        img_final = np.moveaxis(img_temp, 0, -1)
-        return img_final
     def _generate_Y(self, list_IDs_temp):
         """Generates data containing batch_size images
         :param list_IDs_temp: list of label ids to load
@@ -120,19 +107,45 @@ class DataGenerator_segmentation(Sequence):
             # Store sample
             Y_temp = self._load_mask(ID)
             Y[i,] = Y_temp[..., np.newaxis]
+
+
         return Y
+
+    def _load_image(self, image_path):
+        """Load grayscale image
+        :param image_path: path to image to load
+        :return: loaded image
+        """
+        img_object = rasterio.open(image_path)
+        img=img_object.read()
+        #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
+        channels=4
+        size=64
+        img_temp = img[:channels,:256,:256]
+        img_temp = img_temp / 1000
+        img_final = np.moveaxis(img_temp, 0, -1)
+#         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
+#         #400m so 40 pixels
+#         startx = 98 #(128-size/2)
+#         starty = 98 #(128-size/2)
+#         img_final = img_final[startx:startx+size,startx:starty+size,:]
+        return img_final
+
     #Combine later with image read, as of now inefficient as 2 reads for each file
     def _load_mask(self, image_path):
         img_object = rasterio.open(image_path)
         img=img_object.read()
+        #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
+        channels=4
+        size=64
         mask = img[-1,:256,:256]
         mask_final = np.moveaxis(mask, 0, -1)
-        # Change nans from data to 0 for mask
-        np.nan_to_num(mask_final, nan=0,copy=False)
+        np.nan_to_num(mask_final, nan=0,copy=False)#Change nans from data to 0 for mask
         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
         #400m so 40 pixels
 #         startx = 98 #(128-size/2)
 #         starty = 98 #(128-size/2)
 #         mask_final = mask_final[startx:startx+size,startx:starty+size]
         return mask_final
+
 
