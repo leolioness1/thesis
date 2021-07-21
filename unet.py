@@ -5,6 +5,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.losses import binary_crossentropy
 #!/usr/bin/env python
 # coding: utf-8
+import io
 from datetime import datetime
 from tensorboard.plugins.hparams import api as hp
 from glob import glob
@@ -200,53 +201,55 @@ def jaccard_coef_int(y_true, y_pred):
 
 
 def jaccard_coef_loss(y_true, y_pred):
+    jaccard_loss=-K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
+    #tf.summary.scalar('jaccard_loss', data=jaccard_loss)
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
-def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4):
+def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu'):
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
     #s = Lambda(lambda x: x / 255)(inputs)
 
-    c1 = Conv2D(16, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(inputs)
+    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(inputs)
     c1 = Dropout(0.1)(c1)
-    c1 = Conv2D(16, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c1)
+    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
-    c2 = Conv2D(32, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(p1)
+    c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(p1)
     c2 = Dropout(0.1)(c2)
-    c2 = Conv2D(32, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c2)
+    c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c2)
     p2 = MaxPooling2D((2, 2))(c2)
-    c3 = Conv2D(64, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(p2)
+    c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(p2)
     c3 = Dropout(0.2)(c3)
-    c3 = Conv2D(64, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c3)
+    c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c3)
     p3 = MaxPooling2D((2, 2))(c3)
-    c4 = Conv2D(128, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(p3)
+    c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(p3)
     c4 = Dropout(0.2)(c4)
-    c4 = Conv2D(128, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c4)
+    c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c4)
     p4 = MaxPooling2D(pool_size=(2, 2))(c4)
-    c5 = Conv2D(256, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(p4)
+    c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(p4)
     c5 = Dropout(0.3)(c5)
-    c5 = Conv2D(256, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c5)
+    c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c5)
     u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
     u6 = concatenate([u6, c4])
-    c6 = Conv2D(128, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(u6)
+    c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(u6)
     c6 = Dropout(0.2)(c6)
-    c6 = Conv2D(128, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c6)
+    c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c6)
 
 
     u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
     u7 = concatenate([u7, c3])
-    c7 = Conv2D(64, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(u7)
+    c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(u7)
     c7 = Dropout(0.2)(c7)
-    c7 = Conv2D(64, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c7)
+    c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c7)
     u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
     u8 = concatenate([u8, c2])
-    c8 = Conv2D(32, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(u8)
+    c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(u8)
     c8 = Dropout(0.1)(c8)
-    c8 = Conv2D(32, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c8)
+    c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c8)
     u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
     u9 = concatenate([u9, c1], axis=3)
-    c9 = Conv2D(16, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(u9)
+    c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(u9)
     c9 = Dropout(0.1)(c9)
-    c9 = Conv2D(16, (3, 3), activation='elu', kernel_initializer='he_normal', padding='same')(c9)
+    c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c9)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
     model = Model(inputs=[inputs], outputs=[outputs])
     #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[dice_coef, mean_iou(2)])
@@ -268,23 +271,21 @@ params = {"height": height
      "model": "UNET"}
 
 logdir= 'logs/hparam_tuning'
-save_weights_path= "'../" + datetime.now().strftime("%Y%m%d%H%M%S")
-save_plots_path="logs/plots/" + datetime.now().strftime("%Y%m%d%H%M%S")
-
+logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
 def train_test_model(hparams):
     # 5. Set the callbacks for saving the weights and the tensorboard
-    weights = datetime.now().strftime("%Y%m%d%H%M%S") + "_{epoch:02d}.hdf5"  # "_lr_{}".format(round(learning_rate,8))
-    checkpoint = ModelCheckpoint(weights, monitor='val_accuracy', verbose=0, save_best_only=True, save_weights_only=True)
-    logs_dir = logdir  # + "/lr_{}".format(round(learning_rate,8))
+ # + "/lr_{}".format(round(learning_rate,8))
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
     model = get_unet()
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name= hparams[HP_OPTIMIZER]
     learning_rate = hparams[HP_LEARNING_RATE]
+    weights = datetime.now().strftime("%Y%m%d%H%M%S")+"_lr_{}".format(round(learning_rate,8))+optimiser_name+ "_{epoch:02d}.hdf5"  # "_lr_{}".format(round(learning_rate,8))
+    checkpoint = ModelCheckpoint(weights, monitor='val_accuracy', verbose=0, save_best_only=True, save_weights_only=True)
     # 4. Select the optimizer and the learning rate (default option is Adam)
     if optimiser_name == 'rmsprop':
-        optimiser = tf.keras.RMSprop(learning_rate=learning_rate,rho=0.9, epsilon=None, decay=0.0)
+        optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate,rho=0.9, epsilon=None, decay=0.0)
     elif optimiser_name == 'nadam':
         optimiser = tf.keras.optimizers.Nadam(learning_rate=learning_rate)#learning_rate=learning_rate
     elif optimiser_name == 'sgd':
@@ -302,7 +303,8 @@ def train_test_model(hparams):
         # metrics=metrics
         loss=jaccard_coef_loss,
         metrics=['accuracy',
-                 jaccard_coef_int
+                 jaccard_coef_int,
+                 "binary_crossentropy"
                  ]
     )
     history = model.fit(train_generator,
@@ -384,11 +386,11 @@ file_writer = tf.summary.create_file_writer(logdir + "/metrics")
 file_writer.set_as_default()
 
 # 5. Set the callbacks for saving the weights and the tensorboard
-weights = datetime.now().strftime("%Y%m%d%H%M%S") + "_{epoch:02d}.hdf5"#"_lr_{}".format(round(learning_rate,8))
-checkpoint = ModelCheckpoint(weights, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True)
-logs_dir = logdir #+ "/lr_{}".format(round(learning_rate,8))
-tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
-# log_dir ='\\logs\\fit\\' +datetime.now().strftime('%Y%m%d-%H%M%S')
+# weights = datetime.now().strftime("%Y%m%d%H%M%S") + "_{epoch:02d}.hdf5"#"_lr_{}".format(round(learning_rate,8))
+# checkpoint = ModelCheckpoint(weights, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True)
+# logs_dir = logdir #+ "/lr_{}".format(round(learning_rate,8))
+# tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
+# # log_dir ='\\logs\\fit\\' +datetime.now().strftime('%Y%m%d-%H%M%S')
 
 hp.hparams_config(
 hparams=[HP_OPTIMIZER, HP_LEARNING_RATE],
@@ -407,8 +409,27 @@ def run(run_dir, hparams):
       # tf.summary.scalar(METRIC_BCE, bce, step=1)
   return accuracy,history, model
 
-session_num = 0
+plot_logdir = "logs/plots/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+plt_file_writer = tf.summary.create_file_writer(plot_logdir)
 
+def plot_to_image(figure):
+  """Converts the matplotlib plot specified by 'figure' to a PNG image and
+  returns it. The supplied figure is closed and inaccessible after this call."""
+  # Save the plot to a PNG in memory.
+  buf = io.BytesIO()
+  plt.savefig(buf, format='png')
+  # Closing the figure prevents it from being displayed directly inside
+  # the notebook.
+  plt.close(figure)
+  buf.seek(0)
+  # Convert PNG buffer to TF image
+  image = tf.image.decode_png(buf.getvalue(), channels=4)
+  # Add the batch dimension
+  image = tf.expand_dims(image, 0)
+  return image
+
+#runner
+session_num = 0
 
 for optimiser in HP_OPTIMIZER.domain.values:
     for learning_rate in HP_LEARNING_RATE.domain.values:
@@ -439,6 +460,9 @@ for optimiser in HP_OPTIMIZER.domain.values:
       plt.legend(['train', 'val'], loc='upper left')
       plt.show()
       plt.savefig(f"{run_name}loss_curve.png")
+      # with plt_file_writer.as_default():
+      #     tf.summary.image("loss_curve", plot_to_image(plt), step=0)
+      plt.close()
       session_num += 1
 
 
