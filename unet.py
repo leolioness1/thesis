@@ -120,35 +120,37 @@ df_dataset['image_paths'].str.split('\\').str[-2]
 df_dataset
 
 
-df_val = pd.DataFrame()
-files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
-df_val['image_paths'] = files_val
-df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
-df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
-df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
-df_val
+# df_val = pd.DataFrame()
+# files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
+# df_val['image_paths'] = files_val
+# df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
+# df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+# df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
+# df_val
 
 print("Full Dataset label distribution")
 print(df_dataset.groupby('labels_string').count())
 
-train, test = train_test_split(df_dataset, test_size=0.2, random_state=123)
+train, val = train_test_split(df_dataset, test_size=0.3, random_state=123)
+val, test = train_test_split(val, test_size=0.1, random_state=123)
 print("\nTrain Dataset label distribution")
 print(train.groupby('labels_string').count())
 print("\nVal Dataset label distribution")
-print(test.groupby('labels_string').count())
+print(val.groupby('labels_string').count())
 print("\nTest Dataset label distribution")
-print(df_val.groupby('labels_string').count())
+print(test.groupby('labels_string').count())
 
 #Custom data generator that replaces PIL function on image read of tiff record with rasterio
 #as default Imagedatagenertator seems to be throwing error
 
 from data_generator_segmentation import DataGenerator_segmentation
 
-height = 256
-width = 256
+height = 64
+width = 64
 n_channels =4
-train_generator = DataGenerator_segmentation(train,batch_size=6, n_channels=n_channels)
-test_generator = DataGenerator_segmentation(test,batch_size=6, n_channels=n_channels)
+train_generator = DataGenerator_segmentation(train,dimension=(height,width),batch_size=6, n_channels=n_channels)
+val_generator = DataGenerator_segmentation(val,dimension=(height,width),batch_size=6, n_channels=n_channels)
+
 
 #Add code for resize
 #Add code for normalize range to 0-1
@@ -260,9 +262,6 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # MODEL_DIR = ''
 # m = tf.keras.models.load_model(MODEL_DIR)
 # m.summary()
-height = 256
-width = 256
-n_channels =4
 
 params = {"height": height
     , "width": width
@@ -270,19 +269,20 @@ params = {"height": height
     ,"normalisation": ">10000/10000",
      "model": "UNET"}
 
-logdir= 'logs/hparam_tuning'
-logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
-def train_test_model(hparams):
+# logdir= 'logs/hparam_tuning'
+# logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
+def train_test_model(hparams,run_dir, n_epochs=5):
     # 5. Set the callbacks for saving the weights and the tensorboard
  # + "/lr_{}".format(round(learning_rate,8))
-    tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
-    model = get_unet()
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0,update_freq="epoch")
+    model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func='elu')
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name= hparams[HP_OPTIMIZER]
     learning_rate = hparams[HP_LEARNING_RATE]
-    weights = datetime.now().strftime("%Y%m%d%H%M%S")+"_lr_{}".format(round(learning_rate,8))+optimiser_name+ "_{epoch:02d}.hdf5"  # "_lr_{}".format(round(learning_rate,8))
-    checkpoint = ModelCheckpoint(weights, monitor='val_accuracy', verbose=0, save_best_only=True, save_weights_only=True)
+    weights_path = datetime.now().strftime("%Y%m%d%H%M%S")+"_lr_{}".format(round(learning_rate,8))+optimiser_name+ "_{epoch:02d}.hdf5"
+    checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=True)
+
     # 4. Select the optimizer and the learning rate (default option is Adam)
     if optimiser_name == 'rmsprop':
         optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate,rho=0.9, epsilon=None, decay=0.0)
@@ -308,60 +308,21 @@ def train_test_model(hparams):
                  ]
     )
     history = model.fit(train_generator,
-                    steps_per_epoch=250 // 6, shuffle=True,
-                    epochs=5,
+                    steps_per_epoch=219 // 6, shuffle=True,
+                    epochs=n_epochs,
                     verbose=1,
-                    validation_data=test_generator, callbacks=[
+                    validation_data=val_generator, callbacks=[
 #            early_stopping,
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
-            hp.KerasCallback(logdir, hparams),  # log hparams
+            hp.KerasCallback(run_dir, hparams),  # log hparams
       ],
     )
-    return history.history['val_accuracy'][-1],history, model
+    print(history.history['val_accuracy'][-1])
+    print(history.history['accuracy'][-1])
 
-#
-# with mlflow.start_run() as run:
-#     mlflow.log_params(params)
-#
-#     history = m.fit(train_generator,
-#                     steps_per_epoch=250 // 6, shuffle=True,
-#                     epochs=100,
-#                     verbose=1,
-#                     validation_data=test_generator, callbacks=[
-# #            early_stopping,
-#             reduce_lr,
-#         tf.keras.callbacks.TensorBoard(logdir),  # log metrics
-#         hp.KerasCallback(logdir, hparams),  # log hparams
-#       ],
-#     )
-#
-#
-#     hist_df = pd.DataFrame(history.history)
-#     hist_df.to_csv('history.csv')
-#     # ### Save model
-#     export_path = tf.saved_model.save(m, 'keras_export')
-#     print("Model exported to: ", export_path)
-#
-#     # Removing the first value of the loss
-#     losses = history.history['loss']
-#     val_losses = history.history['val_loss']
-#
-#     # Looking at the loss curve
-#     plt.plot(losses)
-#     plt.plot(val_losses)
-#     plt.title('model loss')
-#     plt.ylabel('loss')
-#     plt.xlabel('epoch')
-#     plt.legend(['train', 'val'], loc='upper left')
-#     plt.show()
-#
-#     # Log as MLflow artifact
-#     with tempfile.TemporaryDirectory() as temp_dir:
-#         image_path = os.path.join(temp_dir, "loss_curve.png")
-#         plt.savefig(image_path)
-#         mlflow.log_artifact(image_path)
+    return history.history['val_accuracy'][-1],history, model
 
 
 tf.summary.experimental.set_step(True)
@@ -369,48 +330,24 @@ HP_LEARNING_RATE= hp.HParam('learning_rate', hp.Discrete([0.001, 0.0005, 0.0001]
 HP_OPTIMIZER = hp.HParam('optimizer', hp.Discrete(['adam', 'sgd', 'nadam','rmsprop']))
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY= 'accuracy'
-# 5. Set the callbacks for saving the weights and the tensorboard
-weights = "weights_{epoch:02d}.hdf5"#"_lr_{}".format(round(learning_rate,8))
-checkpoint = ModelCheckpoint(weights, monitor='val_accuracy', verbose=0, save_best_only=True, save_weights_only=True)
-logs_dir = logdir #+ "/lr_{}".format(round(learning_rate,8))
-tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
-# with tf.summary.create_file_writer('logs/hparam_tuning').as_default():
 hp.hparams_config(
     hparams=[HP_OPTIMIZER],
     metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy')],
 )
 
-logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
-logs_dir
-file_writer = tf.summary.create_file_writer(logdir + "/metrics")
-file_writer.set_as_default()
-
-# 5. Set the callbacks for saving the weights and the tensorboard
-# weights = datetime.now().strftime("%Y%m%d%H%M%S") + "_{epoch:02d}.hdf5"#"_lr_{}".format(round(learning_rate,8))
-# checkpoint = ModelCheckpoint(weights, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True)
-# logs_dir = logdir #+ "/lr_{}".format(round(learning_rate,8))
-# tensorboard = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=0, write_images=False)
-# # log_dir ='\\logs\\fit\\' +datetime.now().strftime('%Y%m%d-%H%M%S')
-
-hp.hparams_config(
-hparams=[HP_OPTIMIZER, HP_LEARNING_RATE],
-metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy')],
-)
-
 def run(run_dir, hparams):
-  # with tf.summary.create_file_writer(run_dir).as_default():
   with tf.summary.create_file_writer(run_dir).as_default():
+
       hp.hparams(hparams)  # record the values used in this trial
-      accuracy,history,model = train_test_model(hparams)
+      accuracy,history,model = train_test_model(hparams,run_dir,n_epochs=15)
       # converting to tf scalar
       accuracy = tf.reshape(tf.convert_to_tensor(accuracy), []).numpy()
-      tf.summary.scalar(METRIC_ACCURACY, accuracy, step=1)
-
+      tf.summary.scalar(METRIC_ACCURACY, accuracy)
       # tf.summary.scalar(METRIC_BCE, bce, step=1)
   return accuracy,history, model
 
-plot_logdir = "logs/plots/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-plt_file_writer = tf.summary.create_file_writer(plot_logdir)
+# plot_logdir = "logs/plots/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+# plt_file_writer = tf.summary.create_file_writer(plot_logdir)
 
 def plot_to_image(figure):
   """Converts the matplotlib plot specified by 'figure' to a PNG image and
@@ -428,45 +365,7 @@ def plot_to_image(figure):
   image = tf.expand_dims(image, 0)
   return image
 
-#runner
-session_num = 0
-
-for optimiser in HP_OPTIMIZER.domain.values:
-    for learning_rate in HP_LEARNING_RATE.domain.values:
-      hparams = {
-          HP_OPTIMIZER: optimiser,
-          HP_LEARNING_RATE: learning_rate
-      }
-      run_name = "run-%d" % session_num
-      print('--- Starting trial: %s' % run_name)
-      print({h.name: hparams[h] for h in hparams})
-      accuracy,history, model=run('logs/hparam_tuning/' + run_name, hparams)
-      hist_df = pd.DataFrame(history.history)
-      hist_df.to_csv('history.csv')
-      # ### Save model
-      export_path = tf.saved_model.save(model, 'keras_export')
-      print("Model exported to: ", export_path)
-
-      # Removing the first value of the loss
-      losses = history.history['loss']
-      val_losses = history.history['val_loss']
-
-      # Looking at the loss curve
-      plt.plot(losses)
-      plt.plot(val_losses)
-      plt.title('model loss')
-      plt.ylabel('loss')
-      plt.xlabel('epoch')
-      plt.legend(['train', 'val'], loc='upper left')
-      plt.show()
-      plt.savefig(f"{run_name}loss_curve.png")
-      # with plt_file_writer.as_default():
-      #     tf.summary.image("loss_curve", plot_to_image(plt), step=0)
-      plt.close()
-      session_num += 1
-
-
-def plot_metric(history, metric):
+def plot_metric(history, metric,learning_rate,optimiser):
     train_metrics = history.history[metric]
     val_metrics = history.history['val_' + metric]
     epochs = range(1, len(train_metrics) + 1)
@@ -476,4 +375,157 @@ def plot_metric(history, metric):
     plt.xlabel("Epochs")
     plt.ylabel(metric)
     plt.legend(["train_" + metric, 'val_' + metric])
+    plt.show()
+    plt.savefig(f"{learning_rate}_{optimiser}_{metric}.png")
+
+
+#runner
+session_num = 0
+log_dir='logs/hparam_tuning_64/'
+for optimiser in HP_OPTIMIZER.domain.values:
+    for learning_rate in HP_LEARNING_RATE.domain.values:
+      hparams = {
+          HP_OPTIMIZER: optimiser,
+          HP_LEARNING_RATE: learning_rate
+      }
+      run_name = "run-%d" % session_num
+      print('--- Starting trial: %s' % run_name)
+      print({h.name: hparams[h] for h in hparams})
+      accuracy,history, model=run(log_dir + run_name, hparams)
+      hist_df = pd.DataFrame(history.history)
+      hist_df.to_csv('history.csv')
+      # ### Save model
+      export_path = tf.saved_model.save(model, 'keras_export')
+      print("Model exported to: ", export_path)
+
+      file_writer = tf.summary.create_file_writer(log_dir + run_name)
+      file_writer.set_as_default()
+      acc_fig =plot_metric(history, "accuracy",learning_rate,optimiser)
+      tf.summary.image(f"{learning_rate}_{optimiser}_{run_name}_accuracy_curve", plot_to_image(acc_fig))
+
+      loss_fig= plot_metric(history, "loss",learning_rate,optimiser)
+      tf.summary.image(f"{learning_rate}_{optimiser}_{run_name}_loss_curve", plot_to_image(loss_fig))
+      session_num += 1
+
+
+      #
+      # with mlflow.start_run() as run:
+      #     mlflow.log_params(params)
+      #
+      #     history = m.fit(train_generator,
+      #                     steps_per_epoch=250 // 6, shuffle=True,
+      #                     epochs=100,
+      #                     verbose=1,
+      #                     validation_data=val_generator, callbacks=[
+      # #            early_stopping,
+      #             reduce_lr,
+      #         tf.keras.callbacks.TensorBoard(logdir),  # log metrics
+      #         hp.KerasCallback(logdir, hparams),  # log hparams
+      #       ],
+      #     )
+      #
+      #
+      #     hist_df = pd.DataFrame(history.history)
+      #     hist_df.to_csv('history.csv')
+      #     # ### Save model
+      #     export_path = tf.saved_model.save(m, 'keras_export')
+      #     print("Model exported to: ", export_path)
+      #
+      #     # Removing the first value of the loss
+      #     losses = history.history['loss']
+      #     val_losses = history.history['val_loss']
+      #
+      #     # Looking at the loss curve
+      #     plt.plot(losses)
+      #     plt.plot(val_losses)
+      #     plt.title('model loss')
+      #     plt.ylabel('loss')
+      #     plt.xlabel('epoch')
+      #     plt.legend(['train', 'val'], loc='upper left')
+      #     plt.show()
+      #
+      #     # Log as MLflow artifact
+      #     with tempfile.TemporaryDirectory() as temp_dir:
+      #         image_path = os.path.join(temp_dir, "loss_curve.png")
+      #         plt.savefig(image_path)
+      #         mlflow.log_artifact(image_path)
+
+file_writer = tf.summary.create_file_writer(log_dir + run_name)
+file_writer.set_as_default()
+
+
+# test_generator = DataGenerator_segmentation(test,batch_size=10, n_channels=n_channels,to_fit=False)
+test_generator_gt =DataGenerator_segmentation(test,dimension=(width,height),batch_size=10, n_channels=n_channels)
+# test_item=test_generator.__getitem__(0)
+test_gt=test_generator_gt.__getitem__(0)
+test_gt[0][-1].shape
+test_gt[1][0].shape
+x_example_ex=np.expand_dims(test_gt[0][0], axis=0)
+mask_example_ex= np.expand_dims(test_gt[1][0], axis=0)
+print('Running predictions...')
+predictions = model.evaluate(x_example_ex,mask_example_ex,verbose=1)
+predictions = model.predict(test_gt[0],verbose=1)
+print(predictions[0])
+
+def plot_sample(ix=None):
+    """Function to plot the results"""
+
+    fig, ax = plt.subplots(1, 3, figsize=(20, 10)) #4
+    ax[0].imshow(test_gt[0][ix])
+
+    ax[0].contour(test_gt[1][ix].squeeze(), colors='w', levels=[0.5])
+    ax[0].set_title('Image')
+
+    ax[1].imshow(test_gt[1][ix].squeeze())
+    ax[1].set_title('Mask')
+
+    ax[2].imshow(predictions[ix].squeeze(), vmin=0, vmax=1)
+
+    ax[2].contour(test_gt[1][ix].squeeze(), colors='w', levels=[0.5])
+    ax[2].set_title('Predicted')
+
+
+
+
+plt.show()
+list=[]
+for i in range(0, len(predictions)):
+    print(np.max(predictions[i]))
+    list.append(np.max(predictions[i]))
+    plot_sample(i)
+    input("Press Enter to continue")
+print(list)
+
+def plot_sample(ix=None):
+    """Function to plot the results"""
+    fig, ax = plt.subplots(10, 3, figsize=(10, 10)) #4
+    for ix in range(0, len(predictions)):
+
+        ax[ix][0].imshow(test_gt[0][ix])
+
+        ax[ix][0].contour(test_gt[1][ix].squeeze(), colors='w', levels=[0.5])
+        ax[ix][0].set_title('Image')
+
+        ax[ix][1].imshow(test_gt[1][ix].squeeze())
+        ax[ix][1].set_title('Mask')
+
+        ax[ix][2].imshow(predictions[ix].squeeze(), vmin=0, vmax=1)
+
+        ax[ix][2].contour(test_gt[1][ix].squeeze(), colors='w', levels=[0.5])
+        ax[ix][2].set_title('Predicted')
+
+cfd_last = x_cfd.shape[0]
+
+for i in range(10): # number of rows of plot
+    for j in range(5):
+
+        if i*5+j == cfd_last:
+            break
+
+        pixels=cp_cfd[i*5+j,:].reshape(79, 14)
+        plt.subplot(1,5,j+1)
+        plt.imshow(pixels, cmap=plt.cm.jet)
+        plt.title('#'+str(i*5+j+1))
+
+
     plt.show()

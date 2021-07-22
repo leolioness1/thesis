@@ -38,49 +38,46 @@ df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
 df_dataset
 
 
-VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
+# VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
+#
+# df_val = pd.DataFrame()
+# files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
+# df_val['image_paths'] = files_val
+# df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
+# df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+# df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
+# df_val
 
-df_val = pd.DataFrame()
-files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
-df_val['image_paths'] = files_val
-df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
-df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
-df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
-df_val
 
 print("Full Dataset label distribution")
 print(df_dataset.groupby('labels_string').count())
 
-train, test = train_test_split(df_dataset, test_size=0.2, stratify=df_dataset['label'], random_state=123)
+train, val = train_test_split(df_dataset, test_size=0.3, stratify=df_dataset['label'], random_state=123)
+val, test = train_test_split(val, test_size=0.1, stratify=df_dataset['label'], random_state=123)
 print("\nTrain Dataset label distribution")
 print(train.groupby('labels_string').count())
 print("\nVal Dataset label distribution")
-print(test.groupby('labels_string').count())
+print(val.groupby('labels_string').count())
 print("\nTest Dataset label distribution")
-print(df_val.groupby('labels_string').count())
-train.describe()
-
-test.describe()
+print(test.groupby('labels_string').count())
 n_channels =3
 #Custom data generator that replaces PIL function on image read of tiff record with rasterio 
 #as default Imagedatagenertator seems to be throwing error
 # #### Custom data generator
-train_generator = DataGenerator(train, dimension=(256, 256),
-                 n_channels=n_channels)
-test_generator = DataGenerator(test,dimension=(256, 256),
+train_generator = DataGenerator(train, dimension=(256, 256), n_channels=n_channels)
+val_generator = DataGenerator(val,dimension=(256, 256),
                  n_channels=n_channels)
 #Add code for resize
 #Add code for normalize range to 0-1
 #Add code fro augmentations
 train_generator.__getitem__(1)
 tf.config.list_physical_devices('GPU')
-
 #encoder = MobileNetV2(input_tensor=inputs, weights='imagenet', include_top=False)
 
 import mlflow
 experiment_name = 'Baseline: Transfer Learning'
 mlflow.set_experiment(experiment_name)
-mlflow.tensorflow.autolog()
+# mlflow.tensorflow.autolog()
 # height = 256
 # width = 256
 # n_channels =4
@@ -159,7 +156,7 @@ with mlflow.start_run() as run:
     steps_per_epoch=424//6,shuffle=True,
     epochs=20,
     verbose=1,
-    validation_data = test_generator,callbacks=[
+    validation_data = val_generator,callbacks=[
             #early_stopping,
              reduce_lr]
                         )
@@ -192,11 +189,11 @@ with mlflow.start_run() as run:
 
 
 
-val_generator = DataGenerator(df_val, dimension=(256, 256),
+test_generator = DataGenerator(test, dimension=(256, 256),
                  n_channels=3, to_fit=False)
-x=val_generator.__getitem__(1)
+x= test_generator.__getitem__(1)
 print('Running predictions...')
-predictions = model.predict(val_generator, verbose=1)
+predictions = model.evaluate(test_generator, verbose=1)
 print(predictions[0])
 
 predictions_bol= predictions >0.5

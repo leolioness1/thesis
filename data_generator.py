@@ -107,5 +107,6 @@ class DataGenerator(Sequence):
         img_temp = img[:self.n_channels, :256, :256]
         img_temp[img_temp > 10000] = 10000
         img_temp = img_temp / 10000
+        np.nan_to_num(img_temp, nan=0, copy=False)
         img_final = np.moveaxis(img_temp, 0, -1)
         return img_final

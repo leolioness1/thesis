@@ -302,3 +302,5 @@ print(predictions[0])
 
 plt.imshow(predictions[-1])
 plt.show()
+
+
