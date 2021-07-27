@@ -41,132 +41,37 @@ from tensorflow.keras.applications import MobileNetV2
 # train the model on the new data for a few epochs
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
-# using just positive image labels
-LOCAL_PATH = '../Perma_Thesis/MSI/thaw'
-
-VAL_LOCAL_PATH = '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
-
-
-# def load_image(image_path):
-#       """Load grayscale image
-#       :param image_path: path to image to load
-#       :return: loaded image
-#       """
-#       img_object = rasterio.open(image_path)
-#       img=img_object.read()
-#       #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-#       channels=3
-#       size=64
-#       img_temp = img[:channels,:256,:256]
-#       img_temp[img_temp > 1000] = 1000
-#       img_temp = img_temp / 1000
-#       img_final = np.moveaxis(img_temp, 0, -1)
-# #         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
-# #         #400m so 40 pixels
-# #         startx = 98 #(128-size/2)
-# #         starty = 98 #(128-size/2)
-# #         img_final = img_final[startx:startx+size,startx:starty+size,:]
-#       return img_final
-#
-def load_mask(image_path):
-    img_object = rasterio.open(image_path)
-    img = img_object.read()
-    # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-
-    mask = img[-1, :256, :256]
-    mask_final = np.moveaxis(mask, 0, -1)
-    np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
-    return mask_final
-
-
-from data_generator_segmentation import DataGenerator_segmentation
-
-# image_test=load_image(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
-#
-# mask_test= load_mask(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
-#
-# print( "Test Image dimensions:" + str(image_test.shape))
-#
-# print( "Test Mask dimensions:" + str(mask_test.shape))
-#
-# plt.imshow(image_test)
-# plt.show()
-#
-# plt.imshow(mask_test)
-# plt.show()
-
-
-# # Proves that crop to size 40*40 is better but maybe make it 100*100??
-# img_cropped = image_test[44:84, 44:84,:]
-# plt.imshow(img_cropped)
-# plt.show()
-# #but still images are very bad quality resolution and need to add more bands!!!!
-#
-# validated_shape_files = gpd.read_file(VALIDATED_SHAPE_FILE_PATH)
-# validated_shape_files = validated_shape_files.to_crs("EPSG:32604")
-# shapes = validated_shape_files['geometry']
-
-#
-# IMG_HEIGHT=256
-# IMG_WIDTH=256
-# BATCH_SIZE = 8
-
-
-# ##### Load image, preprocess, augment through image data generator
-
 # #### Custom data generator
-
+LOCAL_PATH= '../Perma_Thesis/output_windows'
 df_dataset = pd.DataFrame()
-files = glob(LOCAL_PATH + "**/*.tif")
+files = glob(LOCAL_PATH + "**/*.tiff")
 df_dataset['image_paths'] = files
-df_dataset['labels_string'] = df_dataset['image_paths'].str.split('\\').str[-2]
-df_dataset['label'] = df_dataset['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
-df_dataset = df_dataset.sample(frac=1).reset_index(drop=True)  # Randomize
-df_dataset['image_paths'].str.split('\\').str[-2]
+# df_dataset['labels_string'] = df_dataset['image_paths'].str.split('\\').str[-2]
+# df_dataset['label'] =  df_dataset['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+df_dataset = df_dataset.sample(frac=1).reset_index(drop=True) #Randomize
+df_dataset['image_paths'].str.split('/').str[-2]
 df_dataset
 
-# df_val = pd.DataFrame()
-# files_val = glob(VAL_LOCAL_PATH + "**/*.tif")
-# df_val['image_paths'] = files_val
-# df_val['labels_string'] = df_val['image_paths'].str.split('\\').str[-2]
-# df_val['label'] =  df_val['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
-# df_val=df_val.sample(frac=1).reset_index(drop=True) #Randomize
-# df_val
+
+
 
 print("Full Dataset label distribution")
-print(df_dataset.groupby('labels_string').count())
+print(df_dataset.count())
 
 train, val = train_test_split(df_dataset, test_size=0.3, random_state=123)
 val, test = train_test_split(val, test_size=0.1, random_state=123)
 print("\nTrain Dataset label distribution")
-print(train.groupby('labels_string').count())
+print(train.count())
 print("\nVal Dataset label distribution")
-print(val.groupby('labels_string').count())
+print(val.count())
 print("\nTest Dataset label distribution")
-print(test.groupby('labels_string').count())
+print(test.count())
 
 # Custom data generator that replaces PIL function on image read of tiff record with rasterio
 # as default Imagedatagenertator seems to be throwing error
 
-from data_generator_segmentation import DataGenerator_segmentation
-import dill
-
-# Add code for resize
-# Add code for normalize range to 0-1
-# Add code fro augmentations
-
-# x_ex=train_generator.__getitem__(1)
-
-import mlflow
-
-experiment_name = 'Baseline Segmentation: elu, he_normal init, nadam'
-mlflow.set_experiment(experiment_name)
-# mlflow.tensorflow.autolog()
-
-
+from data_generator_segmentation_adam_data import DataGenerator_segmentation
 smooth = 1e-12
-
-
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
@@ -188,8 +93,6 @@ def jaccard_coef_int(y_true, y_pred):
 
 
 def jaccard_coef_loss(y_true, y_pred):
-    jaccard_loss = -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
-    # tf.summary.scalar('jaccard_loss', data=jaccard_loss)
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
 
@@ -229,16 +132,16 @@ def dice_coef(y_true, y_pred, smooth=1):
 #     intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
 #     return (2. * intersection + smooth) / (K.sum(K.square(y_true),-1) + K.sum(K.square(y_pred),-1) + smooth)
 
-def dice_coeff(y_true, y_pred):
-    smooth = 1.0
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+# def dice_coeff(y_true, y_pred):
+#     smooth = 1.0
+#     y_true_f = K.flatten(y_true)
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 
 def dice_loss(y_true, y_pred):
-    return 1 - dice_coeff(y_true, y_pred)
+    return 1 - dice_coef(y_true, y_pred)
 
 
 def crossentropy_dice_loss(y_true, y_pred):
@@ -294,9 +197,9 @@ def binary_focal_loss(gamma=2., alpha=.25):
 def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu'):
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
     # s = Lambda(lambda x: x / 255)(inputs)
-    t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
-    t2 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.3, 0.3, 'nearest', interpolation='bilinear')(t1)
-    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(t2)
+    # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
+    # t2 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.3, 0.3, 'nearest', interpolation='bilinear')(t1)
+    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(inputs)
     c1 = Dropout(0.1)(c1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer='he_normal', padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
@@ -372,18 +275,17 @@ def train_test_model(hparams, run_dir, n_epochs=5):
     n_channels = 4
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
     model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func='elu')
-    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
-    optimiser_name= hparams[HP_OPTIMIZER]
-    norm_name=hparams[HP_NORM]
-    # optimiser_name = 'adam'
+    # optimiser_name= hparams[HP_OPTIMIZER]
+    optimiser_name = 'adam'
     loss_name = hparams[LOSS]
     batch_size = hparams[BATCH_SIZE]
     # loss_list.append(loss_name)
     # batch_list.append(batch_size)
     learning_rate = 0.0001
     now_time = datetime.now().strftime("%Y%m%d%H%M%S")
-    weights_path = fr"C:\Users\leo__\PycharmProjects\Perma_Thesis\weights_files\{now_time}_{norm_name}_batch_{round(batch_size, 8)}_{loss_name}_{optimiser_name}_aug.hdf5"
+    weights_path = fr"C:\Users\leo__\PycharmProjects\Perma_Thesis\weights_files\adam_data_{now_time}_batch_{round(batch_size, 8)}_{loss_name}.hdf5"
     checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=True)
     # 4. Select the optimizer and the learning rate (default option is Adam)
@@ -424,16 +326,16 @@ def train_test_model(hparams, run_dir, n_epochs=5):
                  ]
     )
 
-    train_generator = DataGenerator_segmentation(train, dimension=(height, width), size=height,norm_method=norm_name, batch_size=batch_size,
+    train_generator = DataGenerator_segmentation(train, dimension=(height, width), batch_size=batch_size,
                                                  n_channels=n_channels)
-    val_generator = DataGenerator_segmentation(val, dimension=(height, width), size=height,norm_method=norm_name, batch_size=batch_size,
+    val_generator = DataGenerator_segmentation(val, dimension=(height, width), batch_size=batch_size,
                                                n_channels=n_channels)
     history = model.fit(train_generator,
                         steps_per_epoch=len(train) // batch_size, shuffle=True,
                         epochs=n_epochs,
                         verbose=1,
                         validation_data=val_generator, callbacks=[
-                       early_stopping,
+            #            early_stopping,
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
@@ -447,42 +349,32 @@ def train_test_model(hparams, run_dir, n_epochs=5):
     # jaccard_list.append(history.history['jaccard_coef_int'][-1])
     # jaccard_val_list.append(history.history['val_jaccard_coef_int'][-1])
 
-    return history.history['val_accuracy'][-1],history.history['val_dice_coef'][-1],history.history['val_jaccard_coef_int'][-1], history, model
+    return history.history['val_accuracy'][-1], history, model
 
 
 tf.summary.experimental.set_step(True)
 # HP_LEARNING_RATE= hp.HParam('learning_rate', hp.Discrete([0.0001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam','nadam','rmsprop','sgd']))
-HP_NORM = hp.HParam('norm_name', hp.Discrete(['max','naive','z_score']))
-LOSS = hp.HParam('loss', hp.Discrete(['jaccard_loss', 'dice_loss','crossentropy_dice_loss']))
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([3, 4]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam']))
+LOSS = hp.HParam('loss', hp.Discrete(['dice_loss','crossentropy_dice_loss']))
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([3,4]))
 # PATCH_SIZE= hp.HParam('patch_size', hp.Discrete([64]))
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
-METRIC_DICE = 'dice_coef'
-METRIC_IOU = 'jaccard_coef_int'
 hp.hparams_config(
-    hparams=[LOSS, BATCH_SIZE,HP_OPTIMIZER,HP_NORM],
-    metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy'),hp.Metric(METRIC_DICE, display_name='Dice'),hp.Metric(METRIC_IOU, display_name='IoU')],
+    hparams=[LOSS, BATCH_SIZE],
+    metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy')],
 )
 
-n_epochs = 5
+n_epochs = 10
 
 
 def run(run_dir, hparams):
     with tf.summary.create_file_writer(run_dir).as_default():
         hp.hparams(hparams)  # record the values used in this trial
-        accuracy,dice,iou, history, model = train_test_model(hparams, run_dir, n_epochs=n_epochs)
+        accuracy, history, model = train_test_model(hparams, run_dir, n_epochs=n_epochs)
         # converting to tf scalar
         accuracy = tf.reshape(tf.convert_to_tensor(accuracy), []).numpy()
-        dice = tf.reshape(tf.convert_to_tensor(dice), []).numpy()
-        iou = tf.reshape(tf.convert_to_tensor(iou), []).numpy()
-
         tf.summary.scalar(METRIC_ACCURACY, accuracy)
-        tf.summary.scalar(METRIC_DICE, dice)
-        tf.summary.scalar(METRIC_IOU, iou)
-
-
         # tf.summary.scalar(METRIC_BCE, bce, step=1)
     return accuracy, history, model
 
@@ -507,7 +399,7 @@ def plot_to_image(figure):
     return image
 
 
-def plot_metric(history, metric,loss, patch_size, optimiser, norm_name):
+def plot_metric(history, metric, patch_size, optimiser):
     train_metrics = history.history[metric]
     val_metrics = history.history['val_' + metric]
     epochs = range(1, len(train_metrics) + 1)
@@ -518,86 +410,70 @@ def plot_metric(history, metric,loss, patch_size, optimiser, norm_name):
     plt.ylabel(metric)
     plt.legend(["train_" + metric, 'val_' + metric])
     plt.show()
-    plt.savefig(fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\plots\{norm_name}_{patch_size}_{optimiser}_{loss}_{metric}_aug.png')
+    plt.savefig(f"adam_data_{patch_size}_{optimiser}_{metric}.png")
 
-
-from csv import writer
-
-
-def append_list_as_row(file_name, list_of_elem):
-    # Open file in append mode
-    with open(file_name, 'a+', newline='') as write_obj:
-        # Create a writer object from csv module
-        csv_writer = writer(write_obj)
-        # Add contents of list as last row in the csv file
-        csv_writer.writerow(list_of_elem)
 
 # runner
 session_num = 0
 
-log_dir = 'logs/hparam_tuning_loss_batch_opt_scalar_aug/'
-for norm_name in HP_NORM.domain.values:
-    for optimiser in HP_OPTIMIZER.domain.values:
-        for loss_func in LOSS.domain.values:
-            for batch_size in BATCH_SIZE.domain.values:
-                hparams = {
-                    LOSS: loss_func,
-                    BATCH_SIZE: batch_size,
-                    HP_OPTIMIZER: optimiser,
-                    HP_NORM:norm_name
-                    #HP_LEARNING_RATE: learning_rate
-                }
-                patch_size = 64
-                learning_rate = 0.0001
-                run_name = "run-%d" % session_num
-                print('--- Starting trial: %s' % run_name)
-                print({h.name: hparams[h] for h in hparams})
-                accuracy, history, model = run(log_dir + run_name, hparams)
-                hist_df = pd.DataFrame(history.history)
-                file_name= fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\history_files\history_{norm_name}_{batch_size}_{loss_func}_{optimiser}_{run_name}_{n_epochs}_aug.csv'
-                hist_df.to_csv(file_name)
-                # ### Save model
-                export_path = f'model__{norm_name}_{batch_size}_{loss_func}_{optimiser}_{run_name}_{n_epochs}_aug'
-                model.save(export_path)
-                print("Model exported to: ", export_path)
-                file_writer = tf.summary.create_file_writer(log_dir + run_name)
-                file_writer.set_as_default()
-                acc_fig = plot_metric(history, "accuracy", loss_func, batch_size, optimiser, norm_name)
-                tf.summary.image(f"{norm_name}_{optimiser}_{batch_size}_{loss_func}_{run_name}_accuracy_curve",
-                                 plot_to_image(acc_fig))
-                acc_fig = plot_metric(history, "dice_coef", loss_func, batch_size, optimiser, norm_name)
-                tf.summary.image(f"{norm_name}_{optimiser}_{batch_size}_{loss_func}_{run_name}_dice_curve",
-                                 plot_to_image(acc_fig))
-                loss_fig = plot_metric(history, "loss", loss_func, batch_size, optimiser, norm_name)
-                tf.summary.image(f"{norm_name}_{optimiser}_{batch_size}_{loss_func}_{run_name}_loss_curve",
-                                 plot_to_image(loss_fig))
-                test_generator_gt = DataGenerator_segmentation(test, dimension=(patch_size, patch_size), size=patch_size,
-                                                               batch_size=10,
-                                                               n_channels=4)
-                test_gt = test_generator_gt.__getitem__(0)
-                print('Running predictions...')
-                score = model.evaluate(test_gt[0], test_gt[1], verbose=1)
-                predictions = model.predict(test_gt[0], verbose=1)
-                key=['loss','accuracy','jaccard_coef_int','dice_coef','binary_crossentropy']
-                print(key)
-                print(score)
-                append_list_as_row(file_name, key)
-                append_list_as_row(file_name,score)
-                list = []
-                for i in range(0, len(predictions)):
-                    list.append(np.max(predictions[i]))
-                # plot_sample(i)
-                print(list)
-                session_num += 1
+log_dir = 'logs/hparam_tuning_adam_data/'
+for loss_func in LOSS.domain.values:
+    for batch_size in BATCH_SIZE.domain.values:
+        hparams = {
+            LOSS: loss_func,
+            BATCH_SIZE: batch_size,
+
+            # HP_LEARNING_RATE: learning_rate
+        }
+        patch_size = 64
+        learning_rate = 0.0001
+        run_name = "run-%d" % session_num
+        print('--- Starting trial: %s' % run_name)
+        print({h.name: hparams[h] for h in hparams})
+        accuracy, history, model = run(log_dir + run_name, hparams)
+        hist_df = pd.DataFrame(history.history)
+        hist_df.to_csv(f'history_{batch_size}_{loss_func}_{run_name}_{n_epochs}.csv')
+        # ### Save model
+        export_path = f'model_adam_data_{batch_size}_{loss_func}_{run_name}_{n_epochs}.h5'
+        model.save(export_path)
+        print("Model exported to: ", export_path)
+        file_writer = tf.summary.create_file_writer(log_dir + run_name)
+        file_writer.set_as_default()
+        test_generator_gt = DataGenerator_segmentation(test, dimension=(patch_size, patch_size),
+                                                       batch_size=10,
+                                                       n_channels=4)
+        test_gt = test_generator_gt.__getitem__(0)
+        print('Running predictions...')
+        score = model.evaluate(test_gt[0], test_gt[1], verbose=1)
+        predictions = model.predict(test_gt[0], verbose=1)
+        print(predictions[0])
+        print(score)
+        list = []
+        for i in range(0, len(predictions)):
+            list.append(np.max(predictions[i]))
+        # plot_sample(i)
+        print(list)
+        file_writer = tf.summary.create_file_writer(log_dir + run_name)
+        file_writer.set_as_default()
+        acc_fig = plot_metric(history, "accuracy", batch_size, loss_func)
+        tf.summary.image(f"{batch_size}_{loss_func}_{run_name}_accuracy_curve", plot_to_image(acc_fig))
+        acc_fig = plot_metric(history, "dice_coef", batch_size, loss_func)
+        tf.summary.image(f"{batch_size}_{loss_func}_{run_name}_dice_curve", plot_to_image(acc_fig))
+        loss_fig = plot_metric(history, "loss", batch_size, loss_func)
+        tf.summary.image(f"{batch_size}_{loss_func}_{run_name}_loss_curve", plot_to_image(loss_fig))
+        session_num += 1
 
 print(history.history.keys())
-test_generator_gt =DataGenerator_segmentation(test,dimension=(64,64),size=64,batch_size=10, n_channels=4)
+test_generator_gt =DataGenerator_segmentation(test,dimension=(64,64),batch_size=10, n_channels=4)
+# test_item=test_generator.__getitem__(0)
+
 test_gt = test_generator_gt.__getitem__(0)
 test_gt[0][-1].shape
 test_gt[1][0].shape
 x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
 mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
 print('Running predictions...')
+
 model_path=r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_3_crossentropy_dice_loss_run-2_50'
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
 reconstructed_model.compile(optimizer='adam',
@@ -638,6 +514,7 @@ for i in range(0, len(predictions)):
     list.append(np.max(predictions[i]))
     plot_sample(i)
 print(list)
+
 # def plot_sample(ix=None):
 #     """Function to plot the results"""
 #     fig, ax = plt.subplots(10, 3, figsize=(10, 10)) #4

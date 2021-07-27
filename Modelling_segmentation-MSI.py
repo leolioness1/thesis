@@ -47,10 +47,19 @@ def load_image(image_path):
       #Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
       size=64
       img_temp = img[:n_channels,:256,:256]
+      max_0= 7876
+      max_1=8104
+      max_2=8072
+      max_3=8360
 
       # img_temp[img_temp > 1000] = 1000
       # img_temp = img_temp / 1000
+      # img_temp[0, :256, :256] = img_temp[0, :256, :256] / max_0
+      # img_temp[1, :256, :256] = img_temp[1, :256, :256] / max_1
+      # img_temp[2, :256, :256] = img_temp[2, :256, :256] / max_2
+      # img_temp[3, :256, :256] = img_temp[3, :256, :256] / max_3
       img_final = np.moveaxis(img_temp, 0, -1)
+      np.nan_to_num(img_final, nan=0, copy=False)
       mask = img[-1, :256, :256]
       mask_final = np.moveaxis(mask, 0, -1)
       np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
@@ -75,12 +84,45 @@ def load_mask(image_path):
 IMAGE_DIR_PATH = '../Perma_Thesis/MSI/thaw/'
 BATCH_SIZE = 4
 
+total_64=4096
+total_128=128*128
+total_256=256*256
+std_0=math.sqrt((max_0/total_64)/(313-1))
+std_1=math.sqrt((max_1/total_64)/(313-1))
+std_2=math.sqrt((max_2/(total_64))/(313-1))
+std_3=math.sqrt((max_3/(total_64))/(313-1))
+print(std_0,std_1,std_2,std_3)
+combined=list(zip(image_paths,val_list))
 # create list of PATHS
 image_paths = [os.path.join(IMAGE_DIR_PATH, x) for x in os.listdir(IMAGE_DIR_PATH) if x.endswith('.tif')]
 from data_generator_segmentation import DataGenerator_segmentation
 val_list=[]
+max_0= 0
+max_1=0
+max_2=0
+max_3=0
 # val_it=[]
 # Y = np.empty((len(image_paths), *dimension))
+avg_0_m = np.full(
+    shape=(64, 64),
+    fill_value=avg_0,
+    dtype=np.float32
+)
+avg_1_m = np.full(
+    shape=(64, 64),
+    fill_value=avg_1,
+    dtype=np.float32
+)
+avg_2_m = np.full(
+    shape=(64, 64),
+    fill_value=avg_2,
+    dtype=np.float32
+)
+avg_3_m = np.full(
+    shape=(64, 64),
+    fill_value=avg_3,
+    dtype=np.float32
+)
 for i, ID in enumerate(image_paths):
     print(i, ID)
     image_test,mask_test=load_image(image_path=ID)
@@ -97,16 +139,68 @@ for i, ID in enumerate(image_paths):
     # print( "Test Image dimensions:" + str(image_test.shape))
     #
     # print( "Test Mask dimensions:" + str(mask_test.shape))
+
     val_list.append(tf.math.count_nonzero(mask_test).numpy())
+    # i_0 = np.int(np.sum(image_test[:256, :256, 0]))
+    # i_1 = np.int(np.sum(image_test[:256, :256, 1]))
+    # i_2 = np.int(np.sum(image_test[:256, :256, 2]))
+    # i_3 = np.int(np.sum(image_test[:256, :256, 3]))
+    # i_0=np.sum(np.square(np.subtract(image_test[:64,:64,0],avg_0_m)))
+    # i_1 =np.sum(np.square(np.subtract(image_test[:64,:64,1],avg_1_m)))
+    # i_2 = np.sum(np.square(np.subtract(image_test[:64,:64,2],avg_2_m)))
+    # i_3 = np.sum(np.square(np.subtract(image_test[:64,:64,3],avg_3_m)))
     # val_it.append(tf.math.count_nonzero(Y[i]).numpy())
     # plt.imshow(image_test)
     # plt.show()
-    #
+    # max_0=max_0+i_0
+    # max_1+=i_1
+    # max_2+=i_2
+    # max_3+=i_3
     # plt.imshow(mask_test)
     # plt.show()
 
 
-val_list_perc= np.multiply(np.divide(val_list,16384),100)
+
+val_list_perc= np.multiply(np.divide(val_list,4096),100)
+
+
+import numpy as np
+import math
+from matplotlib import pyplot as plt
+
+data=val_list
+
+bins = np.linspace(math.ceil(min(data)),
+                   math.floor(max(data)),
+                   50) # fixed number of bins
+
+plt.xlim([min(data)-5, max(data)+5])
+
+plt.hist(data, bins=bins, alpha=0.5)
+plt.title('Random Gaussian data (fixed number of bins)')
+plt.xlabel('variable X (20 evenly spaced bins)')
+plt.ylabel('count')
+
+plt.show()
+
+
+
+import numpy as np
+import random
+from matplotlib import pyplot as plt
+
+data=val_list
+# fixed bin size
+bins = np.arange(math.ceil(min(data)),
+                   math.floor(max(data)), 50) # fixed bin size
+
+plt.xlim([min(data)-5, max(data)+5])
+
+plt.hist(data, bins=bins, alpha=0.5)
+plt.title('Distribution of RTS Positive Pixels')
+plt.xlabel('RTS positive pixels (bin size = 50)')
+plt.ylabel('Count')
+plt.show()
 
 # # Proves that crop to size 40*40 is better but maybe make it 100*100??
 # img_cropped = image_test[44:84, 44:84,:]
