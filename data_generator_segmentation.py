@@ -157,7 +157,6 @@ class DataGenerator_segmentation(Sequence):
         channels=4
         img_temp = img[:channels,:256,:256]
         img_final = np.moveaxis(img_temp, 0, -1)
-        np.nan_to_num(img_final, nan=0, copy=False)
         #Reducing image size to 40*40 crop from centre based on finding on 12/03 on thaw slump size being avg
         #400m so 40 pixels
         startx = int(128-self.size/2) #(128-size/2)
@@ -169,14 +168,14 @@ class DataGenerator_segmentation(Sequence):
             img_final[:self.size,:self.size,2] = img_final[:self.size,:self.size,2] /self.max_2
             img_final[:self.size,:self.size,3] = img_final[:self.size,:self.size,3] /self.max_3
         elif self.norm_method=='naive':
-            img_final[img_final > 1000] = 1000
+            img_final[img_final > 10000] = 10000
             img_final = img_final / 10000
         elif self.norm_method == 'z_score':
             img_final[:self.size,:self.size,0] = (np.subtract(img_final[:self.size,:self.size,0],self.avg_0_m)) /self.std_0
             img_final[:self.size,:self.size,1] = (np.subtract(img_final[:self.size,:self.size,1],self.avg_1_m)) /self.std_1
             img_final[:self.size,:self.size,2] = (np.subtract(img_final[:self.size,:self.size,2],self.avg_2_m)) /self.std_2
             img_final[:self.size,:self.size,3] = (np.subtract(img_final[:self.size,:self.size,3],self.avg_3_m)) /self.std_3
-
+        np.nan_to_num(img_final, nan=0, copy=False)
         return img_final
 
     #Combine later with image read, as of now inefficient as 2 reads for each file
