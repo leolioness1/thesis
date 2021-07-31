@@ -174,22 +174,24 @@ list_legend=[]
 #     path_name=f'history_files_optimiser_batch_lr_selection/history_z_score_4_crossentropy_dice_loss_{i}_0.0001_64_50.csv'
 #     list_df.append(read_history_csv(path_name))
 #     list_legend.append(i)
-parameter_name='Initialisation'
-# for i in ['crossentropy_dice_loss','jaccard_loss', 'dice_loss','binary_focal_loss']:
-#     path_name=f'history_files_loss_selection/history_z_score_6_{i}_rmsprop_0.001_64_50.csv'
-#     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
-# #
-# for i in ['elu','relu','gelu','selu','tanh','selu']:
-#     path_name=f'history_files_activation_selection/history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_50.csv'
+parameter_name='Activation Function'
+for i in ['crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss']:
+    path_name=f'history_files_loss_func_selection/history_z-score_6_{i}_rmsprop_0.001_64_elu_he_normal_50.csv'
+    list_df.append(read_history_csv(path_name))
+    list_legend.append(f'{parameter_name}: {i}')
+#
+# for i in ['elu','relu','gelu','selu','tanh']:
+#     # path_name=f'history_files_activation_selection/history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_50.csv'
+#     #path_name = f'history_files_init_act_selection/history_z-score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_normal_50.csv'
+#     path_name=f'history_files_activation_func_selection/history_z-score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_normal_50.csv'
 #     list_df.append(read_history_csv(path_name))
 #     list_legend.append(f'{parameter_name}: {i}')
 
-for i in ['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']:
-    path_name=f'history_files_init_act_selection/history_z-score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_{i}_50.csv'
-    #path_name=f'history_files_init_selection\history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_relu_{i}_50.csv'
-    list_df.append(read_history_csv(path_name))
-    list_legend.append(f'{parameter_name}: {i}')
+# for i in ['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']:
+#     path_name=f'history_files_init_act_selection/history_z-score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_{i}_50.csv'
+#     #path_name=f'history_files_init_selection\history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_relu_{i}_50.csv'
+#     list_df.append(read_history_csv(path_name))
+#     list_legend.append(f'{parameter_name}: {i}')
 
 plot_metric('jaccard_coef_int','jaccard coefficient', list_df, list_legend)
 plot_metric('dice_coef','dice coefficient', list_df, list_legend)

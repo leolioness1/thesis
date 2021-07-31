@@ -2,7 +2,6 @@
 # coding: utf-8
 import io
 from datetime import datetime
-from tensorboard.plugins.hparams import api as hp
 from glob import glob
 import rasterio
 import rasterio.mask
@@ -24,16 +23,29 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 import dill
 from tensorflow.keras import backend as K
 import random
+from tensorboard.plugins.hparams import api as hp
 
 # using just positive image labels
 LOCAL_PATH = '../Perma_Thesis/MSI/thaw'
 
 VAL_LOCAL_PATH = '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
+# seed_value= None
+# random.seed(seed_value)
+# np.random.seed(seed_value)
+# tf.random.set_seed(seed_value)
+# os.environ['PYTHONHASHSEED']=str(seed_value)
 
+#
+#
 random.seed(123)
 np.random.seed(123)
 tf.random.set_seed(123)
 
+
+
+# session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+# sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+# tf.compat.v1.keras.backend.get_session(sess)
 
 # def load_image(image_path):
 #       """Load grayscale image
@@ -167,6 +179,33 @@ def iou_loss(y_true, y_pred):
     return 1 - jaccard_coef(y_true, y_pred)
 
 
+# def dice_coef(y_true, y_pred, smooth=1):
+#     """
+#     Arguments:
+#         y_true: (string) ground truth image mask
+#         y_pred : (int) predicted image mask
+#
+#     Returns:
+#         Calculated Dice coeffecient
+#     """
+#     y_true_f = K.flatten(y_true)
+#     y_true_f = K.cast(y_true_f, 'float32')
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_loss(y_true, y_pred):
+    """
+    Arguments:
+        y_true: (string) ground truth image mask
+        y_pred : (int) predicted image mask
+
+    Returns:
+        Calculated Dice coeffecient loss
+    """
+    return 1 - dice_coef(y_true, y_pred)
+
+
 def jaccard_coef_int(y_true, y_pred):
     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
@@ -177,8 +216,6 @@ def jaccard_coef_int(y_true, y_pred):
 
 
 def jaccard_coef_loss(y_true, y_pred):
-    jaccard_loss = -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
-    # tf.summary.scalar('jaccard_loss', data=jaccard_loss)
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
 
@@ -187,39 +224,30 @@ Define our custom loss function.
 """
 
 
-def dice_coef(y_true, y_pred, smooth=1):
-    """
-    Arguments:
-        y_true: (string) ground truth image mask
-        y_pred : (int) predicted image mask
+# def dice_coef(y_true, y_pred, smooth=1):
+#     """
+#     Arguments:
+#         y_true: (string) ground truth image mask
+#         y_pred : (int) predicted image mask
+#
+#     Returns:
+#         Calculated Dice coeffecient
+#     """
+#     y_true_f = K.flatten(y_true)
+#     y_true_f = K.cast(y_true_f, 'float32')
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
+#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-    Returns:
-        Calculated Dice coeffecient
-    """
+
+def dice_coef(y_true, y_pred):
+    smooth = 1.0
     y_true_f = K.flatten(y_true)
-    y_true_f = K.cast(y_true_f, 'float32')
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
-    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-
-
-# wrong
-# def dice_coef_2(y_true, y_pred, smooth=1):
-#     """
-#     Dice = (2*|X & Y|)/ (|X|+ |Y|)
-#          =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
-#     ref: https://arxiv.org/pdf/1606.04797v1.pdf
-#     """
-#     intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
-#     return (2. * intersection + smooth) / (K.sum(K.square(y_true),-1) + K.sum(K.square(y_pred),-1) + smooth)
-
-# def dice_coeff(y_true, y_pred):
-#     smooth = 1.0
-#     y_true_f = K.flatten(y_true)
-#     y_pred_f = K.flatten(y_pred)
-#     intersection = K.sum(y_true_f * y_pred_f)
-#     return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 
 def dice_loss(y_true, y_pred):
@@ -229,11 +257,6 @@ def dice_loss(y_true, y_pred):
 def crossentropy_dice_loss(y_true, y_pred):
     return binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
 
-
-# bad
-#
-# def dice_coef_loss(y_true, y_pred):
-#     return 1-dice_coef_2(y_true, y_pred)
 
 def binary_focal_loss(gamma=2., alpha=.25):
     """
@@ -301,43 +324,43 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
     # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
     # t2 = tf.keras.layers.experimental.preprocessing.RandomRotation(0.2, 'nearest', interpolation='bilinear')(t1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(inputs)
-    c1 = Dropout(0.1)(c1)
+    c1 = Dropout(0.1, )(c1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p1)
-    c2 = Dropout(0.1)(c2)
+    c2 = Dropout(0.1, )(c2)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c2)
     p2 = MaxPooling2D((2, 2))(c2)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p2)
-    c3 = Dropout(0.2)(c3)
+    c3 = Dropout(0.2, )(c3)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c3)
     p3 = MaxPooling2D((2, 2))(c3)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p3)
-    c4 = Dropout(0.2)(c4)
+    c4 = Dropout(0.2, )(c4)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c4)
     p4 = MaxPooling2D(pool_size=(2, 2))(c4)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p4)
-    c5 = Dropout(0.3)(c5)
+    c5 = Dropout(0.3, )(c5)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c5)
     u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
     u6 = concatenate([u6, c4])
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u6)
-    c6 = Dropout(0.2)(c6)
+    c6 = Dropout(0.2, )(c6)
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c6)
     u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
     u7 = concatenate([u7, c3])
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u7)
-    c7 = Dropout(0.2)(c7)
+    c7 = Dropout(0.2, )(c7)
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c7)
     u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
     u8 = concatenate([u8, c2])
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u8)
-    c8 = Dropout(0.1)(c8)
+    c8 = Dropout(0.1, )(c8)
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c8)
     u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
     u9 = concatenate([u9, c1], axis=3)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u9)
-    c9 = Dropout(0.1)(c9)
+    c9 = Dropout(0.1, )(c9)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c9)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
     model = Model(inputs=[inputs], outputs=[outputs])
@@ -364,8 +387,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # loss_list = []
 # batch_list = []
 # CHANGEME
-experiment_folder = 'init_act_selection'
-
+experiment_folder = 'why_selection'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -383,6 +405,7 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     init_name = hparams[INITIALISATION]
     n_channels = 4
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
+    terminate_nan=tf.keras.callbacks.TerminateOnNaN()
     model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name, init_method=init_name)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
@@ -401,19 +424,16 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     # 4. Select the optimizer and the learning rate (default option is Adam)
     # epsilon=1e-07, A small constant for numerical stability
     if optimiser_name == 'rmsprop':
-        optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate, rho=0.9, epsilon=None,decay=0.0)  # default momentum =0.0, 0.9 did not go well xD
+        optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate, rho=0.9, epsilon=None, decay=0.0)  # default momentum =0.0, 0.9 did not go well xD
         # https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/RMSprop
         # This implementation of RMSprop uses plain momentum, not Nesterov momentum.
         # The centered version additionally maintains a moving average of the gradients, and uses that average to estimate the variance.
     elif optimiser_name == 'nadam':
-        optimiser = tf.keras.optimizers.Nadam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999,
-                                              decay=0.0)  # )  # learning_rate=learning_rate
+        optimiser = tf.keras.optimizers.Nadam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, decay=0.0)  # )  # learning_rate=learning_rate
     elif optimiser_name == 'sgd':
-        optimiser = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False,
-                                            decay=0.0)  # default momentum =0.0
+        optimiser = tf.keras.optimizers.SGD(learning_rate=0.01,momentum=0.9,nesterov=False, decay=0.0)  # default momentum =0.0
     elif optimiser_name == 'adam':
-        optimiser = tf.keras.optimizers.Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=0.1,
-                                             decay=0.0,
+        optimiser = tf.keras.optimizers.Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=None,decay=0.0,
                                              amsgrad=False)  # epsilon=None, default used here instead  1.0 or 0.1
         # amsgrad=False https://openreview.net/pdf?id=ryQu7f-RZ
     else:
@@ -427,6 +447,8 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
         loss_func = binary_focal_loss()
     elif loss_name == 'dice_loss':
         loss_func = dice_loss
+    # elif loss_name == 'dice_coef_loss':
+    #     loss_func = dice_coef_loss
     elif loss_name == 'crossentropy_dice_loss':
         loss_func = crossentropy_dice_loss
     else:
@@ -442,7 +464,7 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
         metrics=['accuracy',
                  jaccard_coef_int,
                  dice_coef,
-                 "binary_crossentropy"
+                 "binary_crossentropy",
                  ]
     )
 
@@ -461,11 +483,12 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
+            terminate_nan, #exploding gradients termination
             hp.KerasCallback(run_dir, hparams),  # log hparams
         ],
                         )
-    print(history.history['val_accuracy'][-1])
-    print(history.history['accuracy'][-1])
+    print(history.history['val_dice_coef'][-1])
+    print(history.history['dice_coef'][-1])
     # dice_list.append(history.history['dice_coef'][-1])
     # dice_val_list.append(history.history['val_dice_coef'][-1])
     # jaccard_list.append(history.history['jaccard_coef_int'][-1])
@@ -476,16 +499,16 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 
 
 # CHANGEME
-n_epochs = 50
+n_epochs = 100
 tf.summary.experimental.set_step(True)
 HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
 HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
 HP_NORM = hp.HParam('norm_name', hp.Discrete(['z-score']))  # 'max','naive',
-LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([6]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss', 'dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,2,4,6,10,16,20]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
-ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu','relu','gelu','selu','tanh']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
-INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']))
+ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu','relu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
+INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
 METRIC_DICE = 'dice_coef'
@@ -583,6 +606,7 @@ for norm_name in HP_NORM.domain.values:
                                 name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}'
                                 print('--- Starting trial: %s' % run_name)
                                 print({h.name: hparams[h] for h in hparams})
+
                                 accuracy, history, model = run(log_dir + run_name, hparams, name)
                                 hist_df = pd.DataFrame(history.history)
                                 file_name = fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\history_files_{experiment_folder}\history_{name}.csv'
@@ -593,8 +617,8 @@ for norm_name in HP_NORM.domain.values:
                                 file_writer = tf.summary.create_file_writer(log_dir + run_name)
                                 file_writer.set_as_default()
                                 print("Model exported to: ", export_path)
-                                acc_fig = plot_metric(history, "accuracy", name)
-                                tf.summary.image(f"{name}_accuracy_curve",
+                                acc_fig = plot_metric(history, "jaccard_coef_int", name)
+                                tf.summary.image(f"{name}_iou_curve",
                                                  plot_to_image(acc_fig))
                                 acc_fig = plot_metric(history, "dice_coef", name)
                                 tf.summary.image(f"{name}_dice_curve",
@@ -612,7 +636,7 @@ for norm_name in HP_NORM.domain.values:
                                 tf.summary.scalar(METRIC_DICE, score[3])
                                 tf.summary.scalar(METRIC_IOU, score[2])
                                 tf.summary.scalar(METRIC_LOSS, score[0])
-                                tf.summary.scalar(METRIC_BCE, score[-1])
+                                tf.summary.scalar(METRIC_BCE, score[4])
                                 key = ['loss', 'accuracy', 'jaccard_coef_int', 'dice_coef', 'binary_crossentropy']
                                 append_list_as_row(file_name, key)
                                 append_list_as_row(file_name, score)
@@ -632,9 +656,10 @@ print('Running predictions...')
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
+model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
 
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
-reconstructed_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001,rho=0.9, epsilon=None,decay=0.0),
                             loss=crossentropy_dice_loss,
                             metrics=['accuracy',
                                      jaccard_coef_int,
@@ -661,9 +686,7 @@ def plot_sample(ix=None):
 
     ax[2].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
     ax[2].set_title('Predicted')
-
-
-plt.show()
+    plt.show()
 list = []
 for i in range(0, len(predictions)):
     list.append(np.max(predictions[i]))
