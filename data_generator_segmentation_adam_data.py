@@ -7,7 +7,7 @@ class DataGenerator_segmentation(Sequence):
     Sequence based data generator. Suitable for building data generator for training and prediction.
     """
     def __init__(self, df, augmentations='None',
-                 to_fit=True, batch_size=6, dimension=(128, 128),
+                 to_fit=True, batch_size=6, dimension=(64, 64),
                  n_channels=4, shuffle=True):
         """Initialization
         :param list_IDs: list of all file ids to use in the generator

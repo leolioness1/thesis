@@ -175,6 +175,7 @@ class DataGenerator_segmentation(Sequence):
             img_final[:self.size,:self.size,1] = (np.subtract(img_final[:self.size,:self.size,1],self.avg_1_m)) /self.std_1
             img_final[:self.size,:self.size,2] = (np.subtract(img_final[:self.size,:self.size,2],self.avg_2_m)) /self.std_2
             img_final[:self.size,:self.size,3] = (np.subtract(img_final[:self.size,:self.size,3],self.avg_3_m)) /self.std_3
+
         np.nan_to_num(img_final, nan=0, copy=False)
         return img_final
 

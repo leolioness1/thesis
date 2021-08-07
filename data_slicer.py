@@ -4,24 +4,25 @@ import helper as h
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-final = sorted(glob.glob(r'C:\Users\leo__\PycharmProjects\Perma_Thesis\clipped\*.tiff'))
+final = sorted(glob.glob(r'C:\Users\leo__\PycharmProjects\Perma_Thesis\new_data_adam\*.tiff'))
 final_original = sorted(glob.glob(r'C:\Users\leo__\PycharmProjects\Perma_Thesis\MSI\thaw\*.tif'))
 
-# window = 64
-# # Create training arrays
-# data = []
-# for img in final:
-#     with rasterio.open(img, 'r') as src:
-#
-#         name = os.path.splitext(os.path.basename(img))[0]
-#         print(name)
-#         out_meta = src.meta.copy()
-#         out_meta.update({"driver": "GTiff",
-#                          "height": window,
-#                          "width": window,
-#                          "count": 8})
-#         data.extend(h.create_training_arrays(src,window=window, name=name,out_meta= out_meta))
-# #         print(src.read().shape)
+window = 64
+# Create training arrays
+data = []
+for img in final:
+    with rasterio.open(img, 'r') as src:
+
+        name = os.path.splitext(os.path.basename(img))[0]
+        print(name)
+        out_meta = src.meta.copy()
+        out_meta.update({"driver": "GTiff",
+                         "height": window,
+                         "width": window,
+                         "count": 8})
+        data.extend(h.create_training_arrays(src,window=window, name=name,out_meta= out_meta))
+#         print(src.read().shape)
+
 original_data=[]
 original_data_blank_list=[]
 for img in final_original:
