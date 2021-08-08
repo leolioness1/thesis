@@ -15,27 +15,16 @@ from tensorflow.keras import backend as K
 import random
 from data_generator_segmentation import DataGenerator_segmentation
 
-# using just positive image labels
-LOCAL_PATH = '../Perma_Thesis/MSI/thaw'
+TEST_LOCAL_PATH =  '../Perma_Thesis/test_data'
 
-VAL_LOCAL_PATH = '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
-seed_value= 123
-random.seed(seed_value)
-np.random.seed(seed_value)
-tf.random.set_seed(seed_value)
-os.environ['PYTHONHASHSEED']=str(seed_value)
-
-
-
+#
+#
 # random.seed(123)
 # np.random.seed(123)
 # tf.random.set_seed(123)
+#
 
 
-
-session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-tf.compat.v1.keras.backend.get_session(sess)
 
 # def load_image(image_path):
 #       """Load grayscale image
@@ -57,6 +46,91 @@ tf.compat.v1.keras.backend.get_session(sess)
 # #         starty = 98 #(128-size/2)
 # #         img_final = img_final[startx:startx+size,startx:starty+size,:]
 #       return img_final
+#
+def load_mask(image_path):
+    img_object = rasterio.open(image_path)
+    img = img_object.read()
+    # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
+
+    mask = img[-1, :256, :256]
+    mask_final = np.moveaxis(mask, 0, -1)
+    np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
+    return mask_final
+
+
+from data_generator_segmentation import DataGenerator_segmentation
+
+# image_test=load_image(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
+#
+# mask_test= load_mask(image_path='../Perma_Thesis/MSI/thaw/25-20190905_195023_1032.tif')
+#
+# print( "Test Image dimensions:" + str(image_test.shape))
+#
+# print( "Test Mask dimensions:" + str(mask_test.shape))
+#
+# plt.imshow(image_test)
+# plt.show()
+#
+# plt.imshow(mask_test)
+# plt.show()
+
+
+# # Proves that crop to size 40*40 is better but maybe make it 100*100??
+# img_cropped = image_test[44:84, 44:84,:]
+# plt.imshow(img_cropped)
+# plt.show()
+# #but still images are very bad quality resolution and need to add more bands!!!!
+#
+# validated_shape_files = gpd.read_file(VALIDATED_SHAPE_FILE_PATH)
+# validated_shape_files = validated_shape_files.to_crs("EPSG:32604")
+# shapes = validated_shape_files['geometry']
+
+#
+# IMG_HEIGHT=256
+# IMG_WIDTH=256
+# BATCH_SIZE = 8
+
+
+# ##### Load image, preprocess, augment through image data generator
+
+# # #### Custom data generator
+#
+# df_dataset = pd.DataFrame()
+# files = glob(LOCAL_PATH + "**/*.tif")
+#
+#
+# df_dataset['image_paths'] = files
+# df_dataset['labels_string'] = df_dataset['image_paths'].str.split('\\').str[-2]
+# df_dataset['label'] = df_dataset['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+# df_dataset = df_dataset.sample(frac=1).reset_index(drop=True)  # Randomize
+# df_dataset['image_paths'].str.split('\\').str[-2]
+# df_dataset
+
+df_test = pd.DataFrame()
+test_files = glob(TEST_LOCAL_PATH + "**/*.tif")
+df_test['image_paths'] = test_files
+df_test['labels_string'] = df_test['image_paths'].str.split('\\').str[-2]
+df_test['label'] =  df_test['labels_string'].apply(lambda x: 1 if x == 'thaw' else 0)
+df_test=df_test.sample(frac=1).reset_index(drop=True) #Randomize
+df_test
+
+# print("Full Dataset label distribution")
+# print(df_dataset.groupby('labels_string').count())
+#
+# train, val = train_test_split(df_dataset, test_size=0.149, random_state=123)
+# #val, test = train_test_split(val, test_size=0.25, random_state=123)
+# print("\nTrain Dataset label distribution")
+# print(train.groupby('labels_string').count())
+# print("\nVal Dataset label distribution")
+# print(val.groupby('labels_string').count())
+print("\nTest Dataset label distribution")
+print(df_test.groupby('labels_string').count())
+
+# Custom data generator that replaces PIL function on image read of tiff record with rasterio
+# as default Imagedatagenertator seems to be throwing error
+
+from data_generator_segmentation import DataGenerator_segmentation
+
 #
 def load_mask(image_path):
     img_object = rasterio.open(image_path)
@@ -282,8 +356,8 @@ from data_generator_segmentation import DataGenerator_segmentation
 
 
 norm_method = 'z_score'
-test_generator_gt = DataGenerator_segmentation(test, dimension=(64, 64), size=64, norm_method=norm_method,
-                                               batch_size=len(test), n_channels=4)
+test_generator_gt = DataGenerator_segmentation(df_test, dimension=(64, 64), size=64, norm_method=norm_method,
+                                               batch_size=len(df_test), n_channels=4)
 test_gt = test_generator_gt.__getitem__(0)
 test_gt[0][-1].shape
 test_gt[1][0].shape

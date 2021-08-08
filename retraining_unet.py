@@ -1,26 +1,10 @@
-# !/usr/bin/env python
-# coding: utf-8
 import io
 from datetime import datetime
-from glob import glob
-import rasterio
-import rasterio.mask
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import pandas as pd
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.losses import binary_crossentropy
 import tensorflow as tf
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPool2D, Conv2DTranspose, Concatenate, UpSampling2D, \
-    BatchNormalization, Activation, Add, Multiply, Dropout, Lambda, MaxPooling2D, concatenate, Dense, Reshape
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras import backend as K
-import random
 from tensorboard.plugins.hparams import api as hp
-import shutil
-
 # seed_value= 0
 # random.seed(seed_value)
 # np.random.seed(seed_value)
@@ -49,163 +33,8 @@ import matplotlib.pyplot as plt
 import helper
 from classes import Scaler, ImageGenerator
 
-# tiffs = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
-
-
-# # Data Cleansing
-#
-#     - Checking which tiles have missing satellite layers and remove
-#     - Clipping tiles to sites
-#     - Removing sites with no polygons
-
-# In[3]:
-
-
-# Check if the satellite layers are blank
-# invalid = []
-# for tiff in tiffs:
-#     with rasterio.open(tiff, 'r') as src:
-#         arr = src.read()
-
-#         broken_bands = False
-#         for ar in arr:
-
-#             if np.array_equal(np.unique(ar), [ 0,  1,  2, 11]):
-#                 broken_bands = True
-#             if np.array_equal(np.unique(ar), [ 0,  1,  2,  3, 10, 11]):
-#                 broken_bands = True
-
-#     if broken_bands:
-#         invalid.append(tiff)
-
-# print(invalid)
-
-# for f in invalid:
-#     os.remove(f)
-
-
-# In[4]:
-
-
-# # Clip rasters to the sites, because for some reason we added multiple sites per geotiff
-# clipped = []
-# for tiff in tiffs:
-#     with rasterio.open(tiff, 'r') as src:
-#         arr = src.read()
-#         crs = src.crs
-#         transform = src.transform
-
-#     sites = h.polygonise(arr[0], threshold=0.5, crs=crs, transform=transform)
-#     sites = sites.geometry.to_list()
-
-#     for i, site in enumerate(sites):
-#         coords = h.polygon_to_raster_coords(site, crs)
-
-#         name = os.path.splitext(os.path.basename(tiff))[0]
-#         name = name + f'_site_{i}'
-
-#         clipped.append(
-#             h.clip_rasters([tiff], coords, './data/clipped', [name])[0]
-#         )
-
-# len(clipped)
-
-
-# In[5]:
-
-
-# Remove all files which don't have polygons in the poly layer
-# missing_polys = []
-# for tiff in tiffs:
-#     with rasterio.open(tiff, 'r') as src:
-#         arr = src.read()
-#         polys = arr[0]
-
-#     if polys.max() == 0:
-#         missing_polys.append(tiff)
-
-# print(missing_polys)
-
-# for f in missing_polys:
-#     os.remove(f)
-
-
-# ### Check Data
-
-# In[3]:
-
 
 final = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
-
-# for f in final:
-#     with rasterio.open(f, 'r') as src:
-#         print(f)
-#         for arr in src.read():
-#             plt.imshow(arr)
-#             plt.show()
-
-#             w = arr.shape[0]
-#             h = arr.shape[1]
-
-#             plt.imshow(arr[w//2:(w//2)+64,h//2:(h//2)+64])
-#             plt.show()
-
-#             print(np.unique(arr))
-#             print(arr.max())
-#         print("==============================")
-
-
-# In[4]:
-
-
-# Finding the optimal window size to reduce data loss
-# window sizes of 64, 128, 256, 512
-# or 50, 100, 150, 200, 250...
-window_sizes = [64, 128, 256, 512]
-
-results = {}
-for window in window_sizes:
-    results[window] = []
-
-for img in final:
-    with rasterio.open(img, 'r') as src:
-        arr = src.read(1)
-        h = arr.shape[0]
-        w = arr.shape[1]
-
-    for window in window_sizes:
-        h_n = h // window
-        w_n = w // window
-
-        h_loss = h - (window * h_n)
-        w_loss = w - (window * w_n)
-
-        total_loss = (h_loss * h) + (w_loss * w) - (h_loss * w_loss)
-
-        results[window].append([total_loss, total_loss / (h * w)])
-
-for key, value in results.items():
-    results[key] = np.array(value)
-
-# In[5]:
-
-
-fig, axes = plt.subplots(1, 1, figsize=(8, 8))
-
-mean_pct_loss = [x[:, 1].mean() for x in results.values()]
-
-axes.plot(window_sizes, mean_pct_loss)
-axes.set_xlabel('Window Size')
-axes.set_ylabel('% Pixel Loss')
-axes.set_title('Percentage Pixel Loss against Window Size')
-plt.show()
-
-best = np.array(mean_pct_loss).argsort()
-best = np.array(window_sizes)[best[0]]
-print('Best window size: ', best)
-print(list(results.values())[0][:, 1].mean())
-
-# In[6]:
 
 
 # Create training arrays
@@ -354,6 +183,12 @@ test_X = np_test[:, :, :, 2:]
 test_Y = np_test[:, :, :, 0]
 test_Y = np.reshape(test_Y, list(test_Y.shape) + [1])
 
+print(train_X.shape)
+print(train_Y.shape)
+
+print(val_X.shape)
+print(val_Y.shape)
+
 print(test_X.shape)
 print(test_Y.shape)
 
@@ -362,26 +197,7 @@ print(test_Y.shape)
 # In[16]:
 
 
-# # Fit scaler to train data, defualt is MinMaxScaler()
-# scaler = Scaler(train_X)
-# scaler.fit_scaler()
-#
-# # In[19]:
-#
-#
-# # Scale all datasets
-# scaled_train_X = np.empty(train_X.shape)
-# for i, arr in enumerate(train_X):
-#     scaled_train_X[i] = train_X[i] / 10000
-#
-# scaled_val_X = np.empty(val_X.shape)
-# for i, arr in enumerate(val_X):
-#     scaled_val_X[i] = val_X[i] / 10000
-#
-# scaled_test_X = np.empty(test_X.shape)
-# for i, arr in enumerate(test_X):
-#     scaled_test_X[i] = test_X[i] / 10000
-
+# Fit scaler to train data, defualt is MinMaxScaler()
 scaler = Scaler(train_X, scaler= StandardScaler())
 scaler.fit_scaler()
 
@@ -403,6 +219,7 @@ scaled_test_X = np.empty(test_X.shape)
 for i, arr in enumerate(test_X):
     scaled_test_X[i] = scaler.transform(arr)
 
+# In[20]:
 # In[20]:
 
 
@@ -564,96 +381,11 @@ def binary_focal_loss(gamma=2., alpha=.25):
     return binary_focal_loss_fixed
 
 
-from datetime import time
 
 
-class timecallback(tf.keras.callbacks.Callback):
-    def __init__(self):
-        self.times = []
-        # use this value as reference to calculate cummulative time taken
-        self.timetaken = time.clock()
-
-    def on_epoch_end(self, epoch, logs={}):
-        self.times.append((epoch, time.clock() - self.timetaken))
-
-    def on_train_end(self, logs={}):
-        plt.xlabel('Epoch')
-        plt.ylabel('Total time taken until an epoch in seconds')
-        plt.plot(*zip(*self.times))
-        plt.show()
 
 
-def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu', init_method='he_normal'):
-    inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
-    # s = Lambda(lambda x: x / 255)(inputs)
-    # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
-    # t2 = tf.keras.layers.experimental.preprocessing.RandomRotation(0.2, 'nearest', interpolation='bilinear')(t1)
-    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(inputs)
-    c1 = Dropout(0.1, )(c1)
-    c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c1)
-    p1 = MaxPooling2D((2, 2))(c1)
-    c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p1)
-    c2 = Dropout(0.1, )(c2)
-    c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c2)
-    p2 = MaxPooling2D((2, 2))(c2)
-    c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p2)
-    c3 = Dropout(0.2, )(c3)
-    c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c3)
-    p3 = MaxPooling2D((2, 2))(c3)
-    c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p3)
-    c4 = Dropout(0.2, )(c4)
-    c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c4)
-    p4 = MaxPooling2D(pool_size=(2, 2))(c4)
-    c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p4)
-    c5 = Dropout(0.3, )(c5)
-    c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c5)
-    u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
-    u6 = concatenate([u6, c4])
-    c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u6)
-    c6 = Dropout(0.2, )(c6)
-    c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c6)
-    u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
-    u7 = concatenate([u7, c3])
-    c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u7)
-    c7 = Dropout(0.2, )(c7)
-    c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c7)
-    u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
-    u8 = concatenate([u8, c2])
-    c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u8)
-    c8 = Dropout(0.1, )(c8)
-    c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c8)
-    u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
-    u9 = concatenate([u9, c1], axis=3)
-    c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u9)
-    c9 = Dropout(0.1, )(c9)
-    c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c9)
-    outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
-    model = Model(inputs=[inputs], outputs=[outputs])
-    # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[dice_coef, mean_iou(2)])
-    return model
-
-
-# MODEL_DIR = ''
-# m = tf.keras.models.load_model(MODEL_DIR)
-# m.summary()
-
-# params = {"height": height
-#     , "width": width
-#     ,"n_channels": n_channels
-#     ,"normalisation": ">10000/10000",
-#      "model": "UNET"}
-
-# logdir= 'logs/hparam_tuning'
-# logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
-# dice_list = []
-# dice_val_list = []
-# jaccard_list = []
-# jaccard_val_list = []
-# loss_list = []
-# batch_list = []
-# CHANGEME
-
-experiment_folder = 'adam_new_data_z_score_selection'
+experiment_folder = 'adam_new_data_recontruct_3'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -672,7 +404,8 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     n_channels = 4
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
     terminate_nan=tf.keras.callbacks.TerminateOnNaN()
-    model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name, init_method=init_name)
+    model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_z_score_loss_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_100'
+    model = tf.keras.models.load_model(model_path, compile=False)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name = hparams[HP_OPTIMIZER]
@@ -766,11 +499,11 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 # CHANGEME
 n_epochs = 200
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001,0.001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam','nadam','sgd','rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
 HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score']))  # 'max','naive',
 LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,3,4,10,16,32]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([4]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
 INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_uniform'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
@@ -911,63 +644,4 @@ for norm_name in HP_NORM.domain.values:
                                 session_num += 1
 
 print(history.history.keys())
-print(log_dir)
-
-norm_method = 'z_score'
-test_generator_gt = ImageGenerator(scaled_test_X, test_Y, dim=(shape[0], shape[1]),
-                                                         n_channels=shape[2],batch_size=len(test_Y))
-test_gt = test_generator_gt.__getitem__(0)
-test_gt[0][-1].shape
-test_gt[1][0].shape
-x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
-mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
-
-print('Running predictions...')
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_he_naive_selection\model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
-model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_opt_lr_selection\model_z_score_4_crossentropy_dice_loss_nadam_0.0001_64_elu_he_uniform_200'
-model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_2\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-
-reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
-reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001,rho=0.9, epsilon=None,decay=0.0),
-                            loss=crossentropy_dice_loss,
-                            metrics=['accuracy',
-                                     jaccard_coef_int,
-                                     dice_coef,
-                                     "binary_crossentropy"
-                                     ])
-predictions = reconstructed_model.predict(test_gt[0], verbose=1)
-score = reconstructed_model.evaluate(test_gt[0], test_gt[1], verbose=1)
-
-
-def plot_sample(ix=None):
-    """Function to plot the results"""
-
-    fig, ax = plt.subplots(1, 3, figsize=(20, 10))  # 4
-    ax[0].imshow(test_gt[0][ix])
-
-    ax[0].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
-    ax[0].set_title('Image')
-
-    ax[1].imshow(test_gt[1][ix].squeeze())
-    ax[1].set_title('Mask')
-
-    ax[2].imshow(predictions[ix].squeeze(), vmin=0, vmax=1)
-
-    ax[2].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
-    ax[2].set_title('Predicted')
-    plt.show()
-
-list = []
-for i in range(0, len(predictions)):
-    list.append(np.max(predictions[i]))
-    plot_sample(i)
-
-print(list)
-print(score)
 print(log_dir)

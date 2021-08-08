@@ -164,16 +164,15 @@ from data_generator_segmentation import DataGenerator_segmentation
 
 smooth = 1e-12
 
-
+@tf.function()
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
 
     jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    tf.summary.scalar('jaccard_coef', data=K.mean(jac))
     return K.mean(jac)
 
-
+@tf.function()
 def iou_loss(y_true, y_pred):
     return 1 - jaccard_coef(y_true, y_pred)
 
@@ -192,7 +191,7 @@ def iou_loss(y_true, y_pred):
 #     y_pred_f = K.flatten(y_pred)
 #     intersection = K.sum(y_true_f * y_pred_f)
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-
+@tf.function()
 def dice_coef_loss(y_true, y_pred):
     """
     Arguments:
@@ -204,7 +203,7 @@ def dice_coef_loss(y_true, y_pred):
     """
     return 1 - dice_coef(y_true, y_pred)
 
-
+@tf.function()
 def jaccard_coef_int(y_true, y_pred):
     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
@@ -213,7 +212,7 @@ def jaccard_coef_int(y_true, y_pred):
     tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
     return K.mean(jac)
 
-
+@tf.function()
 def jaccard_coef_loss(y_true, y_pred):
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
@@ -239,7 +238,7 @@ Define our custom loss function.
 #     #tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-
+@tf.function()
 def dice_coef(y_true, y_pred):
     smooth = 1.0
     y_true_f = K.flatten(y_true)
@@ -249,9 +248,11 @@ def dice_coef(y_true, y_pred):
     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
     return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
+@tf.function()
 def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
 
+@tf.function()
 def crossentropy_dice_loss(y_true, y_pred):
     return binary_crossentropy(y_true, y_pred) + dice_coef_loss(y_true, y_pred)
 
@@ -263,7 +264,7 @@ def crossentropy_dice_loss(y_true, y_pred):
 # def crossentropy_coeff_dice_loss(y_true, y_pred):
 #     return binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
 
-
+@tf.function()
 def binary_focal_loss(gamma=2., alpha=.25):
     """
     Binary form of focal loss.
