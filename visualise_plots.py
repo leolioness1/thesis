@@ -107,18 +107,30 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 # plt.style.use("ggplot")
-path_name = 'history_files/history_z_score_3_crossentropy_dice_loss_adam_100_aug.csv'
+path_name=f'history_files_z_score_init_selection/history_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_100.csv'
+
+
+def pre_read_history_csv(path,param):
+    df= pd.read_csv(path)
+    score_zip= dict(zip(df.iloc[-2,0:5].to_list(),df.iloc[-1,0:5].astype(float).round(decimals=2).to_list()))
+    df= df.iloc[:-2,1:].astype(float).round(decimals=2)
+    df=df[['dice_coef','val_dice_coef','loss','val_loss']]
+    print(len(df))
+    # metrics_list=df.columns.to_list()
+    # print(metrics_list)
+    print(df.iloc[-1,:])
+    latex_input = f"{param} & {df.iloc[-1]['dice_coef']} & {df.iloc[-1]['val_dice_coef']} & {score_zip['dice_coef']} & {df.iloc[-1]['loss']} & {df.iloc[-1]['val_loss']} & {score_zip['loss']}  \\"
+    print(latex_input)
+    return latex_input
+pre_read_history_csv(path_name, 'ELU')
 
 def read_history_csv(path):
     df= pd.read_csv(path)
-    score_zip= dict(zip(df.iloc[-2,0:5].to_list(),df.iloc[-1,0:5].to_list()))
     df= df.iloc[:-2,1:].astype(float).round(decimals=4)
-    print(len(df))
-    metrics_list=df.columns.to_list()
     return df
 
 
-def plot_metric(metric, metric_name, df_list, legend_list, n=51):
+def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
     # train_metrics = df[metric]
     marker_list=['o','s','*','x','d','h','o','s','*','x','d','h','o','s','*','x','d','h','*','x','d','h','o','s','*','x','d','h']
     for i, df in enumerate(df_list):
@@ -133,121 +145,147 @@ def plot_metric(metric, metric_name, df_list, legend_list, n=51):
     # plt.plot(epochs, val_metrics_2, marker='+')
     # plt.plot(epochs, val_metrics_3,marker='>')
     # plt.plot(epochs, val_metrics_4, marker='>')
-    plt.title('Model comparison of validation ' + metric_name)
+    plt.title(f'Model comparison of {parameter_name}')
     plt.xlabel("Epochs")
     plt.grid(True)
     plt.ylabel(metric_name)
     plt.legend(legend_list)
     # plt.legend(legend_list,loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol = len(legend_list)//2)
     plt.show()
-    # plt.savefig(fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\plots\{metric_name}.png')
+    plt.savefig(fr'C:\Users\leo__\Downloads\thesis_images\experiment plots\{parameter_name}_{metric_name}.png')
+    plt.close()
 
+parameter_name='patch size'
+param_list_var= ['32','64','128','256']
+parameter_name='normalisation method'
+param_list_var=['max','naive','z_score']
+parameter_name='augmentation method'
+param_list_var=['both','rotation','translation']
 
-list_df=[]
-list_legend=[]
+def plot_and_table(parameter,param_list):
+    list_df=[]
+    list_legend=[]
+    table_content=[]
 
+    for i in param_list :
+        path = f'history_files_augmentation/history_z_score_4_crossentropy_dice_loss_adam_0.0001_64_{i}_50.csv'
+        list_df.append(read_history_csv(path))
+        list_legend.append(i)
+    plot_metric('dice_coef', 'Validation dice coefficient', parameter, list_df, list_legend)
+    # plot_metric('jaccard_coef_int','Validation jaccard coefficient', parameter_name, list_df, list_legend)
+    plot_metric('loss', 'Validation loss', parameter, list_df, list_legend)
+    with open(fr'C:\Users\leo__\Downloads\thesis_images\table_content\{parameter}.txt', 'w', encoding='utf-8') as f:
+        f.write('\ '.join(table_content))
+    return '\ '.join(table_content)
+
+plot_and_table(parameter_name,param_list_var)
+
+# list_df=[]
+# list_legend=[]
+# table_content=[]
+# parameter_name='patch size'
 # for i in ['32','64','128','256']:
 #     path_name=f'history_files_patch_selection/history_naive_4_crossentropy_dice_loss_adam_0.0001_{i}_50.csv'
 #     list_df.append(read_history_csv(path_name))
 #     list_legend.append(i)
-# parameter_name='Normalisation method'
+#     table_content.append(pre_read_history_csv(path_name,i))
+# print('\ '.join(table_content))
+# parameter_name='normalisation method'
 # for i in ['max','naive','z_score']:
 #     path_name=f'history_files_why_selection/history_{i}_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
+#     list_legend.append(f'{i}')
 
+# parameter_name='augmentation method'
 # for i in ['both','rotation','translation']:
 #     path_name=f'history_files_augmentation/history_z_score_4_crossentropy_dice_loss_adam_0.0001_64_{i}_50.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(i)
+#     list_legend.append(f'{i}')
 
-# parameter_name='Learning rate'
+# parameter_name='learning rate'
 # for i in [0.001,0.0001]:
 #     path_name=f'history_files_opt_selection/history_naive_4_crossentropy_dice_loss_rmsprop_{i}_64_elu_he_normal_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
+#     list_legend.append(f'{i}')
 
-# [1,2,3,4,5,6,10,15,25,30]
-#[4,5,3] 0.0001
-#[2,10,15,30] 0.001
-# parameter_name='Batch size'
+
+# parameter_name='batch size'
 # for i in [1,2,4,6,10,16,20]:
 #     path_name=f'history_files_opt_selection/history_naive_{i}_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
+#     list_legend.append(f'{i}')
 
-# parameter_name='Optimiser'
+# parameter_name='optimiser'
 # for i in ['adam','nadam','sgd','rmsprop']:
 #     path_name=f'history_files_opt_selection/history_naive_4_crossentropy_dice_loss_{i}_0.001_64_elu_he_normal_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
+#     list_legend.append(f'{i}')
 
-parameter_name='Loss Function'
-#['crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss']
-for i in ['crossentropy_dice_loss','crossentropy_coef_dice_loss']:
-    #path_name=f'history_files_loss_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_random_uniform_100.csv'
-    #path_name=f'history_files_loss_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_he_normal_100.csv'
-    #path_name=f'history_files_translation_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
-    #path_name=f'history_files_z_score_loss_selection/history_z_score_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
-    path_name=f'history_files_z_score_ce_loss_selection/history_z_score_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
-    list_df.append(read_history_csv(path_name))
-    list_legend.append(f'{parameter_name}: {i}')
+# parameter_name='loss function'
+# #['crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss']
+# for i in ['crossentropy_dice_loss','crossentropy_coef_dice_loss']:
+#     #path_name=f'history_files_loss_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_random_uniform_100.csv'
+#     #path_name=f'history_files_loss_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_he_normal_100.csv'
+#     #path_name=f'history_files_translation_naive_selection/history_naive_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+#     #path_name=f'history_files_z_score_loss_selection/history_z_score_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+#     path_name=f'history_files_z_score_ce_loss_selection/history_z_score_10_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+#     list_df.append(read_history_csv(path_name))
+#     list_legend.append(f'{i}')
 
-# parameter_name='Activation Function'
+# parameter_name='activation function'
 # for i in ['elu','relu','gelu','selu','tanh']:
 #     # path_name=f'history_files_activation_selection/history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_50.csv'
 #     #path_name = f'history_files_init_act_selection/history_z-score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_normal_50.csv'
 #     #path_name=f'history_files_activation_naive_selection/history_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_normal_100.csv'
 #     path_name=f'history_files_z_score_init_selection/history_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_uniform_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
-# parameter_name='Initialisation method'
+#     list_legend.append(f'{i}')
+# parameter_name='initialisation method'
 # for i in ['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']:
 #     # path_name=f'history_files_init_naive_selection/history_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_{i}_100.csv'
 #     #path_name=f'history_files_init_selection\history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_relu_{i}_50.csv'
 #     path_name = f'history_files_z_score_init_selection/history_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_{i}_100.csv'
 #     list_df.append(read_history_csv(path_name))
-#     list_legend.append(f'{parameter_name}: {i}')
-
-plot_metric('jaccard_coef_int','jaccard coefficient', list_df, list_legend)
-plot_metric('dice_coef','dice coefficient', list_df, list_legend,n=100)
-plot_metric('loss','loss', list_df, list_legend)
-
-IMAGE_DIR_PATH = '../Perma_Thesis/MSI/thaw/'
-BATCH_SIZE = 4
-
-# create list of PATHS
-image_paths = [os.path.join(IMAGE_DIR_PATH, x) for x in os.listdir(IMAGE_DIR_PATH) if x.endswith('.tif')]
-from data_generator_segmentation import DataGenerator_segmentation
-val_list=[]
-# val_it=[]
-# Y = np.empty((len(image_paths), *dimension))
-for i, ID in enumerate(image_paths):
-    print(i, ID)
-    image_test,mask_test=load_image(image_path=ID)
-    # Initialization
-
-    # Generate data
-
-        # Store sample
-        # Y_temp = load_mask(ID)
-    # Y[i,] = mask_test
-
-    # mask_test= load_mask(image_path=image)
-
-    # print( "Test Image dimensions:" + str(image_test.shape))
-    #
-    # print( "Test Mask dimensions:" + str(mask_test.shape))
-    val_list.append(tf.math.count_nonzero(mask_test).numpy())
-    # val_it.append(tf.math.count_nonzero(Y[i]).numpy())
-    # plt.imshow(image_test)
-    # plt.show()
-    #
-    # plt.imshow(mask_test)
-    # plt.show()
-
-
-val_list_perc= np.multiply(np.divide(val_list,16384),100)
+#     list_legend.append(f'{i}')
+plot_metric('dice_coef','Validation dice coefficient', parameter_name, list_df, list_legend)
+# plot_metric('jaccard_coef_int','Validation jaccard coefficient', parameter_name, list_df, list_legend)
+plot_metric('loss','Validation loss', parameter_name, list_df, list_legend)
+#
+# IMAGE_DIR_PATH = '../Perma_Thesis/MSI/thaw/'
+# BATCH_SIZE = 4
+#
+# # create list of PATHS
+# image_paths = [os.path.join(IMAGE_DIR_PATH, x) for x in os.listdir(IMAGE_DIR_PATH) if x.endswith('.tif')]
+# from data_generator_segmentation import DataGenerator_segmentation
+# val_list=[]
+# # val_it=[]
+# # Y = np.empty((len(image_paths), *dimension))
+# for i, ID in enumerate(image_paths):
+#     print(i, ID)
+#     image_test,mask_test=load_image(image_path=ID)
+#     # Initialization
+#
+#     # Generate data
+#
+#         # Store sample
+#         # Y_temp = load_mask(ID)
+#     # Y[i,] = mask_test
+#
+#     # mask_test= load_mask(image_path=image)
+#
+#     # print( "Test Image dimensions:" + str(image_test.shape))
+#     #
+#     # print( "Test Mask dimensions:" + str(mask_test.shape))
+#     val_list.append(tf.math.count_nonzero(mask_test).numpy())
+#     # val_it.append(tf.math.count_nonzero(Y[i]).numpy())
+#     # plt.imshow(image_test)
+#     # plt.show()
+#     #
+#     # plt.imshow(mask_test)
+#     # plt.show()
+#
+#
+# val_list_perc= np.multiply(np.divide(val_list,16384),100)
 
 
 #

@@ -164,7 +164,7 @@ from data_generator_segmentation import DataGenerator_segmentation
 
 smooth = 1e-12
 
-@tf.function()
+
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
@@ -172,7 +172,7 @@ def jaccard_coef(y_true, y_pred):
     jac = (intersection + smooth) / (sum_ - intersection + smooth)
     return K.mean(jac)
 
-@tf.function()
+
 def iou_loss(y_true, y_pred):
     return 1 - jaccard_coef(y_true, y_pred)
 
@@ -191,7 +191,7 @@ def iou_loss(y_true, y_pred):
 #     y_pred_f = K.flatten(y_pred)
 #     intersection = K.sum(y_true_f * y_pred_f)
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-@tf.function()
+
 def dice_coef_loss(y_true, y_pred):
     """
     Arguments:
@@ -203,7 +203,6 @@ def dice_coef_loss(y_true, y_pred):
     """
     return 1 - dice_coef(y_true, y_pred)
 
-@tf.function()
 def jaccard_coef_int(y_true, y_pred):
     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
@@ -212,7 +211,7 @@ def jaccard_coef_int(y_true, y_pred):
     tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
     return K.mean(jac)
 
-@tf.function()
+
 def jaccard_coef_loss(y_true, y_pred):
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
@@ -238,7 +237,7 @@ Define our custom loss function.
 #     #tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-@tf.function()
+
 def dice_coef(y_true, y_pred):
     smooth = 1.0
     y_true_f = K.flatten(y_true)
@@ -248,11 +247,11 @@ def dice_coef(y_true, y_pred):
     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
     return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-@tf.function()
+
 def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
 
-@tf.function()
+
 def crossentropy_dice_loss(y_true, y_pred):
     return binary_crossentropy(y_true, y_pred) + dice_coef_loss(y_true, y_pred)
 
@@ -264,7 +263,7 @@ def crossentropy_dice_loss(y_true, y_pred):
 # def crossentropy_coeff_dice_loss(y_true, y_pred):
 #     return binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
 
-@tf.function()
+
 def binary_focal_loss(gamma=2., alpha=.25):
     """
     Binary form of focal loss.
@@ -395,7 +394,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # batch_list = []
 # CHANGEME
 
-experiment_folder = 'z_score_ce_loss_selection'
+experiment_folder = 'normalisation_selection_new'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -507,14 +506,14 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 # CHANGEME
 n_epochs = 100
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
-HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score']))  # 'max','naive',
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam']))  # ,['adam','nadam','sgd','rmsprop']
+HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score','max','naive']))  # 'max','naive',
 LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([10]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([4]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
-INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_uniform'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
+INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
 METRIC_DICE = 'dice_coef'
@@ -633,7 +632,7 @@ for norm_name in HP_NORM.domain.values:
                                 tf.summary.image(f"{name}_loss_curve",
                                                  plot_to_image(loss_fig))
                                 test_generator_gt = DataGenerator_segmentation(df_test, dimension=(patch_size, patch_size),
-                                                                               batch_size=len(df_test),
+                                                                               batch_size=len(df_test),size=patch_size,norm_method=norm_name,
                                                                                n_channels=4)
                                 test_gt = test_generator_gt.__getitem__(0)
                                 score = model.evaluate(test_gt[0], test_gt[1], verbose=1)
