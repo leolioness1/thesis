@@ -65,15 +65,15 @@ TEST_LOCAL_PATH =  '../Perma_Thesis/test_data'
 # #         img_final = img_final[startx:startx+size,startx:starty+size,:]
 #       return img_final
 #
-def load_mask(image_path):
-    img_object = rasterio.open(image_path)
-    img = img_object.read()
-    # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
-
-    mask = img[-1, :256, :256]
-    mask_final = np.moveaxis(mask, 0, -1)
-    np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
-    return mask_final
+# def load_mask(image_path):
+#     img_object = rasterio.open(image_path)
+#     img = img_object.read()
+#     # Selecting only 3 channels and fixing size to 256 not correct way exactly but hack
+#
+#     mask = img[-1, :256, :256]
+#     mask_final = np.moveaxis(mask, 0, -1)
+#     np.nan_to_num(mask_final, nan=0, copy=False)  # Change nans from data to 0 for mask
+#     return mask_final
 
 
 from data_generator_segmentation import DataGenerator_segmentation
@@ -148,6 +148,7 @@ print(df_test.groupby('labels_string').count())
 # as default Imagedatagenertator seems to be throwing error
 
 from data_generator_segmentation import DataGenerator_segmentation
+import helper
 
 # Add code for resize
 # Add code for normalize range to 0-1
@@ -165,16 +166,40 @@ from data_generator_segmentation import DataGenerator_segmentation
 smooth = 1e-12
 
 
-def jaccard_coef(y_true, y_pred):
-    intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
+# def jaccard_coef(y_true, y_pred):
+#     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
+#     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
+#     jac = (intersection + smooth) / (sum_ - intersection + smooth)
+#     return K.mean(jac)
 
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    return K.mean(jac)
+#worked for iou loss
+def jaccard_coef_int(y_true, y_pred):
+    intersection = K.sum(K.abs(y_true * y_pred))
+    sum_ = K.sum(K.square(y_true)) + K.sum(K.square(y_pred))
+    jac = (intersection + 1e-12) / (sum_ - intersection + 1e-12)
+    tf.summary.scalar('jaccard_coef_int', data=jac)
+    return jac
 
-
-def iou_loss(y_true, y_pred):
-    return 1 - jaccard_coef(y_true, y_pred)
+#
+# def jaccard_coef_int(y_true, y_pred, smooth=1):
+#     """
+#     Jaccard = (|X & Y|)/ (|X|+ |Y| - |X & Y|)
+#             = sum(|A*B|)/(sum(|A|)+sum(|B|)-sum(|A*B|))
+#
+#     The jaccard distance loss is usefull for unbalanced datasets. This has been
+#     shifted so it converges on 0 and is smoothed to avoid exploding or disapearing
+#     gradient.
+#
+#     Ref: https://en.wikipedia.org/wiki/Jaccard_index
+#
+#     @url: https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
+#     @author: wassname
+#     """
+#     intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
+#     sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)
+#     jac = (intersection + smooth) / (sum_ - intersection + smooth)
+#     return jac
+#
 
 
 # def dice_coef(y_true, y_pred, smooth=1):
@@ -192,28 +217,32 @@ def iou_loss(y_true, y_pred):
 #     intersection = K.sum(y_true_f * y_pred_f)
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-def dice_coef_loss(y_true, y_pred):
-    """
-    Arguments:
-        y_true: (string) ground truth image mask
-        y_pred : (int) predicted image mask
+# def dice_coef_loss(y_true, y_pred):
+#     """
+#     Arguments:
+#         y_true: (string) ground truth image mask
+#         y_pred : (int) predicted image mask
+#
+#     Returns:
+#         Calculated Dice coeffecient loss
+#     """
+#     return 1 - dice_coef(y_true, y_pred)
 
-    Returns:
-        Calculated Dice coeffecient loss
-    """
-    return 1 - dice_coef(y_true, y_pred)
+#doesnt work for iou loss
+# def jaccard_coef_int(y_true, y_pred):
+#     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+#     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
+#     sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
+#     jac = (intersection + smooth) / (sum_ - intersection + smooth)
+#     tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
+#     return K.mean(jac)
 
-def jaccard_coef_int(y_true, y_pred):
-    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
-    intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
-    return K.mean(jac)
 
+def iou_loss(y_true, y_pred):
+    return 1 - jaccard_coef_int(y_true, y_pred)
 
 def jaccard_coef_loss(y_true, y_pred):
-    return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
+    return -K.log(jaccard_coef_int(y_true, y_pred)) + binary_crossentropy(y_true,y_pred)
 
 
 """
@@ -238,18 +267,35 @@ Define our custom loss function.
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 
-def dice_coef(y_true, y_pred):
-    smooth = 1.0
-    y_true_f = K.flatten(y_true)
-    y_true_f = K.cast(y_true_f, 'float32')
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
-    return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+# def dice_coef(y_true, y_pred):
+#     smooth = 1e-12
+#     y_true_f = K.flatten(y_true)
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
+#     return (2.0* intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+# def dice_coef(y_true, y_pred, smooth=1e-12):
+#     intersection = K.sum(y_true * y_pred, axis=[1,2,3])
+#     union = K.sum(y_true, axis=[1,2,3]) + K.sum(y_pred, axis=[1,2,3])
+#     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (union + smooth))
+#     return (2. * intersection + smooth) / (union + smooth)
+
+def dice_coef(y_true, y_pred, smooth=1e-12):
+    """
+    Dice = (2*|X & Y|)/ (|X|+ |Y|)
+         =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    ref: https://arxiv.org/pdf/1606.04797v1.pdf
+    """
+    intersection = K.sum(K.abs(y_true * y_pred))
+    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth))
+    return (2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth)
 
 
+#not working
 def dice_coef_loss(y_true, y_pred):
-    return 1 - dice_coef(y_true, y_pred)
+    return 1-dice_coef(y_true, y_pred)
+
 
 
 def crossentropy_dice_loss(y_true, y_pred):
@@ -394,7 +440,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # batch_list = []
 # CHANGEME
 
-experiment_folder = 'normalisation_selection_new'
+experiment_folder = 'normaliser_loss_selection'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -504,16 +550,16 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 
 
 # CHANGEME
-n_epochs = 100
+n_epochs = 20
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam']))  # ,['adam','nadam','sgd','rmsprop']
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam','nadam','sgd','rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
 HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score','max','naive']))  # 'max','naive',
-LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([4]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss'
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,2,4,6,10,16,20]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
-INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
+INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_uniform','he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
 METRIC_DICE = 'dice_coef'

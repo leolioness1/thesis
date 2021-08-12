@@ -49,6 +49,8 @@ import matplotlib.pyplot as plt
 import helper
 from classes import Scaler, ImageGenerator
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 # tiffs = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
 
 
@@ -154,56 +156,56 @@ final = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
 #             print(arr.max())
 #         print("==============================")
 
-
-# In[4]:
-
-
-# Finding the optimal window size to reduce data loss
-# window sizes of 64, 128, 256, 512
-# or 50, 100, 150, 200, 250...
-window_sizes = [64, 128, 256, 512]
-
-results = {}
-for window in window_sizes:
-    results[window] = []
-
-for img in final:
-    with rasterio.open(img, 'r') as src:
-        arr = src.read(1)
-        h = arr.shape[0]
-        w = arr.shape[1]
-
-    for window in window_sizes:
-        h_n = h // window
-        w_n = w // window
-
-        h_loss = h - (window * h_n)
-        w_loss = w - (window * w_n)
-
-        total_loss = (h_loss * h) + (w_loss * w) - (h_loss * w_loss)
-
-        results[window].append([total_loss, total_loss / (h * w)])
-
-for key, value in results.items():
-    results[key] = np.array(value)
-
-# In[5]:
-
-
-fig, axes = plt.subplots(1, 1, figsize=(8, 8))
-
-mean_pct_loss = [x[:, 1].mean() for x in results.values()]
-
-axes.plot(window_sizes, mean_pct_loss)
-axes.set_xlabel('Window Size')
-axes.set_ylabel('% Pixel Loss')
-axes.set_title('Percentage Pixel Loss against Window Size')
-plt.show()
-
-best = np.array(mean_pct_loss).argsort()
-best = np.array(window_sizes)[best[0]]
-print('Best window size: ', best)
-print(list(results.values())[0][:, 1].mean())
+#
+# # In[4]:
+#
+#
+# # Finding the optimal window size to reduce data loss
+# # window sizes of 64, 128, 256, 512
+# # or 50, 100, 150, 200, 250...
+# window_sizes = [64, 128, 256, 512]
+#
+# results = {}
+# for window in window_sizes:
+#     results[window] = []
+#
+# for img in final:
+#     with rasterio.open(img, 'r') as src:
+#         arr = src.read(1)
+#         h = arr.shape[0]
+#         w = arr.shape[1]
+#
+#     for window in window_sizes:
+#         h_n = h // window
+#         w_n = w // window
+#
+#         h_loss = h - (window * h_n)
+#         w_loss = w - (window * w_n)
+#
+#         total_loss = (h_loss * h) + (w_loss * w) - (h_loss * w_loss)
+#
+#         results[window].append([total_loss, total_loss / (h * w)])
+#
+# for key, value in results.items():
+#     results[key] = np.array(value)
+#
+# # In[5]:
+#
+#
+# fig, axes = plt.subplots(1, 1, figsize=(8, 8))
+#
+# mean_pct_loss = [x[:, 1].mean() for x in results.values()]
+#
+# axes.plot(window_sizes, mean_pct_loss)
+# axes.set_xlabel('Window Size')
+# axes.set_ylabel('% Pixel Loss')
+# axes.set_title('Percentage Pixel Loss against Window Size')
+# plt.show()
+#
+# best = np.array(mean_pct_loss).argsort()
+# best = np.array(window_sizes)[best[0]]
+# print('Best window size: ', best)
+# print(list(results.values())[0][:, 1].mean())
 
 # In[6]:
 
@@ -263,11 +265,6 @@ print(idx)
 
 # # Data Prep
 
-# In[10]:
-
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 
 # Seed random
 seed = 1004493
@@ -279,8 +276,6 @@ val, test = train_test_split(val_test, test_size=0.15, shuffle=True, random_stat
 print('train: ', len(train))
 print('val: ', len(val))
 print('test: ', len(test))
-
-# In[11]:
 
 
 datasets = [train, val, test]
@@ -305,10 +300,6 @@ plt.hist(sorted(data['test']), bins=20)
 plt.title('Test data positive label counts')
 plt.show()
 
-
-# Fiddling with the random seed has allowed me to yield a reasonably consistent stratified split across train, val, test. We have lots of small thaw slumps and some big ones in each of the sets. I can't really use a actual stratified split because each image contains different pos/neg pixel ratio.
-
-# In[12]:
 
 
 # Convert to numpy arrays of shape (len(ds), 8, window, window)
@@ -382,25 +373,33 @@ print(test_Y.shape)
 # for i, arr in enumerate(test_X):
 #     scaled_test_X[i] = test_X[i] / 10000
 
-scaler = Scaler(train_X, scaler= StandardScaler())
-scaler.fit_scaler()
-
-# In[19]:
-
+# scaler_b1 = Scaler(train_X[i], scaler= StandardScaler())
+# scaler.fit_scaler()
+#
+# # In[19]:
+# for i, arr in enumerate(train_X):
+#     scaler = Scaler(train_X[i], scaler=StandardScaler())
+#     scaler.fit_scaler()
 
 
 
 # Scale all datasets
 scaled_train_X = np.empty(train_X.shape)
 for i, arr in enumerate(train_X):
+    scaler = Scaler(train_X[i], scaler=StandardScaler())
+    scaler.fit_scaler()
     scaled_train_X[i] = scaler.transform(arr)
 
 scaled_val_X = np.empty(val_X.shape)
 for i, arr in enumerate(val_X):
+    scaler = Scaler(train_X[i], scaler=StandardScaler())
+    scaler.fit_scaler()
     scaled_val_X[i] = scaler.transform(arr)
 
 scaled_test_X = np.empty(test_X.shape)
 for i, arr in enumerate(test_X):
+    scaler = Scaler(train_X[i], scaler=StandardScaler())
+    scaler.fit_scaler()
     scaled_test_X[i] = scaler.transform(arr)
 
 # In[20]:
@@ -497,16 +496,26 @@ Define our custom loss function.
 #     intersection = K.sum(y_true_f * y_pred_f)
 #     #tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
 #     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+# def dice_coef(y_true, y_pred, smooth=1e-12):
+#     """
+#     Dice = (2*|X & Y|)/ (|X|+ |Y|)
+#          =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+#     ref: https://arxiv.org/pdf/1606.04797v1.pdf
+#     """
+#     intersection = K.sum(K.abs(y_true * y_pred))
+#     tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth))
+#     return (2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth)
 
-
-def dice_coef(y_true, y_pred):
-    smooth = 1.0
-    y_true_f = K.flatten(y_true)
-    y_true_f = K.cast(y_true_f, 'float32')
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
-    return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+def dice_coef(y_true, y_pred, smooth=1e-12):
+    """
+    Dice = (2*|X & Y|)/ (|X|+ |Y|)
+         =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    ref: https://arxiv.org/pdf/1606.04797v1.pdf
+    """
+    y_true = K.cast(y_true, 'float32')
+    intersection = K.sum(K.abs(y_true * y_pred))
+    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth))
+    return (2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth)
 
 def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
@@ -653,7 +662,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # batch_list = []
 # CHANGEME
 
-experiment_folder = 'adam_new_data_z_score_batch_selection'
+experiment_folder = 'adam_new_dataloss_selection'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -764,13 +773,13 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 
 
 # CHANGEME
-n_epochs = 200
+n_epochs = 100
 tf.summary.experimental.set_step(True)
 HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
 HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
 HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score']))  # 'max','naive',
-LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,2,4,6,10,16,20]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss','dice_coef_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss'
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([10]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['gelu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
 INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']

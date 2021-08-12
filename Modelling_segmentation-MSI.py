@@ -37,6 +37,8 @@ LOCAL_PATH= '../Perma_Thesis/MSI/thaw'
 
 VAL_LOCAL_PATH= '../Perma_Thesis/RGB-thawslump-UTM-Images/batagay/'
 n_channels=4
+
+
 def load_image(image_path):
       """Load grayscale image
       :param image_path: path to image to load

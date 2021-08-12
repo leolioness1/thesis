@@ -363,12 +363,14 @@ test_gt[0][-1].shape
 test_gt[1][0].shape
 x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
 mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
+
 print('Running predictions...')
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
 model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_z_score_loss_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_100'
+model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_fixed_selection_new\model_z_score_6_dice_coef_loss_rmsprop_0.001_64_elu_he_uniform_100'
 
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
 reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001,rho=0.9, epsilon=None,decay=0.0),
