@@ -12,11 +12,13 @@ from tensorflow.keras import backend as K
 import random
 from tensorboard.plugins.hparams import api as hp
 import shutil
+import keras_tuner as kt
 # seed_value= 0
 # random.seed(seed_value)
 # np.random.seed(seed_value)
 # tf.random.set_seed(seed_value)
 # os.environ['PYTHONHASHSEED']=str(seed_value)
+#
 # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
 # tf.compat.v1.keras.backend.get_session(sess)
@@ -25,278 +27,317 @@ import shutil
 # coding: utf-8
 import sys
 import os
+
+sys.path.append('./adam_cnn/cnn/scripts')
+
+# In[2]:
+
 import rasterio
 import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 import helper
 from classes import Scaler, ImageGenerator
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
-sys.path.append('./adam_cnn/cnn/scripts')
+# tiffs = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
 
 
-#final = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
+# # Data Cleansing
+#
+#     - Checking which tiles have missing satellite layers and remove
+#     - Clipping tiles to sites
+#     - Removing sites with no polygons
 
-# final = sorted(glob.glob('./validated/*.tiff'))
-# final_test = sorted(glob.glob('./validated_test/*.tiff'))
-# Create training arrays
-window = 64
-# data = []
+# In[3]:
+
+
+# Check if the satellite layers are blank
+# invalid = []
+# for tiff in tiffs:
+#     with rasterio.open(tiff, 'r') as src:
+#         arr = src.read()
+
+#         broken_bands = False
+#         for ar in arr:
+
+#             if np.array_equal(np.unique(ar), [ 0,  1,  2, 11]):
+#                 broken_bands = True
+#             if np.array_equal(np.unique(ar), [ 0,  1,  2,  3, 10, 11]):
+#                 broken_bands = True
+
+#     if broken_bands:
+#         invalid.append(tiff)
+
+# print(invalid)
+
+# for f in invalid:
+#     os.remove(f)
+
+
+# In[4]:
+
+
+# # Clip rasters to the sites, because for some reason we added multiple sites per geotiff
+# clipped = []
+# for tiff in tiffs:
+#     with rasterio.open(tiff, 'r') as src:
+#         arr = src.read()
+#         crs = src.crs
+#         transform = src.transform
+
+#     sites = h.polygonise(arr[0], threshold=0.5, crs=crs, transform=transform)
+#     sites = sites.geometry.to_list()
+
+#     for i, site in enumerate(sites):
+#         coords = h.polygon_to_raster_coords(site, crs)
+
+#         name = os.path.splitext(os.path.basename(tiff))[0]
+#         name = name + f'_site_{i}'
+
+#         clipped.append(
+#             h.clip_rasters([tiff], coords, './data/clipped', [name])[0]
+#         )
+
+# len(clipped)
+
+
+# In[5]:
+
+
+# Remove all files which don't have polygons in the poly layer
+# missing_polys = []
+# for tiff in tiffs:
+#     with rasterio.open(tiff, 'r') as src:
+#         arr = src.read()
+#         polys = arr[0]
+
+#     if polys.max() == 0:
+#         missing_polys.append(tiff)
+
+# print(missing_polys)
+
+# for f in missing_polys:
+#     os.remove(f)
+
+
+# ### Check Data
+
+# In[3]:
+
+
+final = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
+
+# for f in final:
+#     with rasterio.open(f, 'r') as src:
+#         print(f)
+#         for arr in src.read():
+#             plt.imshow(arr)
+#             plt.show()
+
+#             w = arr.shape[0]
+#             h = arr.shape[1]
+
+#             plt.imshow(arr[w//2:(w//2)+64,h//2:(h//2)+64])
+#             plt.show()
+
+#             print(np.unique(arr))
+#             print(arr.max())
+#         print("==============================")
+
+#
+# # In[4]:
+#
+#
+# # Finding the optimal window size to reduce data loss
+# # window sizes of 64, 128, 256, 512
+# # or 50, 100, 150, 200, 250...
+# window_sizes = [64, 128, 256, 512]
+#
+# results = {}
+# for window in window_sizes:
+#     results[window] = []
+#
 # for img in final:
 #     with rasterio.open(img, 'r') as src:
-#         data.extend(helper.create_training_arrays(src, window))
+#         arr = src.read(1)
+#         h = arr.shape[0]
+#         w = arr.shape[1]
 #
-# test = []
-# for img in final_test:
-#     with rasterio.open(img, 'r') as src:
-#         test.extend(helper.create_training_arrays(src, window))
+#     for window in window_sizes:
+#         h_n = h // window
+#         w_n = w // window
 #
-# print(len(data))
-# print(len(test))
+#         h_loss = h - (window * h_n)
+#         w_loss = w - (window * w_n)
 #
-# bad = []
-# for i, d in enumerate(data):
-#     if not d.shape == (6,window,window):
-#         bad.append(i)
+#         total_loss = (h_loss * h) + (w_loss * w) - (h_loss * w_loss)
 #
-# print('Uncleaned: ', len(data))
+#         results[window].append([total_loss, total_loss / (h * w)])
 #
-# bad.reverse()
+# for key, value in results.items():
+#     results[key] = np.array(value)
 #
-# for idx in bad:
-#     data.pop(idx)
-#
-# print('Cleaned: ', len(data))
+# # In[5]:
 #
 #
-# bad = []
-# for i, d in enumerate(test):
-#     if not d.shape == (6,window,window):
-#         bad.append(i)
+# fig, axes = plt.subplots(1, 1, figsize=(8, 8))
 #
-# print('Uncleaned: ', len(test))
+# mean_pct_loss = [x[:, 1].mean() for x in results.values()]
 #
-# bad.reverse()
-#
-# for idx in bad:
-#     test.pop(idx)
-#
-# print('Cleaned: ', len(test))
-# # Separate positive and negative training images.
-# # Because we are doing segmentation there is no point having fully negative images, so we will only focus on the pos images
-# dneg = []
-# dpos = []
-#
-# for d in data:
-#     pos_sum = (d[0] == 1).sum()
-#     if pos_sum == 0:
-#         dneg.append(d)
-#     else:
-#         dpos.append(d)
-#
-# print('Negative: ', len(dneg))
-# print('Positive: ', len(dpos))
-#
-# tneg = []
-# tpos = []
-#
-# for d in test:
-#     pos_sum = (d[0] == 1).sum()
-#     if pos_sum == 0:
-#         tneg.append(d)
-#     else:
-#         tpos.append(d)
-#
-# print('Negative: ', len(tneg))
-# print('Positive: ', len(tpos))
-#
-# # Double check that data arrays all have satellite data
-# idx = []
-# for i, p in enumerate(dpos):
-#     layer_max = np.array([x.max() for x in p[2:6]]).max()
-#     if layer_max == 0:
-#         idx.append(i)
-#
-# idx.reverse()
-# print('Uncleaned: ', len(dpos))
-#
-# for i in idx:
-#     dpos.pop(i)
-#
-# print('Cleaned: ', len(dpos))
-#
-# idx = []
-# for i, p in enumerate(tpos):
-#     layer_max = np.array([x.max() for x in p[2:6]]).max()
-#     if layer_max == 0:
-#         idx.append(i)
-#
-# idx.reverse()
-# print('Uncleaned: ', len(tpos))
-#
-# for i in idx:
-#     tpos.pop(i)
-#
-# print('Cleaned: ', len(tpos))
-#
-#
-# # data = []
-# # for img in final:
-# #     with rasterio.open(img, 'r') as src:
-# #         data.extend(helper.create_training_arrays(src, window))
-# #
-# # # Separate positive and negative training images.
-# # # Because we are doing segmentation there is no point having fully negative images, so we will only focus on the pos images
-# #
-# # neg = []
-# # pos = []
-# #
-# # for d in data:
-# #     pos_sum = (d[0] == 1).sum()
-# #     if pos_sum == 0:
-# #         neg.append(d)
-# #     else:
-# #         pos.append(d)
-# #
-# # print('Negative: ', len(neg))
-# # print('Positive: ', len(pos))
-# #
-# # # Create Equal Split of Pos and Neg
-# # seed= 42
-# # np.random.seed(seed)
-# #
-# # neg = np.array(neg)
-# #
-# # np.random.shuffle(neg)
-# # neg = list(neg[:len(pos), :, : ,:])
-# # dcombined = pos + neg
-# #
-# # #
-# # # tneg = np.array(tneg)
-# # #
-# # # np.random.shuffle(tneg)
-# # # tneg = list(tneg[:len(tpos), :, : ,:])
-# # # tcombined = tpos + tneg
-# #
-# # print(len(dcombined))
-# # # print(len(tcombined))
-# #
-# #
-# # # Double check that data arrays all have satellite data
-# # idx = []
-# # for i, p in enumerate(dcombined):
-# #     layer_max = np.array([x.max() for x in p[2:6]]).max()
-# #     if layer_max == 0:
-# #         idx.append(i)
-# #
-# # idx.reverse()
-# # print('Uncleaned: ', len(dcombined))
-# #
-# # for i in idx:
-# #     pos.pop(i)
-# #
-# # print('Cleaned: ', len(dcombined))
-# #
-# #
-# # # # Data Prep
-# # # Seed random
-# seed = 1004493
-#
-# # generate train, val, test
-# # train, val_test = train_test_split(dcombined, test_size=0.2, shuffle=True, random_state=seed)
-# # val, test = train_test_split(val_test, test_size=0.23, shuffle=True, random_state=seed)
-# train=dpos
-# val, test = train_test_split(tpos, test_size=0.25, shuffle=True, random_state=seed)
-# #
-# print('train: ', len(train))
-# print('val: ', len(val))
-# print('test: ', len(test))
-# #
-# #
-# datasets = [train, val, test]
-# names = ['train', 'val', 'test']
-#
-# data_plot = {}
-# for ds, name in zip(datasets, names):
-#     l = []
-#     for arr in ds:
-#         l.append(arr[0].sum())
-#     data_plot[name] = l
-#
-# plt.hist(sorted(data_plot['train']), bins=20)
-# # plt.title('Train data positive label counts')
-# # plt.show()
-#
-# plt.hist(sorted(data_plot['val']), bins=20)
-# # plt.title('Val data positive label counts')
-# # plt.show()
-#
-# plt.hist(sorted(data_plot['test']), bins=20)
-# plt.title('Data positive label counts')
-# plt.legend(['Train','Validation', 'Test'])
+# axes.plot(window_sizes, mean_pct_loss)
+# axes.set_xlabel('Window Size')
+# axes.set_ylabel('% Pixel Loss')
+# axes.set_title('Percentage Pixel Loss against Window Size')
 # plt.show()
-# #
-# #
-# #
-# # Convert to numpy arrays of shape (len(ds), 8, window, window)
-# def invert_shape(img):
-#     trans = np.reshape(np.ravel(img, order='F'), (-1, img.shape[0]), order='C')
-#     trans = np.reshape(trans, (img.shape[2], img.shape[1], img.shape[0]), order='F')
-#     return trans
 #
-# np_train = np.empty((len(train), window, window, 6))
-#
-# for i, data in enumerate(train):
-#     np_train[i] = invert_shape(data)
-#
-# np_val = np.empty((len(val), window, window, 6))
-# for i, data in enumerate(val):
-#     np_val[i] = invert_shape(data)
-#
-# np_test = np.empty((len(test), window, window, 6))
-# for i, data in enumerate(test):
-#     np_test[i] = invert_shape(data)
-#
-#
-#
-# # Split into X and Y components
-# train_X = np_train[:, :, :, 2:]
-# train_Y = np_train[:, :, :, 0]
-# train_Y = np.reshape(train_Y, list(train_Y.shape) + [1])
-# print(train_X.shape)
-# print(train_Y.shape)
-# val_X = np_val[:, :, :, 2:]
-# val_Y = np_val[:, :, :, 0]
-# val_Y = np.reshape(val_Y, list(val_Y.shape) + [1])
-# print(val_X.shape)
-# print(val_Y.shape)
-#
-# test_X = np_test[:, :, :, 2:]
-# test_Y = np_test[:, :, :, 0]
-# test_Y = np.reshape(test_Y, list(test_Y.shape) + [1])
-#
-# print(test_X.shape)
-# print(test_Y.shape)
-i='new' #balanced
-# import pickle
-# with open(f'train_X{i}.pkl','wb') as f: pickle.dump(train_X, f)
-# with open(f'val_X{i}.pkl','wb') as f: pickle.dump(val_X, f)
-# with open(f'test_X{i}.pkl','wb') as f: pickle.dump(test_X, f)
-# with open(f'train_Y{i}.pkl','wb') as f: pickle.dump(train_Y, f)
-# with open(f'val_Y{i}.pkl','wb') as f: pickle.dump(val_Y, f)
-# with open(f'test_Y{i}.pkl','wb') as f: pickle.dump(test_Y, f)
+# best = np.array(mean_pct_loss).argsort()
+# best = np.array(window_sizes)[best[0]]
+# print('Best window size: ', best)
+# print(list(results.values())[0][:, 1].mean())
 
-import pickle
-i='new'
-with open(f'train_X{i}.pkl','rb') as f:  train_X = pickle.load(f)
-with open(f'val_X{i}.pkl','rb') as f: val_X = pickle.load(f)
-with open(f'test_X{i}.pkl','rb') as f: test_X = pickle.load(f)
-with open(f'train_Y{i}.pkl','rb') as f: train_Y = pickle.load(f)
-with open(f'val_Y{i}.pkl','rb') as f: val_Y = pickle.load(f)
-with open(f'test_Y{i}.pkl','rb') as f: test_Y = pickle.load(f)
+# In[6]:
 
+
+# Create training arrays
+window = 64
+data = []
+for img in final:
+    with rasterio.open(img, 'r') as src:
+        data.extend(helper.create_training_arrays(src, window))
+
+# In[7]:
+
+
+bad = []
+for i, d in enumerate(data):
+    if not d.shape == (6, window, window):
+        bad.append(i)
+
+print('Uncleaned: ', len(data))
+
+bad.reverse()
+
+for idx in bad:
+    data.pop(idx)
+
+print('Cleaned: ', len(data))
+
+# In[8]:
+
+
+# Separate positive and negative training images.
+# Because we are doing segmentation there is no point having fully negative images, so we will only focus on the pos images
+neg = []
+pos = []
+
+for d in data:
+    pos_sum = (d[0] == 1).sum()
+    if pos_sum == 0:
+        neg.append(d)
+    else:
+        pos.append(d)
+
+print('Negative: ', len(neg))
+print('Positive: ', len(pos))
+
+
+idx = []
+for i, p in enumerate(pos):
+    layer_max = np.array([x.max() for x in p[2:6]]).max()
+    if layer_max == 0:
+        idx.append(i)
+
+print(idx)
+
+# # Data Prep
+
+
+# Seed random
+seed = 1004493
+
+# generate train, val, test
+train, val_test = train_test_split(pos, test_size=0.2, shuffle=True, random_state=seed)
+val, test = train_test_split(val_test, test_size=0.23, shuffle=True, random_state=seed)
+
+print('train: ', len(train))
+print('val: ', len(val))
+print('test: ', len(test))
+
+
+datasets = [train, val, test]
+names = ['train', 'val', 'test']
+
+data_plot = {}
+for ds, name in zip(datasets, names):
+    l = []
+    for arr in ds:
+        l.append(arr[0].sum())
+    data_plot[name] = l
+
+plt.hist(sorted(data_plot['train']), bins=20)
+# plt.title('Train data positive label counts')
+# plt.show()
+
+plt.hist(sorted(data_plot['val']), bins=20)
+# plt.title('Val data positive label counts')
+# plt.show()
+
+plt.hist(sorted(data_plot['test']), bins=20)
+plt.title('Data positive label counts')
+plt.legend(['Train','Validation', 'Test'])
+plt.show()
+
+
+
+# Convert to numpy arrays of shape (len(ds), 8, window, window)
+def invert_shape(img):
+    trans = np.reshape(np.ravel(img, order='F'), (-1, img.shape[0]), order='C')
+    trans = np.reshape(trans, (img.shape[2], img.shape[1], img.shape[0]), order='F')
+    return trans
+
+np_train = np.empty((len(train), window, window, 6))
+
+for i, data in enumerate(train):
+    np_train[i] = invert_shape(data)
+
+np_val = np.empty((len(val), window, window, 6))
+for i, data in enumerate(val):
+    np_val[i] = invert_shape(data)
+
+np_test = np.empty((len(test), window, window, 6))
+for i, data in enumerate(test):
+    np_test[i] = invert_shape(data)
+
+
+
+# Split into X and Y components
+train_X = np_train[:, :, :, 2:]
+train_Y = np_train[:, :, :, 0]
+train_Y = np.reshape(train_Y, list(train_Y.shape) + [1])
+print(train_X.shape)
+print(train_Y.shape)
+val_X = np_val[:, :, :, 2:]
+val_Y = np_val[:, :, :, 0]
+val_Y = np.reshape(val_Y, list(val_Y.shape) + [1])
+print(val_X.shape)
+print(val_Y.shape)
+
+test_X = np_test[:, :, :, 2:]
+test_Y = np_test[:, :, :, 0]
+test_Y = np.reshape(test_Y, list(test_Y.shape) + [1])
+
+print(test_X.shape)
+print(test_Y.shape)
+
+# # Preprocessing
+
+# Fit scaler to train data, defualt is MinMaxScaler()
+# scaler = Scaler(train_X)
+# scaler.fit_scaler()
 
 # Scale all datasets
 scaled_train_X = np.empty(train_X.shape)
@@ -310,13 +351,7 @@ for i, arr in enumerate(val_X):
 scaled_test_X = np.empty(test_X.shape)
 for i, arr in enumerate(test_X):
     scaled_test_X[i] = test_X[i] / 10000
-
-
-
-
-
-
-#Fit scaler to train data, defualt is MinMaxScaler()
+#
 # scaler_type=StandardScaler() #MinMaxScaler()#
 # # Scale all datasets per band
 # scaled_train_X = np.empty(train_X.shape)
@@ -341,6 +376,8 @@ for i, arr in enumerate(test_X):
 #     scaled_test_X[i] = scaler.transform(arr)
 
 shape = (window, window, 4)
+
+
 smooth = 1e-12
 
 def jaccard_coef_int(y_true, y_pred):
@@ -420,6 +457,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
 
 from datetime import time
 
+
 class timecallback(tf.keras.callbacks.Callback):
     def __init__(self):
         self.times = []
@@ -436,49 +474,49 @@ class timecallback(tf.keras.callbacks.Callback):
         plt.show()
 
 
-def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu', init_method='he_normal'):
+def get_unet(hp,IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu', init_method='he_normal', ):
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
     # s = Lambda(lambda x: x / 255)(inputs)
     # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
     # t2 = tf.keras.layers.experimental.preprocessing.RandomRotation(0.2, 'nearest', interpolation='bilinear')(t1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(inputs)
-    c1 = Dropout(0.1, )(c1)
+    c1 = Dropout(hp.Float('dropout', 0, 0.2, step=0.1, default=0.1))(c1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p1)
-    c2 = Dropout(0.1, )(c2)
+    c2 = Dropout(hp.Float('dropout', 0, 0.2, step=0.1, default=0.1))(c2)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c2)
     p2 = MaxPooling2D((2, 2))(c2)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p2)
-    c3 = Dropout(0.2, )(c3)
+    c3 = Dropout(hp.Float('dropout', 0.1, 0.3, step=0.1, default=0.2))(c3)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c3)
     p3 = MaxPooling2D((2, 2))(c3)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p3)
-    c4 = Dropout(0.2, )(c4)
+    c4 = Dropout(hp.Float('dropout', 0.1, 0.3, step=0.1, default=0.2))(c4)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c4)
     p4 = MaxPooling2D(pool_size=(2, 2))(c4)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p4)
-    c5 = Dropout(0.3, )(c5)
+    c5 = Dropout(hp.Float('dropout', 0.2, 0.4, step=0.1, default=0.3))(c5)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c5)
     u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
     u6 = concatenate([u6, c4])
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u6)
-    c6 = Dropout(0.2, )(c6)
+    c6 = Dropout(hp.Float('dropout', 0.1, 0.3, step=0.1, default=0.2))(c6)
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c6)
     u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
     u7 = concatenate([u7, c3])
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u7)
-    c7 = Dropout(0.2, )(c7)
+    c7 = Dropout(hp.Float('dropout', 0.1, 0.3, step=0.1, default=0.2))(c7)
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c7)
     u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
     u8 = concatenate([u8, c2])
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u8)
-    c8 = Dropout(0.1, )(c8)
+    c8 = Dropout(hp.Float('dropout', 0, 0.2, step=0.1, default=0.1))(c8)
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c8)
     u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
     u9 = concatenate([u9, c1], axis=3)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u9)
-    c9 = Dropout(0.1, )(c9)
+    c9 = Dropout(hp.Float('dropout', 0, 0.2, step=0.1, default=0.1))(c9)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c9)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
     model = Model(inputs=[inputs], outputs=[outputs])
@@ -506,7 +544,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # batch_list = []
 # CHANGEME
 
-experiment_folder = 'adam_new_data_recontruct_naive_1'
+experiment_folder = 'adam_new_data_tuner'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -584,7 +622,11 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
                  "binary_crossentropy",
                  ]
     )
-
+    tuner = kt.Hyperband(
+        get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name, init_method=init_name),
+        objective='val_loss',
+        max_epochs=50,
+        hyperband_iterations=2)
     train_generator = ImageGenerator(scaled_train_X, train_Y, dim=(shape[0], shape[1]),batch_size=batch_size, n_channels=shape[2])
     val_generator = ImageGenerator(scaled_val_X, val_Y, dim=(shape[0], shape[1]), n_channels=shape[2])
     # train_generator = DataGenerator_segmentation(train, dimension=(height, width),
@@ -593,12 +635,12 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     # val_generator = DataGenerator_segmentation(val, dimension=(height, width),
     #                                            batch_size=batch_size,
     #                                            n_channels=n_channels)
-    history = model.fit(train_generator,
+    history = tuner.search(train_generator,
                         steps_per_epoch=len(train_Y) // batch_size, shuffle=True,
                         epochs=n_epochs,
                         verbose=1,
                         validation_data=val_generator, callbacks=[
-            #early_stopping,
+            early_stopping,
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
@@ -721,7 +763,7 @@ for norm_name in HP_NORM.domain.values:
                                     INITIALISATION: init_name
                                 }
                                 run_name = "run-%d" % session_num
-                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}planet'
+                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}from_scratch_es'
                                 print('--- Starting trial: %s' % run_name)
                                 print({h.name: hparams[h] for h in hparams})
 
@@ -783,10 +825,9 @@ print('Running predictions...')
 # model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
 # model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
 # #model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_batch_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_he_normal_200'
-#model_path='model_files_adam_new_data_recontruct_naive_balanced\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
-model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
+
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
-reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.0001,rho=0.9, epsilon=None,decay=0.0),
+reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001,rho=0.9, epsilon=None,decay=0.0),
                             loss=crossentropy_dice_loss,
                             metrics=['accuracy',
                                      jaccard_coef_int,

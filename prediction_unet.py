@@ -213,33 +213,17 @@ def load_mask(image_path):
 smooth = 1e-12
 
 
-def jaccard_coef(y_true, y_pred):
-    intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
 
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    tf.summary.scalar('jaccard_coef', data=K.mean(jac))
-    return K.mean(jac)
-
+def jaccard_coef_int(y_true, y_pred):
+    intersection = K.sum(K.abs(y_true * y_pred))
+    sum_ = K.sum(K.square(y_true)) + K.sum(K.square(y_pred))
+    jac = (intersection + 1e-12) / (sum_ - intersection + 1e-12)
+    tf.summary.scalar('jaccard_coef_int', data=jac)
+    return jac
 
 def iou_loss(y_true, y_pred):
-    return 1 - jaccard_coef(y_true, y_pred)
+    return 1 - jaccard_coef_int(y_true, y_pred)
 
-
-# def dice_coef(y_true, y_pred, smooth=1):
-#     """
-#     Arguments:
-#         y_true: (string) ground truth image mask
-#         y_pred : (int) predicted image mask
-#
-#     Returns:
-#         Calculated Dice coeffecient
-#     """
-#     y_true_f = K.flatten(y_true)
-#     y_true_f = K.cast(y_true_f, 'float32')
-#     y_pred_f = K.flatten(y_pred)
-#     intersection = K.sum(y_true_f * y_pred_f)
-#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 def dice_coef_loss(y_true, y_pred):
     """
@@ -253,59 +237,36 @@ def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
 
 
-def jaccard_coef_int(y_true, y_pred):
-    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
-    intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
-    return K.mean(jac)
+# def jaccard_coef_int(y_true, y_pred):
+#     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+#     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
+#     sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
+#     jac = (intersection + smooth) / (sum_ - intersection + smooth)
+#     tf.summary.scalar('jaccard_coef_int', data=K.mean(jac))
+#     return K.mean(jac)
 
 
 def jaccard_coef_loss(y_true, y_pred):
-    return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
+    return -K.log(jaccard_coef_int(y_true, y_pred)) + binary_crossentropy(y_true,y_pred)
 
 
-"""
-Define our custom loss function.
-"""
-
-
-def dice_coeff(y_true, y_pred, smooth=1):
+def dice_coef(y_true, y_pred, smooth=1e-12):
     """
-    Arguments:
-        y_true: (string) ground truth image mask
-        y_pred : (int) predicted image mask
-
-    Returns:
-        Calculated Dice coeffecient
+    Dice = (2*|X & Y|)/ (|X|+ |Y|)
+         =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    ref: https://arxiv.org/pdf/1606.04797v1.pdf
     """
-    y_true_f = K.flatten(y_true)
-    y_true_f = K.cast(y_true_f, 'float32')
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    #tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
-    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    intersection = K.sum(K.abs(y_true * y_pred))
+    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth))
+    return (2. * intersection + smooth) / (K.sum(K.square(y_true)) + K.sum(K.square(y_pred)) + smooth)
 
-
-def dice_coef(y_true, y_pred):
-    smooth = 1.0
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    tf.summary.scalar('dice_coef', data=(2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
-    return (2.0 * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
 
 
-def dice_loss(y_true, y_pred):
-    return 1 - dice_coeff(y_true, y_pred)
-
-
 def crossentropy_dice_loss(y_true, y_pred):
-    return binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
+    return binary_crossentropy(y_true, y_pred) + dice_coef_loss(y_true, y_pred)
 
 
 def binary_focal_loss(gamma=2., alpha=.25):

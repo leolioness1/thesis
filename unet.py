@@ -376,43 +376,43 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
     # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
     # t2 = tf.keras.layers.experimental.preprocessing.RandomRotation(0.2, 'nearest', interpolation='bilinear')(t1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(inputs)
-    c1 = Dropout(0.1, )(c1)
+    # c1 = Dropout(0.1, )(c1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p1)
-    c2 = Dropout(0.1, )(c2)
+    # c2 = Dropout(0.1, )(c2)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c2)
     p2 = MaxPooling2D((2, 2))(c2)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p2)
-    c3 = Dropout(0.2, )(c3)
+    # c3 = Dropout(0.2, )(c3)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c3)
     p3 = MaxPooling2D((2, 2))(c3)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p3)
-    c4 = Dropout(0.2, )(c4)
+    # c4 = Dropout(0.2, )(c4)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c4)
     p4 = MaxPooling2D(pool_size=(2, 2))(c4)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p4)
-    c5 = Dropout(0.3, )(c5)
+    # c5 = Dropout(0.3, )(c5)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c5)
     u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
     u6 = concatenate([u6, c4])
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u6)
-    c6 = Dropout(0.2, )(c6)
+    # c6 = Dropout(0.2, )(c6)
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c6)
     u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
     u7 = concatenate([u7, c3])
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u7)
-    c7 = Dropout(0.2, )(c7)
+    # c7 = Dropout(0.2, )(c7)
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c7)
     u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
     u8 = concatenate([u8, c2])
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u8)
-    c8 = Dropout(0.1, )(c8)
+    # c8 = Dropout(0.1, )(c8)
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c8)
     u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
     u9 = concatenate([u9, c1], axis=3)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u9)
-    c9 = Dropout(0.1, )(c9)
+    # c9 = Dropout(0.1, )(c9)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c9)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
     model = Model(inputs=[inputs], outputs=[outputs])
@@ -439,8 +439,7 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
 # loss_list = []
 # batch_list = []
 # CHANGEME
-
-experiment_folder = 'normaliser_loss_selection'
+experiment_folder = 'experiment_fixed_no_dropout'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -460,7 +459,7 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
     terminate_nan=tf.keras.callbacks.TerminateOnNaN()
     model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name, init_method=init_name)
-    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto', restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name = hparams[HP_OPTIMIZER]
     norm_name = hparams[HP_NORM]
@@ -484,7 +483,7 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     elif optimiser_name == 'nadam':
         optimiser = tf.keras.optimizers.Nadam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, decay=0.0)  # )  # learning_rate=learning_rate
     elif optimiser_name == 'sgd':
-        optimiser = tf.keras.optimizers.SGD(learning_rate=0.01,momentum=0.9,nesterov=False, decay=0.0)  # default momentum =0.0
+        optimiser = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,nesterov=False, decay=0.0)  # default momentum =0.0
     elif optimiser_name == 'adam':
         optimiser = tf.keras.optimizers.Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=None,decay=0.0,
                                              amsgrad=False)  # epsilon=None, default used here instead  1.0 or 0.1
@@ -530,12 +529,13 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
                         epochs=n_epochs,
                         verbose=1,
                         validation_data=val_generator, callbacks=[
-            # early_stopping,
+            early_stopping,
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
             terminate_nan, #exploding gradients termination
             hp.KerasCallback(run_dir, hparams),  # log hparams
+            #timecallback
         ],
                         )
     print(history.history['val_dice_coef'][-1])
@@ -550,16 +550,16 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 
 
 # CHANGEME
-n_epochs = 20
+n_epochs = 200
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['adam','nadam','sgd','rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
-HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score','max','naive']))  # 'max','naive',
-LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,2,4,6,10,16,20]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
+HP_NORM = hp.HParam('norm_name', hp.Discrete(['naive']))  # 'max','naive',
+LOSS = hp.HParam('loss', hp.Discrete([ 'crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss'
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
-INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_uniform','he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
+INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
 METRIC_DICE = 'dice_coef'
@@ -615,9 +615,8 @@ def plot_metric(history, metric, name):
     plt.xlabel("Epochs")
     plt.ylabel(metric)
     plt.legend(["train_" + metric, 'val_' + metric])
-    plt.show()
     plt.savefig(fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\plots_{experiment_folder}\{name}_{metric}_curve.png')
-
+    plt.close()
 
 from csv import writer
 import pickle
@@ -668,15 +667,15 @@ for norm_name in HP_NORM.domain.values:
                                 file_writer = tf.summary.create_file_writer(log_dir + run_name)
                                 file_writer.set_as_default()
                                 print("Model exported to: ", export_path)
-                                acc_fig = plot_metric(history, "jaccard_coef_int", name)
-                                tf.summary.image(f"{name}_iou_curve",
-                                                 plot_to_image(acc_fig))
-                                acc_fig = plot_metric(history, "dice_coef", name)
-                                tf.summary.image(f"{name}_dice_curve",
-                                                 plot_to_image(acc_fig))
-                                loss_fig = plot_metric(history, "loss", name)
-                                tf.summary.image(f"{name}_loss_curve",
-                                                 plot_to_image(loss_fig))
+                                acc_fig = plot_metric(history, "jaccard_coef_int", name+ run_name)
+                                #tf.summary.image(f"{session_num}_{name}_iou_curve",
+                                 #                plot_to_image(acc_fig))
+                                acc_fig = plot_metric(history, "dice_coef", name+ run_name)
+                                #tf.summary.image(f"{session_num}_{name}_dice_curve",
+                                #                 plot_to_image(acc_fig))
+                                loss_fig = plot_metric(history, "loss", name+ run_name)
+                              #  tf.summary.image(f"{session_num}_{name}_loss_curve",
+                                #                 plot_to_image(loss_fig))
                                 test_generator_gt = DataGenerator_segmentation(df_test, dimension=(patch_size, patch_size),
                                                                                batch_size=len(df_test),size=patch_size,norm_method=norm_name,
                                                                                n_channels=4)

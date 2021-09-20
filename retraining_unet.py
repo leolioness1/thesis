@@ -23,207 +23,38 @@ import os
 sys.path.append('./adam_cnn/cnn/scripts')
 
 # In[2]:
-
 import rasterio
 import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 import helper
 from classes import Scaler, ImageGenerator
 
-
-final = sorted(glob.glob('./adam_cnn/cnn/data/cloudless/*.tiff'))
-
-
-# Create training arrays
-window = 64
-data = []
-for img in final:
-    with rasterio.open(img, 'r') as src:
-        data.extend(helper.create_training_arrays(src, window))
-
-# In[7]:
-
-
-bad = []
-for i, d in enumerate(data):
-    if not d.shape == (6, window, window):
-        bad.append(i)
-
-print('Uncleaned: ', len(data))
-
-bad.reverse()
-
-for idx in bad:
-    data.pop(idx)
-
-print('Cleaned: ', len(data))
-
-# In[8]:
-
-
-# Separate positive and negative training images.
-# Because we are doing segmentation there is no point having fully negative images, so we will only focus on the pos images
-neg = []
-pos = []
-
-for d in data:
-    pos_sum = (d[0] == 1).sum()
-    if pos_sum == 0:
-        neg.append(d)
-    else:
-        pos.append(d)
-
-print('Negative: ', len(neg))
-print('Positive: ', len(pos))
-
-# In[9]:
-
-
-idx = []
-for i, p in enumerate(pos):
-    layer_max = np.array([x.max() for x in p[2:6]]).max()
-    if layer_max == 0:
-        idx.append(i)
-
-print(idx)
-
-# # Data Prep
-
-# In[10]:
-
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
-
-# Seed random
-seed = 1004493
-
-# generate train, val, test
-train, val_test = train_test_split(pos, test_size=0.2, shuffle=True, random_state=seed)
-val, test = train_test_split(val_test, test_size=0.15, shuffle=True, random_state=seed)
-
-print('train: ', len(train))
-print('val: ', len(val))
-print('test: ', len(test))
-
-# In[11]:
-
-
-datasets = [train, val, test]
-names = ['train', 'val', 'test']
-
-data = {}
-for ds, name in zip(datasets, names):
-    l = []
-    for arr in ds:
-        l.append(arr[0].sum())
-    data[name] = l
-
-plt.hist(sorted(data['train']), bins=20)
-plt.title('Train data positive label counts')
-plt.show()
-
-plt.hist(sorted(data['val']), bins=20)
-plt.title('Val data positive label counts')
-plt.show()
-
-plt.hist(sorted(data['test']), bins=20)
-plt.title('Test data positive label counts')
-plt.show()
-
-
-# Fiddling with the random seed has allowed me to yield a reasonably consistent stratified split across train, val, test. We have lots of small thaw slumps and some big ones in each of the sets. I can't really use a actual stratified split because each image contains different pos/neg pixel ratio.
-
-# In[12]:
-
-
-# Convert to numpy arrays of shape (len(ds), 8, window, window)
-def invert_shape(img):
-    trans = np.reshape(np.ravel(img, order='F'), (-1, img.shape[0]), order='C')
-    trans = np.reshape(trans, (img.shape[2], img.shape[1], img.shape[0]), order='F')
-    return trans
-
-
-# In[13]:
-
-
-np_train = np.empty((len(train), window, window, 6))
-
-for i, data in enumerate(train):
-    np_train[i] = invert_shape(data)
-print(np_train.shape)
-
-np_val = np.empty((len(val), window, window, 6))
-for i, data in enumerate(val):
-    np_val[i] = invert_shape(data)
-print(np_val.shape)
-
-np_test = np.empty((len(test), window, window, 6))
-for i, data in enumerate(test):
-    np_test[i] = invert_shape(data)
-
-print(np_test.shape)
-
-# In[14]:
-
-
-# Split into X and Y components
-train_X = np_train[:, :, :, 2:]
-train_Y = np_train[:, :, :, 0]
-train_Y = np.reshape(train_Y, list(train_Y.shape) + [1])
-
-val_X = np_val[:, :, :, 2:]
-val_Y = np_val[:, :, :, 0]
-val_Y = np.reshape(val_Y, list(val_Y.shape) + [1])
-
-test_X = np_test[:, :, :, 2:]
-test_Y = np_test[:, :, :, 0]
-test_Y = np.reshape(test_Y, list(test_Y.shape) + [1])
-
-print(train_X.shape)
-print(train_Y.shape)
-
-print(val_X.shape)
-print(val_Y.shape)
-
-print(test_X.shape)
-print(test_Y.shape)
-
-# # Preprocessing
-
-# In[16]:
-
-
-# Fit scaler to train data, defualt is MinMaxScaler()
-scaler = Scaler(train_X, scaler= StandardScaler())
-scaler.fit_scaler()
-
-# In[19]:
-
-
+import pickle
+i='new'
+with open(f'train_X{i}.pkl','rb') as f:  train_X = pickle.load(f)
+with open(f'val_X{i}.pkl','rb') as f: val_X = pickle.load(f)
+with open(f'test_X{i}.pkl','rb') as f: test_X = pickle.load(f)
+with open(f'train_Y{i}.pkl','rb') as f: train_Y = pickle.load(f)
+with open(f'val_Y{i}.pkl','rb') as f: val_Y = pickle.load(f)
+with open(f'test_Y{i}.pkl','rb') as f: test_Y = pickle.load(f)
 
 
 # Scale all datasets
 scaled_train_X = np.empty(train_X.shape)
 for i, arr in enumerate(train_X):
-    scaled_train_X[i] = scaler.transform(arr)
+    scaled_train_X[i] =arr/10000
 
 scaled_val_X = np.empty(val_X.shape)
 for i, arr in enumerate(val_X):
-    scaled_val_X[i] = scaler.transform(arr)
+    scaled_val_X[i] = arr/10000
 
 scaled_test_X = np.empty(test_X.shape)
 for i, arr in enumerate(test_X):
-    scaled_test_X[i] = scaler.transform(arr)
+    scaled_test_X[i] = arr/10000
 
-# In[20]:
-# In[20]:
-
-
-shape = (window, window, 4)
+shape = (64, 64, 4)
 
 # Add code for resize
 # Add code for normalize range to 0-1
@@ -385,7 +216,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
 
 
 
-experiment_folder = 'adam_new_data_recontruct_3'
+experiment_folder = 'adam_new_data_recontruct_naive_1'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -404,9 +235,10 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     n_channels = 4
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
     terminate_nan=tf.keras.callbacks.TerminateOnNaN()
-    model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_z_score_loss_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_100'
+    #model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_z_score_loss_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_100'
+    model_path='model_files_experiment_fixed_early_stopping/model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200bw'
     model = tf.keras.models.load_model(model_path, compile=False)
-    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto', restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name = hparams[HP_OPTIMIZER]
     norm_name = hparams[HP_NORM]
@@ -466,18 +298,12 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     )
     train_generator = ImageGenerator(scaled_train_X, train_Y, dim=(shape[0], shape[1]),batch_size=batch_size, n_channels=shape[2])
     val_generator = ImageGenerator(scaled_val_X, val_Y, dim=(shape[0], shape[1]), n_channels=shape[2])
-    # train_generator = DataGenerator_segmentation(train, dimension=(height, width),
-    #                                              batch_size=batch_size,
-    #                                              n_channels=n_channels)
-    # val_generator = DataGenerator_segmentation(val, dimension=(height, width),
-    #                                            batch_size=batch_size,
-    #                                            n_channels=n_channels)
     history = model.fit(train_generator,
                         steps_per_epoch=len(train_Y) // batch_size, shuffle=True,
                         epochs=n_epochs,
                         verbose=1,
                         validation_data=val_generator, callbacks=[
-            # early_stopping,
+            early_stopping,
             reduce_lr,
             checkpoint,
             tensorboard,  # log metrics
@@ -499,14 +325,14 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 # CHANGEME
 n_epochs = 200
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.001]))
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001]))
 HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
-HP_NORM = hp.HParam('norm_name', hp.Discrete(['z_score']))  # 'max','naive',
+HP_NORM = hp.HParam('norm_name', hp.Discrete(['naive']))  # 'max','naive',
 LOSS = hp.HParam('loss', hp.Discrete(['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss', 'dice_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([4]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
-INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_uniform'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
+INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
 METRIC_BCE = 'binary_crossentropy'
 METRIC_ACCURACY = 'accuracy'
 METRIC_DICE = 'dice_coef'
@@ -601,7 +427,7 @@ for norm_name in HP_NORM.domain.values:
                                     INITIALISATION: init_name
                                 }
                                 run_name = "run-%d" % session_num
-                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}'
+                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}newretrain'
                                 print('--- Starting trial: %s' % run_name)
                                 print({h.name: hparams[h] for h in hparams})
 

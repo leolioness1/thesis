@@ -124,12 +124,12 @@ def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
     marker_list=['o','s','*','x','d','h','o','s','*','x','d','h','o','s','*','x','d','h','*','x','d','h','o','s','*','x','d','h']
     for i, df in enumerate(df_list):
         Dynamic_Variable_Name = f'val_metrics_{i}'
-        vars()[Dynamic_Variable_Name] = df['val_' + metric][:n]
+        vars()[Dynamic_Variable_Name] = df['val_' + metric]
         # val_metrics_1 = df1['val_' + metric]
         # val_metrics_2 = df2['val_' + metric]
         # val_metrics_3 = df3['val_' + metric]
         # val_metrics_4 = df4['val_' + metric]
-        epochs = range(0, n)
+        epochs = range(0, len(df))
         plt.plot(epochs, vars()[Dynamic_Variable_Name], marker=marker_list[i])
     # plt.plot(epochs, val_metrics_2, marker='+')
     # plt.plot(epochs, val_metrics_3,marker='>')
@@ -141,7 +141,7 @@ def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
     plt.legend(legend_list)
     # plt.legend(legend_list,loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol = len(legend_list)//2)
     plt.show()
-    plt.savefig(fr'C:\Users\leo__\Downloads\thesis_images\experiment plots\{parameter_name}_{metric_name}.png')
+    plt.savefig(fr'C:\Users\leo__\Downloads\thesis_images\experiment plots new\{parameter_name}_{metric_name}.png')
     plt.close()
 
 # parameter_name='patch size'
@@ -152,55 +152,79 @@ def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
 # param_list_var=['both','rotation','translation']
 # parameter_name='loss function'
 # param_list_var=['crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss']
-# parameter_name='optimiser'
+# parameter_name='optimiser sgd'
 # param_list_var= ['adam','nadam','sgd','rmsprop']
-# parameter_name='learning rate'
+# parameter_name='learning rate '
 # param_list_var= [0.01,0.001,0.0001]
-# parameter_name='batch size 1'
-# param_list_var=[1,2,3,4,5,6,10,15,25,30]
-# parameter_name='activation function'
-# param_list_var=['elu','relu','gelu','selu','tanh']
+#parameter_name='batch size'
+# # param_list_var=[1,2,3,4,5,6,10,15,25,30]#
+#param_list_var=[1,4,6,10,20]
+#parameter_name='activation function'
+#param_list_var=['elu','relu','tanh']
 # parameter_name='initilisation method'
 # param_list_var=['he_normal', 'he_uniform', 'glorot_normal', 'glorot_uniform', 'random_normal', 'random_uniform']
-parameter_name='loss function 100'
-param_list_var=['dice_coef_loss','crossentropy_dice_loss','iou_loss','ce_jaccard_loss','binary_focal_loss']#
-def plot_and_table(parameter,param_list,n=50):
+# parameter_name='loss function selu'
+# param_list_var=['dice_coef_loss','crossentropy_dice_loss','iou_loss','ce_jaccard_loss','binary_focal_loss']
+parameter_name='planetary'
+param_list_var=['']
+param_list_var_2=['']
+def plot_and_table(parameter,param_list_1,param_list_2,n=200):
     list_df=[]
     list_legend=[]
     table_content=[]
 
-    for i in param_list :
+    for i in param_list_1 :
         #CHANGE PATH
         #norm
         # path = f'history_files_norm_selection\history_{i}_4_crossentropy_dice_loss_adam_0.0001_64_50.csv'
+        # path= f'history_files_experiment_fixed_normalisation/history_{i}_4_crossentropy_dice_loss_adam_0.0001_64_elu_he_normal_50.csv'
+        # path = f'history_files_adam_new_data_recontruct_naive_1/history_{i}_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch_es.csv'
         #patch_size
         #path = f'history_files_patch_selection/history_naive_4_crossentropy_dice_loss_adam_0.0001_{i}_50.csv'
         #optimiser
+        # path= f'history_files_experiment_fixed_optimiser_sgdtoo/history_naive_4_crossentropy_dice_loss_{i}_0.01_64_elu_he_normal_50.csv'
         #lr
         # path= f'history_files_optimiser_batch_lr_selection/history_z_score_4_crossentropy_dice_loss_rmsprop_{i}_64_50.csv'
+        #path=f'history_files_experiment_fixed_optimiser_sgdtoo/history_naive_4_crossentropy_dice_loss_rmsprop_{i}_64_elu_he_normal_50.csv'
         #batch
         #path=f'history_files_optimiser_batch_lr_selection/history_z_score_{i}_crossentropy_dice_loss_rmsprop_0.001_64_50.csv'
         #path=f'history_files_batch_selection_new/history_z_score_{i}_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100.csv'
+        #path = f'history_files_experiment_fixed_batch/history_naive_{i}_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_50.csv'
+        #path = f'history_files_experiment_fixed_loss_selu/history_naive_{i}_crossentropy_dice_loss_rmsprop_0.0001_64_selu_he_normal_50.csv'
         #act
         # path=f'history_files_activation_selection/history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_50.csv'
         #path=f'history_files_act_selection_new/history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_{i}_he_uniform_100.csv'
+        # path=f'history_files_experiment_fixed_act/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_{i}_he_normal_50.csv'
+        #path=f'history_files_experiment_fixed_act_2/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_{i}_he_normal_50.csv'
         #init
         #path = f'history_files_init_selection\history_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_relu_{i}_50.csv'
+        #path=f'history_files_experiment_fixed_init/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_{i}_50.csv'
         #loss
         #path=f'history_files_loss_selection_new/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
-        path=f'history_files_loss_iou_selection_ne/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
-        path=f'history_files_loss_fixed_selection_new/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+        # path=f'history_files_loss_iou_selection_ne/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+        # path=f'history_files_loss_fixed_selection_new/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
+        # path=f'history_files_experiment_fixed_early_stopping/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200{i}.csv'
+        #path =f'history_files_experiment_fixed_loss/history_naive_1_{i}_rmsprop_0.0001_64_elu_he_normal_50.csv'
+        path=f'history_files_adam_new_data_recontruct_naive_1/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200planetretrain.csv'
+        #path= f'history_files_experiment_fixed_no_dropout/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200.csv'
         list_df.append(read_history_csv(path))
-        list_legend.append(i)
+        #list_legend.append(f'{i}')
+
         table_content.append(pre_read_history_csv(path,i,n=1))
-    plot_metric('dice_coef', 'Validation dice coefficient', parameter, list_df, list_legend,n=n)
+        # list_legend.append(f'{i}')
+    for i in param_list_2:
+        path = f'history_files_adam_new_data_naive_planetary\history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200.csv'
+        table_content.append(pre_read_history_csv(path, i, n=1))
+        list_df.append(read_history_csv(path))
+    list_legend = ['Retraining','Training from scratch']
+    plot_metric('dice_coef', 'Validation dice coefficient', parameter, list_df, list_legend)
     # plot_metric('jaccard_coef_int','Validation jaccard coefficient', parameter_name, list_df, list_legend)
-    plot_metric('loss', 'Validation loss', parameter, list_df, list_legend,n=n)
+    plot_metric('loss', 'Validation loss', parameter, list_df, list_legend)
     with open(fr'C:\Users\leo__\Downloads\thesis_images\table_content\{parameter}.txt', 'w', encoding='utf-8') as f:
         f.write('\ '.join(table_content))
     return ' '.join(table_content)
 
-plot_and_table(parameter_name,param_list_var, n=100)
+plot_and_table(parameter_name,param_list_var,param_list_var_2)
 
 # list_df=[]
 # list_legend=[]
