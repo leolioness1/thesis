@@ -1,0 +1,25 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/bookman.ldf
+%% NOVA thesis configuration file
+%%
+%% Customization of fonts to use Bookman fontset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/bookman.ldf}
+
+
+\ntcheckfont{Calibri.ttf}{https://github.com/joaomlourenco/novathesis-extras/raw/main/Fonts/Calibri.zip}
+\ntcheckfont{Calibrib.ttf}{https://github.com/joaomlourenco/novathesis-extras/raw/main/Fonts/Calibri.zip}
+\ntcheckfont{Calibrii.ttf}{https://github.com/joaomlourenco/novathesis-extras/raw/main/Fonts/Calibri.zip}
+\ntcheckfont{Calibriz.ttf}{https://github.com/joaomlourenco/novathesis-extras/raw/main/Fonts/Calibri.zip}
+
+\ifxeorlua{}{%
+  \ClassError{novathesis}{Font Style “calibri” is not compatible with pdfLaTeX. Please use XeLaTeX or LuaLaTeX}{Please use XeLaTeX or LuaLaTeX}%
+}
+
+\setmainfont[
+    Path=NOVAthesisFiles/FontStyles/Fonts/,
+    BoldFont      =Calibrib.ttf,
+    ItalicFont    =Calibrii.ttf,
+    BoldItalicFont=Calibriz.ttf,
+]{Calibri.ttf}%

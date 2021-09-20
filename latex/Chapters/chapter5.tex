@@ -1,0 +1,97 @@
+\typeout{NT FILE chapter5.tex}
+\chapter{Training the model on more data} \label{new_data_train}
+\paragraph{}
+In section \ref{rs_data_collection} JP2 data is introduced as a larger dataset sourced to address the issues of bias in data collection. This chapter is dedicated to the evaluation of the impact of using such data on the model fine-tuned on the smaller GEE dataset through the experiments in Chapter \ref{experiments_chapter}.
+
+\section{Using the weights of previous model to train on new data}
+\paragraph{}
+The model was frozen using the best hyperparameters at the end of the Chapter \ref{experiments_chapter} and the model was trained on new data using those weights, this will be compared with the performance of training the model from scratch on new data in section \ref{new_data_train}, the same ES strategy will be used for this experiment to prevent overfitting.
+
+\begin{figure}[hbt!]
+    \centering
+    % \begin{minipage}[c]{0.45\linewidth}
+    \includegraphics[width=0.5\linewidth]{transfer learning_Validation dice coefficient.png}
+    \caption{Retraining with frozen weights dice coefficient comparison}
+    \label{rt_dice}
+        % \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\textwidth]{retraining_Validation loss.png}
+    %     \caption{Retraining with frozen weights loss comparison}
+    %     \label{rt_loss}
+    % \end{minipage}
+\end{figure}
+\paragraph{}
+Using the frozen weights did not improve model performance, it had the opposite effect which is expected since the original model has a smaller dataset than the one it was trained on now. It can be seen from Figure \ref{rt_dice} that up to 20 epochs the transfer learning by using frozen weights from the model trained on less data is performing better than the model training from scratch. 
+
+Early stopping is also triggered in the model using frozen weights around 30 epochs before the model being trained from scratch, which makes sense since when there is less data the model has a greater likelihood of overfitting.
+
+\section{Training the model from scratch on new data} \label{new_data_fs}
+\subsection{Comparison with the GEE dataset model - same parameters}
+\paragraph{}
+With the same model architecture and hyperparameters as in the previous Chapter, the DL model was trained on the \textit{JP2 data} for the same number of epochs to evaluate the effect of using more data on the model performance.
+
+\begin{figure}[hbt!]
+    \begin{minipage}[c]{0.45\linewidth}
+        \includegraphics[width=\linewidth]{training from scratch_Validation dice coefficient.png}
+        \caption{Retraining from scratch dice coefficient comparison}
+        \label{fs_dice}
+        \end{minipage}
+        \hfill
+    \begin{minipage}[c]{0.45\linewidth}
+        \includegraphics[width=\textwidth]{training from scratch_Validation loss.png}
+        \caption{Retraining from scratch loss comparison}
+        \label{fs_loss}
+    \end{minipage}
+\end{figure}
+\paragraph{}
+As can be seen from Figure \ref{fs_loss} the model trained on more data has a lower validation loss consistently after 20 epochs despite initialising with a higher validation loss, which shows it's better performance. 
+
+In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the improvement in performance is the most evident in the Test dataset where there is an improvement of 0.08 in the dice coefficient metric when using Early stopping (ES) to prevent overfitting.
+
+\begin{table}[ht] 
+    \begin{center}
+    \begin{tabular}{ccccccc} 
+    \toprule
+       & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
+    Model type & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    \rowcolor{lightgray}
+    Training from scratch & 0.89 & 0.96 & 0.88 & 0.16 & 0.05 & 0.28  \\ Training from scratch with ES & 0.86 & 0.94 & 0.86 & 0.2 & 0.08 & 0.3  \\ Baseline model & 0.88 & 0.97 & 0.82 & 0.27 & 0.05 & 0.27  \\ Baseline Model with ES & 0.88 & 0.96 & 0.78 & 0.26 & 0.07 & 0.33  \\
+    \bottomrule
+    \end{tabular}
+  \end{center} 
+  \caption{Dice coefficient and loss retraining on new data}\label{tab_fs}
+\end{table}
+
+\subsection{Hyperparameter tuning from scratch}
+\paragraph{}
+What works well for a certain dataset in terms of hyperparameters may not work well for another, specially when there is considerable difference in sample size, with this in mind,  hyperparameter tuning using random search was performed on the new data with the following parameter variations for a total of 324 runs using the same Early Stopping strategy as before:
+
+\begin{itemize}
+    \item{Learning Rate: 0.0001 and 0.001}
+    \item{Optimiser: RMSprop,Adam and Nadam}
+    \item{Loss Function: CE Dice Loss, Dice Loss and CE Jaccard Loss}
+    \item{Batch Size: 1, 4 and 6}
+    \item{Activation Function: ELU, Relu and Gelu}
+    \item{Initialisation Method: He Normal and He Uniform}
+\end{itemize}
+
+Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{tensorboard}, the best hyperparemeters for the JP2 data were batch size of 1, learning rate of 0.0001, ELU activation function, He Uniform initialisation method and CE Dice Loss function.
+
+\begin{figure}[hbt!]
+    \centering
+    % \begin{minipage}[c]{0.45\linewidth}
+    \includegraphics[width=1\linewidth]{hp_tuning_new_data.png}
+    \caption{Tensorboard screenshot of top results of hyperparameter tuning}
+    \label{tensorboard}
+        % \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\textwidth]{retraining_Validation loss.png}
+    %     \caption{Retraining with frozen weights loss comparison}
+    %     \label{rt_loss}
+    % \end{minipage}
+\end{figure}
+
+Due to the stochastic nature of neural networks the performance on this trails is not as good as that of Section \ref{new_data_fs}. Thus, in the next session, we will use that model for evaluation.
+% \section{Evaluation of the effect of new data on model performance}
