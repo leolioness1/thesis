@@ -6,7 +6,7 @@ The input data is one of the essential aspects of the model, characteristics suc
 To be able to train a supervised \gls{DL} model, the availability of labelled data is essential in the process of training the model, this ground truth is the key in calculating the error and updating the weights of the model, until its loss and performance metric show good performance.
 \paragraph{Thaw Slump Shape files}
 The ground truth \gls{RTS} polygons were very kindly provided by Dr. Ingmar Nitze and the \gls{AWI}. These were collected across pre-defined sites in different locations at different timestamps and georeferenced for consistency and ease of use.
-\paragraph{}
+
 Two different types of shape files containing \gls{RTS} polygons were provided:
 \begin{itemize}
     \item \textbf{Merged thaw slumps first iteration} Delineated by students and awaiting validation from Dr. Nitze, this type contains a total of $8,005$ features.
@@ -18,7 +18,7 @@ As mentioned in Section \ref{introduction}, the primary data source for this pro
 
 The latter is the one used in this project, as it is pre-processed to minimise atmospheric effects, leading to better normalisation across different regions.
 There are 13 spectral bands available, from the \gls{VNIR} and \gls{NIR} all the way to the \gls{SWIR} (\cite{sentinel2}).
-\paragraph{}
+
 There are four 10 meter resolution bands: the three \gls{RGB} bands - Blue ($\approx$493 nm), Green ($\approx$560 nm), and Red (665 nm) plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
 
 In addition, there are six 20 metre bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two 60 metre bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
@@ -34,24 +34,24 @@ In addition, there are six 20 metre bands: 4 narrow bands in the \gls{VNIR} vege
         \caption{\gls{GEE} Console \gls{UI} showing a snippet of the bespoke JavaScript script}
         \label{gee_console_ui}
     \end{figure}
-\paragraph{}
+
 A bespoke JavaScript script was created that extracts satellite data for a fixed area and stores it in \gls{GCS}, this method of data collection will hereby be referred to as \textit{\gls{GEE} data}. This is an area of \SI{2.56}{\kilo\metre\squared}, so that the input size is close to 256x256 pixel representation, since for the highest resolution band one pixel represents a 10x10 \SI{}{\metre} area.
 
 For positive label, when a (retrogressive) thaw slump is present in the area the data is extracted so that the \gls{RTS} polygons presented in section \ref{labeled_data} are at the centre of the image for the extraction.
 For negative labels, control images are extracted based on \SI{2.56}{\kilo\metre\squared} squares centred around random points, that are checked for intersection with \gls{RTS} polygons and any overlapping random features are removed. 
-\paragraph{}
+
 This method has the limitation of introducing bias towards positive pixels always being in the centre of the image. This is a type of selection bias, as the subsample of images the model is being trained on does not represent the overall population of images, leading to poor generalisation of the model. For example, if the positive \gls{RTS} pixels are anywhere else but the centre of the image, the model would display poor performance
 % , as will be shown and discussed in section \ref{}.
-\paragraph{}
+
 All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus thawslumpLabel.These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}),\gls{NIR} (B8) plus an additional thaw slump mask.This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a 20 \SI{}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s).
- Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
+Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
 
 Files are in GeoTiff format with float32 pixel values that have not been scaled, so are in raw format at this stage, these values returned by the \gls{GEE} API that can reach values of $10,000$ or more in some instances. This is the case as even though reflectances are typically percentage values between $0$ and $100$ (or $0$-$1$), these are often scaled by a certain factor (e.g. $1 e^4$) to be able to use integer values instead to save disk space. 
-\paragraph{}
+
 The \gls{CRS}, which associates numerical coordinates with a position on the Earth's surface, is defined by organisations such as the \gls{EPSG}.
 
 The projections are identified through an authority:code format, where the authority is for example “\gls{EPSG}” and the code is a unique number for a given \gls{CRS}. For example, \gls{EPSG}:32604 was used for this project's data extraction for \gls{RTS}s located in Herschel Island.
-\paragraph{}
+
 This method of data collection came with its limitations, the \gls{GEE} \gls{UI} would crash for more than 30 images extracted at any one time and would freeze while extracting those images, taking hours at a time. This method wasn't automatable, which explains why the number of images collected is so low compared to the number of features in the polygons provided as ground truth.
 \paragraph{\gls{GCS} and \gls{JP2} data}
 \paragraph{}
@@ -79,6 +79,7 @@ The polygons were reprojected from \gls{EPSG}:$4326$ to the respective \gls{CRS}
 
 \subsection{Data understanding and preparation} \label{dataprep}
 \subsubsection{Scene classification labelled data}
+\paragraph{}
 The original \textit{\gls{GEE} data} collection method extracted a total of 313 scenes containing \gls{RTS} positive samples, and 311 control negative samples containing only background pixels. These were split into train and validation datasets with a $80$/$20$ proportion respectively. A stratified method was used to ensure class representation and avoidance of class imbalance in any one dataset. These datasets were used in the training of the initial scene classification model introduced:
 \begin{table}[ht!] 
     \begin{center}
@@ -102,9 +103,9 @@ The original \textit{\gls{GEE} data} collection method extracted a total of 313 
     \caption{Distribution of \gls{GEE} data for scene classification}\label{table_label_data_class}
 \end{table}
 \subsubsection{Pixel-wise classification labelled data}
+\paragraph{}
 In terms of pixel distribution in each image, there is an imbalance for semantic segmentation models, that are given proportionally more negative background pixels than positive \gls{RTS} pixels. 
 Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{GEE} data}, as it can be seen from the figure most images have less than 500 pixels of the positive class which is less than $1\%$ of a 256×256 pixel image.
-% as it can be seen from Figure \ref{thaw_slump_mask} in section \ref{rs_data_collection}.
 
     \begin{figure}[hbt!]
         \centering
@@ -174,15 +175,16 @@ Figure \ref{jp2_rts_pixel_dist} depicts the distribution of pixels with \gls{RTS
 Given the literature on remote sensing \gls{DL} problems, along with the labelled \gls{RTS} data available in a mask format, where each pixel is labelled, it makes sense to make the focus of this project the semantic segmentation networks based on CNN models that were introduced in section \ref{seg_nets}.
 
 These different architectures will be evaluated in experiments, as well as the architecture parameters, that is, Kernel sizes, stride, number of layers, number of filters etc. which nowadays are also considered "hyperparameters" that feed into the learning process described in section \ref{nn_hyperparameters}, since these were covered in section \ref{cnn_layers}.
-\paragraph{}
+
 To evaluate the success of the task at end in pixel-wise classification models in remote sensing, the ground truth is imputed as a mask of values, $1$ for thaw slump and $0$ for background. The other input is the satellite image itself. To bring the best out of the model architecture, this data needs to be pre-processed to be turned into the input that the network is expecting, usually in tensor form with values between $0$ and $1$.
-\paragraph{}
+
 The model architecture itself also plays an important part in the success of the model, its complexity/depth as well as the architecture parameters described above need to be adequate for the problem at hand.
 
 In addition to this, the network hyperparameters also need to be defined before the training can start. After this is done, the training process can start where the model parameters i.e. weights are optimised so that the predictions of \gls{RTS} or no-\gls{RTS} performed by the model match the mask ground truth as closely as possible.
 
 \subsection{Pre-processing of data} \label{data_preproc}
 \subsubsection{Resizing images} \label{img_resize}
+\paragraph{}
 In segmentation models, the spatial size of the input tensor has an impact on the performance of the model. With lower dimension sizes a more complex architecture could be required (higher number of filters), however with  greater dimensions more training samples are likely to be needed.
 
 So it is important to have input image dimensions ($W$ x $H$) that are adequate for the problem at hand, especially when the \gls{RTS} only covers a small area (a few pixels, since each pixel represents a 10 m x 10 m area.
@@ -194,17 +196,18 @@ There are a few ways of increasing the dimensions of an image through different 
         \item \textbf{Nearest neighbour} simply returns the value of the nearest pixel according to the interpolation coordinates.
     \end{itemize}
 \subsubsection{Normalisation techniques} \label{img_norm}
-Unlike natural images that have a known value between $0$ and $255$, remote sensing imagery depends highly on the scale of the reflectance values returned by the \gls{GEE} API varying widely and reaching values of over  $10,000$ in some instances, therefore the normalisation of input becomes quite important.
 \paragraph{}
+Unlike natural images that have a known value between $0$ and $255$, remote sensing imagery depends highly on the scale of the reflectance values returned by the \gls{GEE} API varying widely and reaching values of over  $10,000$ in some instances, therefore the normalisation of input becomes quite important.
+
 To feed input values into the \gls{NN} it is better to normalise them between $[0,1]$, this is particularly challenging in remote sensing imagery as the spectral data has a big variation of reflectance values across bands and images. 
 
 A na\"ive approach of simply converting any pixel $x>10,000 =10,000$ and then dividing by $10,000$ was the first method attempted, given that most band's reflectance values go up to $10,000$ with a few outliers above $10,000$.
-\paragraph{}
+
 There have been a couple of strategies presented in a few remote sensing papers that could be possible solutions.
 
 In other remote-sensing imagery normalisation the authors normalise the values per spectral band (\cite{8516352}) using in the interval $[0,1]$, others use the z-score to
 approximate the distribution of pixel values of the input to a normal distribution (\cite{Zhong2017SatCNNSI}). 
-\paragraph{}
+
 They are both converted to spectral band-wise normalisation using the below definitions (\cite{BELENGUERPLOMER2021112468}):
 
 \begin{equation} \label{eq_interval}
@@ -218,8 +221,9 @@ z-score(x) = \frac{x- \mu(b)}{\sigma(b)}
 where $x$ is any given pixel and $b$ is any given spectral band of the image.
 
 \subsubsection{Data Augmentation} \label{img_aug}
-Due to the biased data collection method described in section \ref{rs_data_collection}, making the \gls{RTS} positive pixels the centre of the training patch, it is essential to apply data augmentation techniques that will vary this feature of the training set, so that the model is not biased towards finding positive labelled pixels only at the centre of the image provided. 
 \paragraph{}
+Due to the biased data collection method described in section \ref{rs_data_collection}, making the \gls{RTS} positive pixels the centre of the training patch, it is essential to apply data augmentation techniques that will vary this feature of the training set, so that the model is not biased towards finding positive labelled pixels only at the centre of the image provided. 
+
 For that purpose and also the general purpose of introducing noise in the model to make it more robust and less subject to overfitting due to the small sample size, the following data augmentation techniques are presented:
 
     \begin{itemize}
@@ -239,6 +243,7 @@ A bespoke script was created to code a data generator compatible with Tensorflow
     \item Generates batches of data for training
 \end{enumerate}
 \subsection{\gls{DL} Learning process} \label{nn_hyperparameters}
+\paragraph{}
 To successfully train any \gls{NN}, there are a few key "ingredients" that are necessary to ensure any given model with its own architecture and parameters to enable it to accurately perform the task of matching its predictions with the ground-truth. These will be covered in this section:
 
 \begin{enumerate}
@@ -262,7 +267,7 @@ To successfully train any \gls{NN}, there are a few key "ingredients" that are n
     \end{figure}
 \subsubsection{Loss function} \label{loss_functions}
 The loss function is one of the essential components in the learning process of \gls{DL} models, since it enables the \gls{DL} algorithms to learn and optimise the objective through gradient descent. The loss function is responsible for ensuring that the mathematical representation of the objectives is accurate, so that it can assess how well the predicted values match the ground truth.
-\paragraph{}
+
 Ma (\cite{LossOdyssey}) breaks down known segmentation loss functions into categories according to different optimisation objectives, which can be seen in Figure \ref{fig_loss_odissey}. Some of these will be described in this section.
 
     \begin{figure}[hbt!]
@@ -327,6 +332,7 @@ Another compound loss function used in this project, is a combination of Eq.\ref
 L_{\gls{CE} Dice} = L_{B\gls{CE}} + L_{dice}
 \end{equation}
 \subsubsection{Optimiser} \label{optimiser}
+\paragraph{}
 In Deep Learning, optimisation refers to the process of finding the parameters $\theta$ of a \gls{NN} that attempt to minimise a loss function $J(\theta)$ (\cite{GoodBengCour16}), this process usually involves not only using usually a subset of data to calculate each update to the parameters based on an expected value of the cost function, but also taking into account any regulariser, weight initialisation, learning rate and batch size which influence the success of the optimisation strategy.
 
 Most algorithms used for \gls{DL} use more than $1$ but less than all the training examples \gls{a.k.a.} mini-batch, even though they don't use only one example they are nowadays referred to as just stochastic methods rather than mini-batch stochastic methods. In a similarly confusing way, even though that \gls{BGD} implies the processing of the whole training set, the term batch size is usually referring to the mini-batch size, which Goodfellow et al.(\cite{GoodBengCour16}) clarifies very well.
@@ -335,32 +341,32 @@ Most algorithms used for \gls{DL} use more than $1$ but less than all the traini
 \gls{SGD} and its variants are probably the most popular algorithms in \gls{DL} as it can converge even when the training dataset gets very large, however it has slower asymptotic convergence then \gls{BGD} for example.
 
 \gls{SGD} aims to get an unbiased estimate of the gradient by averaging the gradient in the mini-batch drawn randomly from the training data and follow the gradient downhill (\cite{GoodBengCour16}).
-\paragraph{}
+
 The learning rate is an essential parameter in the gradient descent process, it is advised that it gradually decreases during training time, through strategies described in more detail in section \ref{learning_rate}. It is known that stochastic gradient descent has slower asymptotic convergence then \gls{BGD} for example.
 \paragraph{Momentum}
 \paragraph{}
 Momentum has been designed to overcome \gls{SGD}'s limitations by accelerating learning, it accumulates an exponentially decaying moving average of previous gradients and keeps moving in their direction (\cite{GoodBengCour16}), creating \gls{SGD} with momentum. 
-\paragraph{}
+
 Momentum helps accelerate \gls{SGD} in the right direction and reduces oscillations (\cite{ruder2017overview}), defined by a new momentum hyperparameter $\alpha$ between $0$ and $1$, determines how quickly this moving average decays.
 
 Common values of $\alpha$ used in practice are $0.5$, $0.9$, and $0.99$, for the semantic segmentation models introduced in section \ref{seg_nets}, the most common momentum parameter value is approximately $0.9$ (\cite{sultana2020106062})
-\paragraph{}
+
 The next few variations of stochastic gradient descent have adaptive learning rates, so it is recommended not to change the parameters in these, therefore the learning rate section \ref{learning_rate} is most relevant for the preceding optimisers.
-\paragraph{RMSProp}
+\paragraph{\gls{RMSProp}}
 \paragraph{}
-RMSprop, is an unpublished optimiser created by Tijemen Tieleman and Geoffrey Hinton in $2012$. It divides the learning rate by an exponentially decaying average of squared gradients to discard history from the extreme past so that it can converge rapi\gls{DL}y, it has been shown to be effective and practical for \gls{DL} problems (\cite{GoodBengCour16})
+\gls{RMSProp}, is an unpublished optimiser created by Tijemen Tieleman and Geoffrey Hinton in $2012$. It divides the learning rate by an exponentially decaying average of squared gradients to discard history from the extreme past so that it can converge rapi\gls{DL}y, it has been shown to be effective and practical for \gls{DL} problems (\cite{GoodBengCour16})
 
 \paragraph{\gls{Adam}}
 \paragraph{}
-The \gls{Adam} optimiser (\cite{kingma2017adam}) is a variation of the combination of momentum, which points the model in a better direction and RMSProp, which adapts how far the model goes in the direction to converge quickly.
-\paragraph{}
-Unlike the previous algorithms, \gls{Adam} includes bias correction to both the ﬁrst-order moments (the momentum term) and the (uncentered) second-order moments (also in RMSProp) making \gls{Adam} fairly robust to the choice of hyperparameters (\cite{GoodBengCour16}).
+The \gls{Adam} optimiser (\cite{kingma2017adam}) is a variation of the combination of momentum, which points the model in a better direction and \gls{RMSProp}, which adapts how far the model goes in the direction to converge quickly.
+
+Unlike the previous algorithms, \gls{Adam} includes bias correction to both the ﬁrst-order moments (the momentum term) and the (uncentered) second-order moments (also in \gls{RMSProp}) making \gls{Adam} fairly robust to the choice of hyperparameters (\cite{GoodBengCour16}).
 
 The authors (\cite{kingma2017adam}) show that \gls{Adam} works well in practice and compares well with other adaptive learning-method algorithms.
 \paragraph{\gls{NAdam} Optimiser}
 \paragraph{}
-\gls{NAdam} showed dramatic improvements in this paper(\cite{nadam}) the authors argue that it is a no-brainer to incorporate Nesterov momentum into \gls{Adam}, specially where combining momentum and RMSProp is concerned, this was actually present in Chapter 8 of Goodfellow et al.'s book (\cite{GoodBengCour16}).
-\paragraph{}
+\gls{NAdam} showed dramatic improvements in this paper(\cite{nadam}) the authors argue that it is a no-brainer to incorporate Nesterov momentum into \gls{Adam}, specially where combining momentum and \gls{RMSProp} is concerned, this was actually present in Chapter 8 of Goodfellow et al.'s book (\cite{GoodBengCour16}).
+
 It was also derived and explained by Ruder(\cite{ruder2017overview}), who also emphasizes that \gls{NAG} is superior to vanilla momentum, thus combining \gls{Adam} and NAG seems to make sense theoretically. 
 
 Despite this claim, not many other evidences of the use of \gls{NAdam} where found in practice. Nonetheless, a technical report (\cite{DBLP:journals/corr/IglovikovMO17}) uses \gls{NAdam} as the optimiser to train a  multi-spectral image U-Net to accurately perform semantic segmentation of different classes in satellite imagery, making it quite relevant to this project.
@@ -368,26 +374,28 @@ Despite this claim, not many other evidences of the use of \gls{NAdam} where fou
 \paragraph{}
 Batch size is the number of data points used to train a model in each iteration, it is very important to ensure that the algorithm converges, since it determines the frequency of updates of the network.
 
-
 The larger the batch size, the more accurate cost gradient w.r.t. parameters and faster training speed (\cite{deeplearning_ai}). Large batch sizes can however negatively impact the generalisation of the network (\cite{keskar2017largebatch}).
-\paragraph{}
+
 Common mini-batch sizes range between $50$ and $256$, but vary for different applications (\cite{ruder2017overview}), for the semantic segmentation models introduced in section \ref{seg_nets} it tends to be between $12$ and $20$ images, with for example U-Net (\cite{ronneberger2015unet}) as one of the exceptions being 1 image making it a pure stochastic gradient optimisation process.
 \subsubsection{Initialisation} \label{initialisation}
 \paragraph{}
 Some algorithms are very sensitive to weight initialisation and the success of its convergence depends a lot on the chosen initialiser. To prevent gradients from vanishing (weight initialisation too small) or exploding (too large), as a rule of thumb the mean of the activations should be $0$ and the variance of the activations should stay consistent across all layers.
 
 For simplicity, let's assume the same initialisation methods are usually applied to both the forward propagation (activations) and backward propagation (cost gradients \gls{w.r.t.} activations).
+
 \paragraph{Random normal initialiser} The weights are randomly initialised usually from a zero-mean normal distribution, however other values of mean and standard deviation can be defined. 
 
 It has been used with the default configuration of zero mean and unit standard deviation in remote sensing applications by Kemker et al. (\cite{kemker2018algorithms}) in initialisation experiences Deep \gls{NN} for Semantic Segmentation.
+
 \paragraph{Uniform initialiser} In Uniform initialisation, known to work well with the sigmoid activation function (see equation \ref{sigmoid_eq}), the weights belong to a uniform distribution in range ($a$, $b$).
+
 \paragraph{"Xavier" (Glorot) initialiser} The "Xavier" (\cite{pmlrv9glorot10a}) initialisation, known to work well with the tanh activation function (see equation \ref{tanh_eq}), picks the weights of layer $l$ randomly from a normal distribution with mean $\mu = 0$ and variance $\sigma^2 = \frac{1}{n^{[l-1]}}$, where $n^{[l-1]}$ is the number of neurons in layer $l-1$. Biases are initialized with zeros:
-\paragraph{}
+
 $\begin{aligned}W^{[l]} &\sim \mathcal{N}(\mu=0,\sigma^2 = \frac{1}{n^{[l-1]}})\\ b^{[l]} &= 0\end{aligned}$
-\paragraph{}
+
 There is also a  "Xavier" uniform variation, where the weights are chosen from a random uniform distribution, which won't be covered in detail.
 \paragraph{"He" (Kaiming) initialiser} In an attempt to discover the best initialiser to work well with \gls{ReLU} (see equation \ref{eq_relu} like activations, He et al. (\cite{He_2015_ICCV}) adapted "Xavier" initialisation to achieve better performance with rectified units, this proved quite successful as seen in Figure \ref{fig_he_xavier}.
-\paragraph{}
+
 In "He" initialisation, weights of layer $l$ are initialised with a zero-mean Gaussian distribution with a standard deviation  $\sigma =\sqrt{\frac{2}{n_l}}$, where $n_l$ is the number of activations of layer $l$. Biases are also initialized with zeros. 
 
 The difference between this "He" and the Xavier initialisation  is the $\frac{1}{2}$ that comes from the \gls{ReLU} activation function.
@@ -404,13 +412,13 @@ When fine-tuning pre-trained models, it is very likely that overfitting will bec
 Performing $l2$ regularisation \gls{a.k.a.} weight decay constrains weigh values towards 0 (but not actually zero) whereas $l1$  regularisation \gls{a.k.a.} Lasso regression drives the weights to be $0$, tends to work well as a feature selection technique. 
 
 Regularisers are usually attached to the loss function as a penalty term, $l1$ penalises the absolute value whereas $l2$ penalises the square value of the weights (\cite{shanmugamani2018deep}). 
-\paragraph{}
+
 $l2$  is more popular, as $l1$  can remove relevant information from high-dimensional data where these are correlated, leading to underperforming models.Most of the segmentation models introduced in section \ref{seg_nets} use weight decay with values between 0.0001 and 0.0005 (\cite{sultana2020106062}).
 \paragraph{Dropout} 
 The idea of Dropout (\cite{JMLR:v15:srivastava14a}) is to randomly turn off neurons (along with their connections) with some probability $p$ from the \gls{NN} during training, this is usually applied at each step of forward propagation and weight update step, neurons turned off in one step can become active in the following step.
 
 This can make this method quite computationally expensive and less effective when there are very few labelled training examples, however it does have the advantage of being (\cite{GoodBengCour16}).
-\paragraph{}
+
 In Figure \ref{fig_dropout} it can be seen that after dropout is applied in \ref{fig_dropout}b the network becomes less complex network subsampled from the original \gls{NN} in \ref{fig_dropout}a.
 
     \begin{figure}[hbt!]
@@ -427,12 +435,13 @@ This noise introduced in the hidden units during training can have a regularisat
 The use of early stopping is probably one of the most efficient and easy to implement regularisation methods in deep learning applications(\cite{GoodBengCour16}). It involves monitoring the parameters and validation set error, so that the best parameters at the point of the lowest validation error can be returned when the training stops. 
 
 The training stops when none of the parameters have improved over the best validation error stored (when monitoring validation loss) for a certain number of iterations (\gls{a.k.a.} patience parameter).
-\paragraph{}
+
 It is argued that early stopping is advantageous over weight decay as it automatically figures out the correct amount of regularisation while weight decay needs several training experiments to ensure the networks doesn't get trapped in a local minimum.(\cite{GoodBengCour16}) 
 
 \subsubsection{Learning Rate} \label{learning_rate}
-Goodfellow et al. (\cite{GoodBengCour16}) suggests that the best way of choosing an initial learning rate is to monitor leaning curves, plots of loss function as a function of learning time, usually epochs. 
 \paragraph{}
+Goodfellow et al. (\cite{GoodBengCour16}) suggests that the best way of choosing an initial learning rate is to monitor leaning curves, plots of loss function as a function of learning time, usually epochs. 
+
 There are a couple of things to watch out for, big oscillations  where the loss increases drastically indicate the learning rate is too high. Small oscillations are okay, specially if the loss function contains stochastic features such as dropout. 
 
 If the initial learning rate is too small, the function might be stuck with high loss values, getting stuck and potentially triggering early stopping. As a rule of thumb, it is advised that the initial learning rate is higher than the best performing rate after approximately $100$ iterations(\cite{GoodBengCour16}).
@@ -467,9 +476,10 @@ The creators of the Pyramid Parsing Network (PSPNet) (\cite{zhao2017pyramid}), a
 \end{equation}
 
 where $T_{k}$ is the total number of iterations and $power$ term controls the shape of the learning rate decay. In case of polynomial learning rate policy, $T_{k}$ is equal to total number of epochs times number of iterations in an epoch (\cite{8929465}).
-\paragraph{} 
+
 There are many other learning rate policies such as the constant learning rate, manual step learning rate and cosine decay learning rate that are self-explanatory, so will not be covered in detail.
 \subsection{Measurement of model performance} \label{performance_measures}
+\paragraph{}
 During training, it is usual to monitor certain metrics that measure how well the model is performing, ones typically used in semantic segmentation problems are outlined in this section.
 \paragraph{Dice coefficient}
 The dice coefficient (\cite{7785132}), ranging between $0$ and $1$, is the most commonly used segmentation evaluation metric. The Dice coefficient ($Dice$) between $2$ binary volumes, which the aim is to maximise, can be written as:

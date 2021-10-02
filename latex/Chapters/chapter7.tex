@@ -17,20 +17,20 @@ Two models trained on different datasets were fine-tuned and evaluated in this p
 The data extraction part of the project came with many limitations. The dependency on third party tools to extract data led to a small dataset to work with, given the limited time constraints to focus on a more automated process for data extraction.
 
 The GEE and JavaScript data extraction method introduced bias and potentially a misalignment between the input data and the mask.  This was addressed by the second batch of data extraction, where JP2 tiles were extracted directly and processed into 64x64 windows, this allowed for debiased images and  greater sample size to work with improving generalisation.
-\paragraph{}
+
 Since this model was only trained on tiles containing positive labels, it does not know how to identify tiles with no thaw slumps, which is an important characteristic when performing inference across the Arctic. 
 \section{Future Work}
 \paragraph{}
 In the future an approach that aims to measure the change in RTss through time, like in Huang et al.'s latest paper (\cite{HUANG2021102399}) would be more beneficial to the problem this project aims to address. This increases the complexity of the task at hand as it introduces an additional dimension of time and it's sequence to ensure adequate treatment of the time series but provides better means for estimation and prediction of permafrost thaw year on year.
 
 It would also be beneficial to try different architecture parameters such as filter size and kernel size or even other architectures such as DeepLab v3+ or \gls{FCN} and assess the impact on the model performance.
-\paragraph{}
+
 To improve the generalisation of the model, a wider research area not limited to the sites where labels were provided should be covered so that the model can be used in other geographical characteristics.
-\paragraph{}
+
 Given more time, there are considerations on  model inference time, throughput and size are areas that could be improved by simplifying the U-Net model to a simpler model architectures, this could be useful if the model were to be integrated in edge devices or applications that require low latency.
 
 The use of Bayesian optimisation techniques or even Constraint Active Search (\cite{pmlr-v139-malkomes21a}) to perform hyperparameter tuning rather than using Random Search techniques would likely lead to better model optimisation without the time consuming experiment set up presented in Chapter \ref{experiments_chapter}
-\paragraph{}
+
 In the future, the model could be trained on higher resolution images such as those available through Planet data (3m) , to evaluate how it affects model performance specially when dealing with smaller RTS.
-\paragraph{}
+
 To increase model performance on tiles with no or small number of thaw slumps the model should be trained on a balanced dataset of tiles containing thaw slumps, as well as, some not containing any.

@@ -50,8 +50,10 @@ It also made accuracy a very misleading metric to follow, since the model would 
 For example, say that $1\%$ of the image is made up of positive \gls{RTS} pixels while the rest is made up of background negative pixels, if the model predicts negative background pixel for the whole image it would still be $99\%$ accurate, even though it didn't classify a single \gls{RTS} pixel correctly, this can be very misleading.
 This unsuitability of accuracy as a performance measure, is also part of the justification for using the dice score introduced in section \ref{performance_measures} as the performance measure of choice in the experiments that follow. Being the harmonic mean between precision and recall, it makes it one of the best candidates for unbalanced class problems.
 
-Following this realisation, the size of the input batch was reduced to create a more even pixel-wise class distribution, the results of this experiment will be described in detail in the following section.
+Following this realisation, the size of the input patch was reduced to create a more even pixel-wise class distribution, the results of this experiment will be described in detail in section \ref{patch_size_exp}.
+
 \subsection{Experiment set up}
+\paragraph{}
 In order to identify a baseline model, trial runs for only 20 epochs were performed in a grid search methodology to identify a suitable baseline model to use in the following experiment sections. After evaluating the dice coefficient, the parameters of the baseline model are:
 
 \begin{center}
@@ -96,13 +98,13 @@ In order to identify a baseline model, trial runs for only 20 epochs were perfor
 For each of the experiments, there will be trial runs of each potential value for $50$ epochs to identify the best value, keeping everything else as the baseline value. The objective is to maximise the performance measure of choice, the dice coefficient (coef) by minimising the loss.
 \section{Preprocessing experiments}
 The experiments in this section ran for $50$ epochs, due to the non-deterministic nature of neural networks the results are not always of comparable performance between experiments, but were run within the same Tensorflow session within each experiment for comparability.
-\subsection{Size of the input patch}
+\subsection{Size of the input patch} \label{patch_size_exp}
 As described in section \ref{class_imbalance}, class imbalance became an issue with model performance, in order to test if cropping the image to create a more balanced pixel-level class distribution could be linked to model performance, experiments were carried out. This was done by cropping the input patch from $256$×$256$ to $128$×$128$, $64$×$64$ and finally $32$×$32$ pixels, which would be reflected in the input layer dimensions of the model as well.
 
 \begin{figure}[hbt!]
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
-    \includegraphics[width=0.5\linewidth]{patch size_Validation dice coefficient.png}
+    \includegraphics[width=0.75\linewidth]{patch size_Validation dice coefficient.png}
     \caption{Input patch size dice coefficient comparison}
     \label{patch_dice}
     %     \end{minipage}
@@ -131,9 +133,10 @@ The model with the highest validation dice coefficient was the one where the ima
 \paragraph{}
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
 \subsection{Normalisation of input}
+\paragraph{}
 Another key factor in the success of the training of the model is adequate normalisation of the inputs, specially with the extremely high values reflectance values in remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
 
-The na\"ive approach of simply converting any pixel $x>10,000 =10,000$ followed by $x= x/10,000$ was the one used for the initial experiments.
+The na\"ive approach of simply converting any pixel $x>10,000=10,000$ followed by $x=x/10,000$ was the one used for the initial experiments.
 
 In order to implement the other two transformations $[0,1]$ interval and z-score, introduced in detail in section \ref{img_norm}, the maximum, mean and standard deviation of all $64$×$64$ training set images were calculated across each band/channel independently. This is done using only the training set images to prevent the distribution of the validation and test set leaking into the model.
 \begin{figure}[hbt!]
@@ -150,7 +153,7 @@ In order to implement the other two transformations $[0,1]$ interval and z-score
     %     \label{norm_loss}
     % \end{minipage}
 \end{figure}
-\paragraph{}
+
 Given the better performance of the  na\"ive normalisation method seen in Figure \ref{norm_dice}, it will be used for the rest of the experiments here onward.
 \begin{table}[ht!] 
     \begin{center}
@@ -167,13 +170,16 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
   \caption{Dice coefficient and loss with varying normalisation method}\label{tab_norm}
 \end{table}
 \subsection{Data Augmentation}
+\paragraph{}
 Data Augmentation can be invaluable when the dataset is small, and even more when the data collection is biased. The main purpose of data augmentation in this project is to correct the bias of \gls{RTS} positive pixels always being in the centre of the image.
-\paragraph{}
+
 In that sense, the most useful data augmentation transformation is translation or shift, where the image is translated to the right or left according to certain parameter. The implementation of this was done in the \gls{NN} itself has one of the initial layers with Keras's “RandomTranslation” layer. One layer with an output shifted vertically and horizontal by a random amount of $20\%$ in each direction, to fill the pixels left blank by this translation the fill mode of choice was bipolar interpolation of the nearest pixels.
-\paragraph{}
+
 At this stage a rotation augmentation method was also implemented for comparison, in the same way with the same parameter settings but using Keras's “RandomRotation” layer instead, which rotates the image clockwise or anti-clockwise instead by the random amount of $20\%$, with the same fill method. 
-\paragraph{}
+
 The experiment results can be seen in Figures \ref{aug_dice}, no augmentation (baseline) yields better results than rotation, translation, or both implementations at once.
+
+This could be due to changes in the geometry or lighting causing the \gls{ROI} or important contextual background pixels in the image to lose the original features that helped identify the \gls{RTS} pixels correctly.
 
 \begin{figure}[hbt!]
     % \begin{minipage}[c]{0.45\linewidth}
@@ -202,20 +208,22 @@ Given the complexity of an optimiser's performance and its interaction with the 
 For simplicity, the same approach of only varying one parameter at a time, to ease interpretation, will be presented in the following subsections.
 
 \subsection{Optimiser}
+\paragraph{}
 As introduced  in section \ref{optimiser}, there are several optimisers that could significantly affect the performance of the model. Even though \gls{SGD} seems to be the algorithm used by all the state-of-the-art segmentation models presented in section \ref{seg_nets}, the results of varying four different optimisers will be presented to see how the model is impacted by it.
 
 \begin{figure}[hbt!]
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{optimiser_Validation dice coefficient.png}
-        \caption{Optimiser dice coefficient comparison}
-        \label{opt_dice}
-        \end{minipage}
-        \hfill
-        \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{optimiser_Validation loss.png}
-        \caption{Optimiser loss comparison}
-        \label{opt_loss}
-    \end{minipage}
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\linewidth]{optimiser_Validation dice coefficient.png}
+    %     \caption{Optimiser dice coefficient comparison}
+    %     \label{opt_dice}
+    %     \end{minipage}
+    %     \hfill
+    %     \begin{minipage}[c]{0.45\linewidth}
+    \centering
+    \includegraphics[width=0.75\linewidth]{optimiser_Validation loss.png}
+    \caption{Optimiser loss comparison}
+    \label{opt_loss}
+    % \end{minipage}
 \end{figure}
 
 \begin{table}[ht!] 
@@ -233,15 +241,17 @@ As introduced  in section \ref{optimiser}, there are several optimisers that cou
   \caption{Dice coefficient and loss with varying optimiser}\label{tab_opt}
 \end{table}
 
-\paragraph{}
-Contradicting the literature, perhaps given the small dataset in this project compared with the millions of examples used to train state-of-the-art models, RMSProp outperforms the other optimisers when it comes to loss minimisation as seen in Figure \ref{opt_loss}.
-\paragraph{}
-Figure \ref{opt_dice} shows similar validation dice coefficient between RMSProp, \gls{NAdam} and \gls{Adam}, in order of maximisation performance, with \gls{SGD} lagging behind significantly, given the baseline learning rate of $0.0001$ and mini-batch size of $4$.
-\paragraph{}
-Given its performance, RMSProp will be the optimiser of choice in the experiments to follow.
+Contradicting the literature, perhaps given the small dataset in this project compared with the millions of examples used to train state-of-the-art models, \gls{RMSProp} outperforms the other optimisers when it comes to loss minimisation as seen in Figure \ref{opt_loss}.
+
+Figure \ref{opt_loss} shows similar validation loss coefficient between \gls{RMSProp}, \gls{NAdam} and \gls{Adam}, in order of minimisation performance, with \gls{SGD} lagging behind significantly, given the baseline learning rate of $0.0001$ and mini-batch size of $4$.
+
+This may be due to the fact that the default parameters (apart from learning rate) of the Tensorflow implementation of all the optimisers are being used and need tuning for better performance and perhaps that \gls{Adam} is better used in problems with a lot of data and/or parameters. (\cite{kingma2017adam}) 
+
+Given its performance, \gls{RMSProp} will be the optimiser of choice in the experiments to follow.
 \subsection{Learning rate}
-The Keras method "ReduceLROnPlateau" was applied, this involved reducing the learning rate by a factor of $10$, if there is no improvement in the validation set loss for $10$ epochs. This is enabled by the callback method that monitor loss and other metrics for each epoch.
 \paragraph{}
+The Keras method "ReduceLROnPlateau" was applied, this involved reducing the learning rate by a factor of $10$, if there is no improvement in the validation set loss for $10$ epochs. This is enabled by the callback method that monitor loss and other metrics for each epoch.
+
 The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on the literature introduced in section \ref{learning_rate} for this experiment, the results can be seen in Table \ref{tab_lr}.
 
 \begin{table}[ht!] 
@@ -272,16 +282,15 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
     % \end{minipage}
 \end{figure}
 
-\paragraph{}
 Figure \ref{lr_dice} shows a big difference between the performance of $0.01$ learning rate and the other values, this could be due to the large learning rate overshooting the global or a local minimum and arriving at a suboptimal final set of weights.
-In the grid search experiment, the initial learning rate of $0.01 $seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD}  optimiser only performed well with the $0.01$ learning rate.
-\paragraph{}
+In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD}  optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the "ReduceLROnPlateau" learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
+
 The top learning rate for the RMSProp optimiser was $0.0001$, therefore this will be used for the experiments.
 
 \subsection{Batch size}
 \paragraph{}
 Varying the mini-batch size has great implications in the convergence of the model, given its small labelled dataset, this project is working with smaller batch sizes than it is standard in the industry.
-\paragraph{}
+
 This is validated by the results of the experience, as it can be seen in Table \ref{tab_batch} the batch sizes that show the worst performance are the $2$  highest values of $16$ and $20$ mini-batch size. All the other values display a very close performance, with the best being a batch size of $1$.
 
 \begin{table}[ht!] 
@@ -311,7 +320,6 @@ This is validated by the results of the experience, as it can be seen in Table \
 \subsection{Initialisation}
 \paragraph{}
 As presented in section \ref{initialisation}, "He" initialisation methods outperform the "Xavier" (glorot) initialisation method, according to the literature "He" initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
-
 
 The random normal initialiser has the same final performance as the "He" normal method in Table \ref{tab_init}, this results may have been due to a particularly good random weight initialisation, in order to assess it's validity it should be run several times to establish it's significance, however due to time and computational constraints this author did not investigate this further.
 
@@ -347,7 +355,7 @@ However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stabl
     %     \label{init_loss}
     % \end{minipage}
 \end{figure}    
-\paragraph{}
+
 From here on, uniform he initialisation will be used for the consequent experiments.
 
 \subsection{Activation function}
@@ -390,28 +398,27 @@ The \gls{SELU} function was also considered but as it is self normalising the \g
 
 \gls{ELU} proves to be the highest performing activation function, so it will remain being used in the following experiments.
 
-
 \subsection{Loss Function} \label{loss_exp}
 \paragraph{}
 The chosen measure of performance for this project is the dice coefficient, an adequate loss function needs to be implemented in a way that minimising it, maximises the dice coefficient. To achieve this, the loss functions introduced in section \ref{loss_functions} were implemented in Python and compared to identify the best suited function for this project.
 
-The implementation of the loss functions in Python under the Tensorflow Keras framework required a substantial amount of effort, as they were custom losses and required special attention to make sure matrix dimensions were correct for backpropagation to work and training to be successful. Figure \ref{loss_loss} shows that they are all successfully training the model as the loss is decreasing in general as the number of epochs increase.
+The implementation of the loss functions in Python under the Tensorflow Keras framework required a substantial amount of effort, as they were custom losses and required special attention to make sure matrix dimensions were correct for backpropagation to work and training to be successful. 
 
-
-NEEED TO EXPAND ON WhY
+Figure \ref{loss_dice} shows that they are all successfully training the model as the chosen model scoring metric is showing an increasing trend as the number of epochs increase as would be expected if the gradient descent is working correctly.
 
 \begin{figure}[hbt!]
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{loss function_Validation dice coefficient.png}
-        \caption{Loss function dice coefficient comparison}
-        \label{loss_dice}
-        \end{minipage}
-        \hfill
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\textwidth]{loss function_Validation loss.png}
-        \caption{Loss function loss comparison}
-        \label{loss_loss}
-    \end{minipage}
+    % \begin{minipage}[c]{0.45\linewidth}
+    \centering
+    \includegraphics[width=0.75\linewidth]{loss function_Validation dice coefficient.png}
+    \caption{Loss function dice coefficient comparison}
+    \label{loss_dice}
+        % \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\textwidth]{loss function_Validation loss.png}
+    %     \caption{Loss function loss comparison}
+    %     \label{loss_loss}
+    % \end{minipage}
 \end{figure}
 
 \begin{table}[ht!] 
@@ -422,15 +429,13 @@ NEEED TO EXPAND ON WhY
     Loss Function & Validation & Training & Test & Validation    & Training & Test   \\ 
     \midrule
     dice coef loss & 0.81 & 0.9 & 0.75 & 0.19 & 0.1 & 0.25  \\ \rowcolor{lightgray} \gls{CE} dice loss & 0.82 & 0.93 & 0.81 & 0.57 & 0.1 & 0.28  \\ iou loss & 0.81 & 0.91 & 0.71 & 0.29 & 0.15 & 0.45  \\ \gls{CE} jaccard loss & 0.78 & 0.93 & 0.8 & 1.06 & 0.18 & 0.51  \\ binary focal loss & 0.78 & 0.86 & 0.77 & 2.2 & 0.25 & 0.45  \\
-    
     \bottomrule
     \end{tabular}
   \end{center} 
   \caption{Dice coefficient and loss with varying loss function}\label{tab_loss}
 \end{table}
 
-\paragraph{}
-The best loss function is still the \gls{CE} dice loss so it will continue to be used in the following experiments.
+The best loss function is still the \gls{CE} dice loss, this could be because combining the two losses allows for some diversity, whilst still benefitting from the stability of \gls{CE}, so it will continue to be used in the following experiments.
 
 % \subsection{Architecture Hyperparameters}
 % \paragraph{Number of Filters}
@@ -440,7 +445,8 @@ The best loss function is still the \gls{CE} dice loss so it will continue to be
 % \paragraph{Dropout value}
 
 \subsection{Preventing over-fitting} \label{regularisation_sec}
-\paragraph{\gls{ES}}
+\subsubsection{\gls{ES}}
+\paragraph{}
 In the previous section the models ran for $50$ epochs without \gls{ES} implementation, given the experiments performed what is the impact of running a couple of the experiments applying \gls{ES} and how it affects the performance of the model.
 
 The early stopping strategy consisted of monitoring the validation set loss for $15$ epochs (patience parameter) after which training will be stopped if there is no improvement (absolute change of less than $0$ (min delta parameter)) in the validation loss.
@@ -448,42 +454,52 @@ The early stopping strategy consisted of monitoring the validation set loss for 
 In order to perform this experiment an arbitrarily large number of epochs was set to $200$, \gls{ES} was triggered at $79$ epochs when validation loss did not improve from $0.24$, as can be seen from Figure \ref{es_loss} \gls{ES} was successful at preventing an overfitting situation, as the loss increased after epoch $79$.
 
 \begin{figure}[hbt!]
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{early stoppping_Validation dice coefficient.png}
-        \caption{Loss function dice coefficient comparison of \gls{ES} usage}
-        \label{es_dice}
-        \end{minipage}
-        \hfill
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\textwidth]{early stoppping_Validation loss.png}
-        \caption{Loss function loss comparison of \gls{ES} usage}
-        \label{es_loss}
-    \end{minipage}
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\linewidth]{early stoppping_Validation dice coefficient.png}
+    %     \caption{Loss function dice coefficient comparison of \gls{ES} usage}
+    %     \label{es_dice}
+    %     \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    \centering
+    \includegraphics[width=0.75\textwidth]{early stoppping_Validation loss.png}
+    \caption{Loss function loss comparison of \gls{ES} usage}
+    \label{es_loss}
+    % \end{minipage}
 \end{figure}
 
-
-\paragraph{Dropout}
-
+\subsubsection{Dropout}
+\paragraph{}
 As part of the base network architecture introduced in section \ref{pixel_model}, Dropout has been implemented at different degrees starting at $0.1$ dropout rate and increasing by $0.1$ as one progresses deeper into the network.
 
 As an experiment, the network with the same architecture with one change, all the dropout values introduced will be reduced to $0$, so there is no Dropout in the network.
 
 \begin{figure}[hbt!]
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{dropout_Validation dice coefficient.png}
-        \caption{Loss function dice coefficient comparison of removal of Dropout}
-        \label{dropout_dice}
-        \end{minipage}
-        \hfill
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\textwidth]{dropout_Validation loss.png}
-        \caption{Loss function loss comparison of of removal of Dropout}
-        \label{dropout_loss}
-    \end{minipage}
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\linewidth]{dropout_Validation dice coefficient.png}
+    %     \caption{Loss function dice coefficient comparison of removal of Dropout}
+    %     \label{dropout_dice}
+    %     \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    \centering
+    \includegraphics[width=0.75\textwidth]{dropout_Validation loss.png}
+    \caption{Loss function loss comparison of of removal of Dropout}
+    \label{dropout_loss}
+    % \end{minipage}
 \end{figure}
 
 Without dropout in place the validation loss starts increasing drastically which triggers \gls{ES} much earlier, as we can see from Figure \ref{dropout_loss} this could be due to exploding gradients.
 
 \section{Learnings from conducting experiments}
-
+\paragraph{}
 In summary, there are a few things that have been concluded from the experiments conducted with the \textit{\gls{GEE} data} and will motivate the decisions made for the section that follows where the model will be trained on the \textit{\gls{JP2} data} .
+
+\begin{enumerate}
+    \item{When there is a background and foreground class, where the foreground class represents the \gls{ROI}, in this case the \gls{RTS} pixels, it is important to adjust the patch size of the image as a way of reducing pixel imbalance between the negative more frequent background class and the positive more valuable foreground class. Depending on the size of the \gls{ROI} this has to be done taking into consideration that context around the \gls{ROI} is also valuable in its correct identification. For example in the context of this thesis reducing the patch size showed improvement until the $64$x$64$ patch size, but once it was further reduced to $32$x$32$ the performance was worst.}
+    
+    \item{The relationship between the learning rate hyperparameter and the optimiser is very strong, this was particularly evident with a higher learning rate of $0.1$, which incredibly benefitted the \gls{SGD} optimiser but drastically reduced the performance of the other optimisers, perhaps more experiments with the other parameters of optimisers and different learning rate schedules would be interesting, given more time.}
+    \item {The correct technical implementation of loss functions is challenging, specially when dealing with bespoke data ingested from GeoTiFF file format but essential for the successful training of the model.}
+    \item {\gls{ES} is very effective in preventing overfitting.}
+    \item {Dropout is very effective in preventing exploding gradients.}
+\end{enumerate}
