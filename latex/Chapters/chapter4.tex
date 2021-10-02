@@ -1,14 +1,11 @@
 \typeout{NT FILE chapter4.tex}
 \chapter{ Modelling Experiments} \label{experiments_chapter}
-
 \paragraph{}
 In this chapter, experiments will be performed to identify the best pre-processing and training parameters to increase the classification performance of the model of choice. 
 All the below experiments were carried out using this author's personal computer with Intel(R) Core(TM) i7-10750H \gls{CPU} @ 2.60GHz, 16GB \gls{RAM} with a GeForce RTX 2070 with Max-Q Design 8GB \gls{GPU}
-
 \section{Choosing the most appropriate classification model} \label{classification_models}
 % \subsection{Scene classification model}
 % For the scene classification model Transfer Learning was used with Mobile V2 using ImageNet weights
-
 \subsection{Pixel-wise classification model} \label{pixel_model}
 After framing the problem as a scene classification problem and getting quite good results, in the search for a more challenging problem and due to the availability of data labels for each pixel form polygons it was decided by the author to frame the problem as a pixel-wise classification problem.
 
@@ -26,8 +23,7 @@ In this project a \textbf{transpose convolution block($x$)} consists of:
     \begin{enumerate}
         \item \textbf{2D transpose convolutional layer with $x$ channels} with 2x2 filter dimensions, stride of 2x2 and "same" padding.
         \item \textbf{Skip connection} concatenate weights of 2D transpose convolutional layer with $x$ channels and the weights of the previous 2D convolutional layer with the same number of $x$ channels.
-    \end{enumerate}
-    
+    \end{enumerate}    
 \paragraph{}
 With the above concepts and the U-Net architecture diagram introduced in Figure \ref{fig_unet} in mind, the initial baseline U-Net architecture used in this project is composed of the following blocks in sequential order:
 %maybe should make a picture to make this clearer
@@ -38,29 +34,24 @@ With the above concepts and the U-Net architecture diagram introduced in Figure 
         \item transpose convolution block(128), convolution block(128, 0.2), transpose convolution block(64), convolution block(64, 0.2), transpose convolution block(32), convolution block(32, 0.1), transpose convolution block(16), convolution block(16, 0.1)
         \item finally an output layer of a 1x1 2D convolutional layer with a sigmoid activation function to create the per-pixel class probability map
     \end{enumerate}
-
 \subsection{Evaluating the use of transfer learning}
 Given the small labelled dataset and the difference compared to ImageNet, since we are dealing with aerial shots of landscapes, the rule of thumb would be to fine-tune the hidden layers.
 \paragraph{}
 However, given that most models are only trained on a depth of 3 channels, the weights of such pre-trained models are not compatible with the choice of 4 channels or more.
 Therefore, this author deemed it better to re-train the model even though there is a small labelled dataset present.
-
 \subsection{Pixel-level class imbalance} \label{class_imbalance}
-\paragraph{}
+
 Given the process of data collection adopted initially in this project where the area of interest i.e. the \gls{RTS} positive pixels are in the centre of the image and an area of $256$x$256$ is "cut" around it to create a patch. 
 
 The large area of the patch created a pixel-wise class imbalance which led to the model's poor performance when identifying positive \gls{RTS} sample. This is due to the low level of \gls{RTS} pixels where $75\%$ of images have less than $360$ pixels this when compared with the area size of a $256$x$256$ image is less than $0.55\%$ of the image, a needle in a haystack as some would say. By for example reducing the image area by $16$ times to $4096$, the area of a $64$x$64$ image that is now more almost $9\%$ of the image.
 
 It also made accuracy a very misleading metric to follow, since the model would be rewarded for the hundreds of negative sample pixels it correctly identified, but wouldn't absorb the cost of misclassifying the pixels this project is most interested in finding the \gls{RTS} pixels. 
 
-\paragraph{}
 For example, say that $1\%$ of the image is made up of positive \gls{RTS} pixels while the rest is made up of background negative pixels, if the model predicts negative background pixel for the whole image it would still be $99\%$ accurate, even though it didn't classify a single \gls{RTS} pixel correctly, this can be very misleading.
 This unsuitability of accuracy as a performance measure, is also part of the justification for using the dice score introduced in section \ref{performance_measures} as the performance measure of choice in the experiments that follow. Being the harmonic mean between precision and recall, it makes it one of the best candidates for unbalanced class problems.
-\paragraph{}
-Following this realisation, the size of the input batch was reduced to create a more even pixel-wise class distribution, the results of this experiment will be described in detail in the following section.
 
+Following this realisation, the size of the input batch was reduced to create a more even pixel-wise class distribution, the results of this experiment will be described in detail in the following section.
 \subsection{Experiment set up}
-\paragraph{}
 In order to identify a baseline model, trial runs for only 20 epochs were performed in a grid search methodology to identify a suitable baseline model to use in the following experiment sections. After evaluating the dice coefficient, the parameters of the baseline model are:
 
 \begin{center}
@@ -104,11 +95,8 @@ In order to identify a baseline model, trial runs for only 20 epochs were perfor
 
 For each of the experiments, there will be trial runs of each potential value for $50$ epochs to identify the best value, keeping everything else as the baseline value. The objective is to maximise the performance measure of choice, the dice coefficient (coef) by minimising the loss.
 \section{Preprocessing experiments}
-\paragraph{}
 The experiments in this section ran for $50$ epochs, due to the non-deterministic nature of neural networks the results are not always of comparable performance between experiments, but were run within the same Tensorflow session within each experiment for comparability.
-
 \subsection{Size of the input patch}
-\paragraph{}
 As described in section \ref{class_imbalance}, class imbalance became an issue with model performance, in order to test if cropping the image to create a more balanced pixel-level class distribution could be linked to model performance, experiments were carried out. This was done by cropping the input patch from $256$×$256$ to $128$×$128$, $64$×$64$ and finally $32$×$32$ pixels, which would be reflected in the input layer dimensions of the model as well.
 
 \begin{figure}[hbt!]
@@ -125,11 +113,9 @@ As described in section \ref{class_imbalance}, class imbalance became an issue w
     %     \label{patch_loss}
     % \end{minipage}
 \end{figure}
-
 \paragraph{}
 % As seen from Figure \ref{patch_dice}, 
 The model with the highest validation dice coefficient was the one where the image was cropped to a $64$×$64$ pixel area, with a validation dice coefficient of $0.7$ vastly outperforming the other patch sizes, shown in figure \ref{patch_dice}.
-
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{ccccccc} 
@@ -142,17 +128,14 @@ The model with the highest validation dice coefficient was the one where the ima
   \end{center} 
   \caption{Dice coefficient and loss with varying patch size}\label{tab_patch}
 \end{table}
-
 \paragraph{}
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
-
 \subsection{Normalisation of input}
 Another key factor in the success of the training of the model is adequate normalisation of the inputs, specially with the extremely high values reflectance values in remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
 
 The na\"ive approach of simply converting any pixel $x>10,000 =10,000$ followed by $x= x/10,000$ was the one used for the initial experiments.
 
 In order to implement the other two transformations $[0,1]$ interval and z-score, introduced in detail in section \ref{img_norm}, the maximum, mean and standard deviation of all $64$×$64$ training set images were calculated across each band/channel independently. This is done using only the training set images to prevent the distribution of the validation and test set leaking into the model.
-
 \begin{figure}[hbt!]
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
@@ -167,10 +150,8 @@ In order to implement the other two transformations $[0,1]$ interval and z-score
     %     \label{norm_loss}
     % \end{minipage}
 \end{figure}
-
 \paragraph{}
 Given the better performance of the  na\"ive normalisation method seen in Figure \ref{norm_dice}, it will be used for the rest of the experiments here onward.
-
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{ccccccc} 
@@ -185,22 +166,19 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
   \end{center} 
   \caption{Dice coefficient and loss with varying normalisation method}\label{tab_norm}
 \end{table}
-
 \subsection{Data Augmentation}
 Data Augmentation can be invaluable when the dataset is small, and even more when the data collection is biased. The main purpose of data augmentation in this project is to correct the bias of \gls{RTS} positive pixels always being in the centre of the image.
-
 \paragraph{}
 In that sense, the most useful data augmentation transformation is translation or shift, where the image is translated to the right or left according to certain parameter. The implementation of this was done in the \gls{NN} itself has one of the initial layers with Keras's “RandomTranslation” layer. One layer with an output shifted vertically and horizontal by a random amount of $20\%$ in each direction, to fill the pixels left blank by this translation the fill mode of choice was bipolar interpolation of the nearest pixels.
 \paragraph{}
 At this stage a rotation augmentation method was also implemented for comparison, in the same way with the same parameter settings but using Keras's “RandomRotation” layer instead, which rotates the image clockwise or anti-clockwise instead by the random amount of $20\%$, with the same fill method. 
-
 \paragraph{}
 The experiment results can be seen in Figures \ref{aug_dice}, no augmentation (baseline) yields better results than rotation, translation, or both implementations at once.
 
 \begin{figure}[hbt!]
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
-    \includegraphics[width=0.5\textwidth]{augmentation method_Validation dice coefficient.png}
+    \includegraphics[width=0.75 \textwidth]{augmentation method_Validation dice coefficient.png}
     \caption{Augmentation method validation dice coefficient comparison}
     \label{aug_dice}
     %     \end{minipage}
@@ -211,7 +189,6 @@ The experiment results can be seen in Figures \ref{aug_dice}, no augmentation (b
     %     \label{aug_loss}
     % \end{minipage}
 \end{figure}
-
 \paragraph{}
 At this point in the experiment process, the experiments will proceed without any augmentation, other options will be explored to address the data collection bias element.
 
@@ -225,7 +202,6 @@ Given the complexity of an optimiser's performance and its interaction with the 
 For simplicity, the same approach of only varying one parameter at a time, to ease interpretation, will be presented in the following subsections.
 
 \subsection{Optimiser}
-
 As introduced  in section \ref{optimiser}, there are several optimisers that could significantly affect the performance of the model. Even though \gls{SGD} seems to be the algorithm used by all the state-of-the-art segmentation models presented in section \ref{seg_nets}, the results of varying four different optimisers will be presented to see how the model is impacted by it.
 
 \begin{figure}[hbt!]
@@ -259,13 +235,10 @@ As introduced  in section \ref{optimiser}, there are several optimisers that cou
 
 \paragraph{}
 Contradicting the literature, perhaps given the small dataset in this project compared with the millions of examples used to train state-of-the-art models, RMSProp outperforms the other optimisers when it comes to loss minimisation as seen in Figure \ref{opt_loss}.
-
 \paragraph{}
 Figure \ref{opt_dice} shows similar validation dice coefficient between RMSProp, \gls{NAdam} and \gls{Adam}, in order of maximisation performance, with \gls{SGD} lagging behind significantly, given the baseline learning rate of $0.0001$ and mini-batch size of $4$.
-
 \paragraph{}
 Given its performance, RMSProp will be the optimiser of choice in the experiments to follow.
-
 \subsection{Learning rate}
 The Keras method "ReduceLROnPlateau" was applied, this involved reducing the learning rate by a factor of $10$, if there is no improvement in the validation set loss for $10$ epochs. This is enabled by the callback method that monitor loss and other metrics for each epoch.
 \paragraph{}
@@ -287,7 +260,7 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
 
 \centering
     % \begin{minipage}[c]{0.45\linewidth}
-    \includegraphics[width=0.5\linewidth]{learning rate_Validation dice coefficient.png}
+    \includegraphics[width=0.75\linewidth]{learning rate_Validation dice coefficient.png}
     \caption{Learning rate dice coefficient comparison}
     \label{lr_dice}
     %     \end{minipage}
@@ -363,7 +336,7 @@ However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stabl
 \begin{figure}[hbt!]
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
-    \includegraphics[width=0.5\linewidth]{initilisation method_Validation dice coefficient.png}
+    \includegraphics[width=0.75\linewidth]{initilisation method_Validation dice coefficient.png}
     \caption{Initialisation method dice coefficient comparison}
     \label{init_dice}
     %     \end{minipage}
@@ -390,7 +363,7 @@ The \gls{SELU} function was also considered but as it is self normalising the \g
 \begin{figure}[hbt!]
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
-    \includegraphics[width=0.5\textwidth]{activation functions_Validation loss.png}
+    \includegraphics[width=0.75\textwidth]{activation functions_Validation loss.png}
     \caption{Activation function loss comparison}
     \label{act_dice}
     %     \end{minipage}
