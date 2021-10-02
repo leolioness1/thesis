@@ -10,7 +10,7 @@ The model was frozen using the best hyperparameters at the end of the Chapter \r
 \begin{figure}[hbt!]
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
-    \includegraphics[width=0.5\linewidth]{transfer learning_Validation dice coefficient.png}
+    \includegraphics[width=0.75\linewidth]{transfer learning_Validation dice coefficient.png}
     \caption{Retraining with frozen weights dice coefficient comparison}
     \label{rt_dice}
         % \end{minipage}
@@ -21,7 +21,7 @@ The model was frozen using the best hyperparameters at the end of the Chapter \r
     %     \label{rt_loss}
     % \end{minipage}
 \end{figure}
-\paragraph{}
+
 Using the frozen weights did not improve model performance, it had the opposite effect which is expected since the original model has a smaller dataset than the one it was trained on now. It can be seen from Figure \ref{rt_dice} that up to 20 epochs the transfer learning by using frozen weights from the model trained on less data is performing better than the model training from scratch. 
 
 Early stopping is also triggered in the model using frozen weights around 30 epochs before the model being trained from scratch, which makes sense since when there is less data the model has a greater likelihood of overfitting.
@@ -32,17 +32,18 @@ Early stopping is also triggered in the model using frozen weights around 30 epo
 With the same model architecture and hyperparameters as in the previous Chapter, the DL model was trained on the \textit{JP2 data} for the same number of epochs to evaluate the effect of using more data on the model performance.
 
 \begin{figure}[hbt!]
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{training from scratch_Validation dice coefficient.png}
-        \caption{Retraining from scratch dice coefficient comparison}
-        \label{fs_dice}
-        \end{minipage}
-        \hfill
-    \begin{minipage}[c]{0.45\linewidth}
-        \includegraphics[width=\textwidth]{training from scratch_Validation loss.png}
-        \caption{Retraining from scratch loss comparison}
-        \label{fs_loss}
-    \end{minipage}
+    % \begin{minipage}[c]{0.45\linewidth}
+    %     \includegraphics[width=\linewidth]{training from scratch_Validation dice coefficient.png}
+    %     \caption{Retraining from scratch dice coefficient comparison}
+    %     \label{fs_dice}
+    %     \end{minipage}
+    %     \hfill
+    % \begin{minipage}[c]{0.45\linewidth}
+    \centering
+    \includegraphics[width=0.75\textwidth]{training from scratch_Validation loss.png}
+    \caption{Retraining from scratch loss comparison}
+    \label{fs_loss}
+    % \end{minipage}
 \end{figure}
 \paragraph{}
 As can be seen from Figure \ref{fs_loss} the model trained on more data has a lower validation loss consistently after 20 epochs despite initialising with a higher validation loss, which shows it's better performance. 
@@ -75,7 +76,7 @@ What works well for a certain dataset in terms of hyperparameters may not work w
     \item{Activation Function: ELU, Relu and Gelu}
     \item{Initialisation Method: He Normal and He Uniform}
 \end{itemize}
-
+\paragraph{}
 Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{tensorboard}, the best hyperparemeters for the JP2 data were batch size of 1, learning rate of 0.0001, ELU activation function, He Uniform initialisation method and CE Dice Loss function.
 
 \begin{figure}[hbt!]
