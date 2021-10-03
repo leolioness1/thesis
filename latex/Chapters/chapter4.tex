@@ -105,7 +105,7 @@ As described in section \ref{class_imbalance}, class imbalance became an issue w
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
     \includegraphics[width=0.75\linewidth]{patch size_Validation dice coefficient.png}
-    \caption{Input patch size dice coefficient comparison}
+    \caption{Input patch size Dice Coefficient comparison}
     \label{patch_dice}
     %     \end{minipage}
     %     \hfill
@@ -128,7 +128,7 @@ The model with the highest validation dice coefficient was the one where the ima
 \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying patch size}\label{tab_patch}
+  \caption{Input patch size comparison of Dice Coefficient and Loss}\label{tab_patch}
 \end{table}
 \paragraph{}
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
@@ -143,7 +143,7 @@ In order to implement the other two transformations $[0,1]$ interval and z-score
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
     \includegraphics[width=0.75 \textwidth]{normalisation method_Validation dice coefficient.png}
-    \caption{Normalisation method dice coefficient}
+    \caption{Normalisation method Dice Coefficient comparision}
     \label{norm_dice}
     % \end{minipage}
     %     \hfill
@@ -167,7 +167,7 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying normalisation method}\label{tab_norm}
+  \caption{Normalisation method comparison of Dice Coefficient and Loss}\label{tab_norm}
 \end{table}
 \subsection{Data Augmentation}
 \paragraph{}
@@ -185,7 +185,7 @@ This could be due to changes in the geometry or lighting causing the \gls{ROI} o
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75 \textwidth]{augmentation method_Validation dice coefficient.png}
-    \caption{Augmentation method validation dice coefficient comparison}
+    \caption{Augmentation method Dice Coefficient comparison}
     \label{aug_dice}
     %     \end{minipage}
     %     \hfill
@@ -221,7 +221,7 @@ As introduced  in section \ref{optimiser}, there are several optimisers that cou
     %     \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\linewidth]{optimiser_Validation loss.png}
-    \caption{Optimiser loss comparison}
+    \caption{Optimiser Loss comparison}
     \label{opt_loss}
     % \end{minipage}
 \end{figure}
@@ -238,7 +238,7 @@ As introduced  in section \ref{optimiser}, there are several optimisers that cou
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying optimiser}\label{tab_opt}
+  \caption{Optimiser comparison of Dice Coefficient and Loss}\label{tab_opt}
 \end{table}
 
 Contradicting the literature, perhaps given the small dataset in this project compared with the millions of examples used to train state-of-the-art models, \gls{RMSProp} outperforms the other optimisers when it comes to loss minimisation as seen in Figure \ref{opt_loss}.
@@ -264,14 +264,14 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
 \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying learning rate}\label{tab_lr}
+  \caption{Learning rate comparison of Dice Coefficient and Loss}\label{tab_lr}
 \end{table}
 \begin{figure}[hbt!]
 
 \centering
     % \begin{minipage}[c]{0.45\linewidth}
     \includegraphics[width=0.75\linewidth]{learning rate_Validation dice coefficient.png}
-    \caption{Learning rate dice coefficient comparison}
+    \caption{Learning rate Dice Coefficient comparison}
     \label{lr_dice}
     %     \end{minipage}
     %     \hfill
@@ -305,7 +305,7 @@ This is validated by the results of the experience, as it can be seen in Table \
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying batch size}\label{tab_batch}
+  \caption{Batch size comparison of Dice Coefficient and Loss}\label{tab_batch}
 \end{table}
 
     % \begin{figure}[hbt!]
@@ -336,7 +336,7 @@ In a complete opposite way, using the random uniform initialisation function lea
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying initialisation method}\label{tab_init}
+  \caption{Initialisation method comparison of Dice Coefficient and Loss}\label{tab_init}
 \end{table}
 
 However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stable and achieve a better performance at an earlier step than the Random Normal initialiser, therefore going forward the "He" Normal initialisation method will be used.
@@ -345,7 +345,7 @@ However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stabl
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\linewidth]{initilisation method_Validation dice coefficient.png}
-    \caption{Initialisation method dice coefficient comparison}
+    \caption{Initialisation method Dice Coefficient comparison}
     \label{init_dice}
     %     \end{minipage}
     %     \hfill
@@ -356,7 +356,7 @@ However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stabl
     % \end{minipage}
 \end{figure}    
 
-From here on, uniform he initialisation will be used for the consequent experiments.
+From here on, "He" Normal initialisation will be used for the consequent experiments.
 
 \subsection{Activation function}
 \paragraph{}
@@ -372,7 +372,7 @@ The \gls{SELU} function was also considered but as it is self normalising the \g
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{activation functions_Validation loss.png}
-    \caption{Activation function loss comparison}
+    \caption{Activation function Loss comparison}
     \label{act_dice}
     %     \end{minipage}
     %     \hfill
@@ -392,7 +392,7 @@ The \gls{SELU} function was also considered but as it is self normalising the \g
     \rowcolor{lightgray} \gls{ELU} & 0.85 & 0.93 & 0.78 & 0.26 & 0.11 & 0.31  \\ \gls{ReLU} & 0.67 & 0.73 & 0.64 & 0.53 & 0.45 & 0.52  \\ tanh & 0.8 & 0.88 & 0.77 & 0.33 & 0.19 & 0.32  \\
                     \bottomrule
     \end{tabular}
-    \caption{Activation function comparison of Dice Coefficient and Loss across datasets} \label{tab_act}
+    \caption{Activation function comparison of Dice Coefficient and Loss} \label{tab_act}
   \end{center}
 \end{table}
 
@@ -410,7 +410,7 @@ Figure \ref{loss_dice} shows that they are all successfully training the model a
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\linewidth]{loss function_Validation dice coefficient.png}
-    \caption{Loss function dice coefficient comparison}
+    \caption{Loss function Dice Coefficient comparison}
     \label{loss_dice}
         % \end{minipage}
     %     \hfill
@@ -432,7 +432,7 @@ Figure \ref{loss_dice} shows that they are all successfully training the model a
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Dice coefficient and loss with varying loss function}\label{tab_loss}
+  \caption{Loss function comparison of Dice Coefficient and Loss}\label{tab_loss}
 \end{table}
 
 The best loss function is still the \gls{CE} dice loss, this could be because combining the two losses allows for some diversity, whilst still benefitting from the stability of \gls{CE}, so it will continue to be used in the following experiments.
@@ -463,7 +463,7 @@ In order to perform this experiment an arbitrarily large number of epochs was se
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{early stoppping_Validation loss.png}
-    \caption{Loss function loss comparison of \gls{ES} usage}
+    \caption{\gls{ES} usage Loss comparison}
     \label{es_loss}
     % \end{minipage}
 \end{figure}
@@ -484,7 +484,7 @@ As an experiment, the network with the same architecture with one change, all th
     % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{dropout_Validation loss.png}
-    \caption{Loss function loss comparison of of removal of Dropout}
+    \caption{Removal of Dropout Loss comparison}
     \label{dropout_loss}
     % \end{minipage}
 \end{figure}
@@ -497,8 +497,8 @@ In summary, there are a few things that have been concluded from the experiments
 
 \begin{enumerate}
     \item{When there is a background and foreground class, where the foreground class represents the \gls{ROI}, in this case the \gls{RTS} pixels, it is important to adjust the patch size of the image as a way of reducing pixel imbalance between the negative more frequent background class and the positive more valuable foreground class. Depending on the size of the \gls{ROI} this has to be done taking into consideration that context around the \gls{ROI} is also valuable in its correct identification. For example in the context of this thesis reducing the patch size showed improvement until the $64$x$64$ patch size, but once it was further reduced to $32$x$32$ the performance was worst.}
-    
     \item{The relationship between the learning rate hyperparameter and the optimiser is very strong, this was particularly evident with a higher learning rate of $0.1$, which incredibly benefitted the \gls{SGD} optimiser but drastically reduced the performance of the other optimisers, perhaps more experiments with the other parameters of optimisers and different learning rate schedules would be interesting, given more time.}
+    \item{The relationship between mini-batch size and learning rate also seems to be very important, despite changing optimiser, it was observed through the grid search experiment that batch size of $1$ works better with $0.0001$ learning rate, whereas batch size of $10$ performs better with $0.001$ learning rate, this may be due to the fact that by seeing more data with a bigger batch size the model is less likely to overshoot a minimum and hence can tolerate a higher initial learning rate and vice-versa.}
     \item {The correct technical implementation of loss functions is challenging, specially when dealing with bespoke data ingested from GeoTiFF file format but essential for the successful training of the model.}
     \item {\gls{ES} is very effective in preventing overfitting.}
     \item {Dropout is very effective in preventing exploding gradients.}
