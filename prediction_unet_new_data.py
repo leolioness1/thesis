@@ -214,7 +214,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
 
 
 import pickle
-i=''
+i='new'
 with open(f'train_X{i}.pkl','rb') as f:  train_X = pickle.load(f)
 with open(f'val_X{i}.pkl','rb') as f: val_X = pickle.load(f)
 with open(f'test_X{i}.pkl','rb') as f: test_X = pickle.load(f)
@@ -290,7 +290,9 @@ mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
 print(f'Running predictions for {len(test_Y)} images...')
 # model_path='model_files_adam_new_data_recontruct_naive_balanced/model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
 #model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
-model_path='model_files_final_experiment_more_data/model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
+model_path='model_files_final_experiment_more_data/model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100' #new data ''
+model_path='model_files_final_experiment_more_data_planetary/model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100' #planetary data 'new'
+
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
 reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.0001,rho=0.9, epsilon=None,decay=0.0),
                             loss=crossentropy_dice_loss,
