@@ -214,7 +214,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
 
 
 import pickle
-i='new'
+i=''
 with open(f'train_X{i}.pkl','rb') as f:  train_X = pickle.load(f)
 with open(f'val_X{i}.pkl','rb') as f: val_X = pickle.load(f)
 with open(f'test_X{i}.pkl','rb') as f: test_X = pickle.load(f)
@@ -283,40 +283,14 @@ else:
 test_generator_gt = ImageGenerator(scaled_test_X, test_Y, dim=(shape[0], shape[1]),
                                                          n_channels=shape[2],batch_size=len(test_Y))
 test_gt = test_generator_gt.__getitem__(0)
-test_gt[0][-1].shape
-test_gt[1][0].shape
+
 x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
 mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
 
 print(f'Running predictions for {len(test_Y)} images...')
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_he_naive_selection\model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_opt_lr_selection\model_z_score_4_crossentropy_dice_loss_nadam_0.0001_64_elu_he_uniform_200'
-#model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_2\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_batch_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_he_normal_200'
-# model_path=r'model_files_adam_new_dataloss_selection\model_z_score_10_dice_coef_loss_rmsprop_0.001_64_gelu_he_normal_100'
-#model_path =r'model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200' #0.76 test                                                                                                                                                                                                                                                                                                                                        dice coeff
-#model_path=r"model_files_adam_new_data_recontruct_naive_1/model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch"
-# model_path='model_files_adam_new_data_recontruct_naive_balanced\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch_es'
-
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_he_naive_selection\model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_opt_lr_selection\model_z_score_4_crossentropy_dice_loss_nadam_0.0001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_2\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# #model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_batch_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_he_normal_200'
-#
-# model_path='model_files_adam_new_data_recontruct_naive_balanced\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
 # model_path='model_files_adam_new_data_recontruct_naive_balanced/model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
-model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
+#model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
+model_path='model_files_final_experiment_more_data/model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
 reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
 reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.0001,rho=0.9, epsilon=None,decay=0.0),
                             loss=crossentropy_dice_loss,

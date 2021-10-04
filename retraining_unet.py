@@ -216,7 +216,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
 
 
 
-experiment_folder = 'adam_new_data_recontruct_naive_1'
+experiment_folder = 'final_experiment'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
