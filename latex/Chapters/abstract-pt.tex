@@ -1,6 +1,6 @@
 %!TEX root = ../template.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% abstrac-pt.tex
+%% abstract-pt.tex
 %% NOVA thesis document file
 %%
 %% Abstract in Portuguese
@@ -8,20 +8,14 @@
 
 \typeout{NT FILE abstrac-pt.tex}
 
-Independentemente da língua em que a dissertação esteja redigida, é necessário um resumo na mesma língua do texto principal e outro resumo noutra língua. Pressupõe-se que as duas línguas em questão sejam o português e o inglês.
+% O aquecimento global tem sido um tópico de discussão por muitas décadas, no entanto, seu impacto no degelo do permafrost (solo congelado) e vice-versa não foi muito bem capturado ou documentado no passado. Isso pode ser devido ao fato de a maior parte do permafrost estar no Ártico e em áreas remotas igualmente vastas, o que torna a coleta de dados difícil e cara.
 
-Os resumos devem aparecer primeiro na língua do texto principal e depois na outra língua. Por exemplo, se a dissertação for redigida em português, o resumo em português aparecerá primeiro, seguido do resumo em inglês (\emph{abstract}), seguido do texto principal em português. Se a dissertação for redigida em inglês, o resumo em inglês (\emph{abstract} aparecerá primeiro, seguido do resumo em português, seguido do texto principal em inglês.
+% Uma solução parcial para esse problema é o uso de imagens de satelite, o que não é novidade na documentação das mudanças nas regiões de permafrost, onde tem sido amplamente utilizado por décadas. No entanto, isso ainda exigia a inspeção manual das imagens, o que poderia ser uma tarefa lenta e entediante para pesquisadores da área.
 
-Na versão \LaTeX\, o template NOVAthesis irá ordenar automaticamente os dois resumos tendo em consideração a língua do texto principal. É possível alterar este comportamento adicionando
-\begin{verbatim}
-    \abstractorder(<MAIN_LANG>):={<LANG_1>,...,<LANG_N>}
-\end{verbatim}
-\noindent à zona de customização no preâmbulo do documento, e.g.,
-\begin{verbatim}
-    \abstractorder(de):={de,en,it}
-\end{verbatim}
+% Na última década, o uso de algoritmos de Deep Learning para imagens de sensoriamento remoto aumentou em popularidade, principalmente devido ao aumento da disponibilidade e escala dos dados de sensoriamento remoto. Isso foi alimentado nos últimos anos por dados de alta resolução espacial multiespectrais de código aberto, como os dados do Sentinel-2 usados ​​neste projeto.
+% O uso de Deep Learning para o caso de uso específico de identificação do degelo do permafrost abordado neste projeto, no entanto, não foi amplamente estudado.
 
-Os resumos não devem ultrapassar uma página e, de forma genérica, devem responder às seguintes questões (é essencial adaptá-los às práticas habituais da sua área científica):
+% O modelo proposto neste projeto visa auxiliar na identificação de formas de relevo que possam ser proxy para o degelo do permafrost, na esperança de poder avançar na mitigação do impacto de tão poderoso fenômeno geofísico.
 
 \begin{enumerate}
   \item Qual é o problema?
@@ -38,6 +32,7 @@ Os resumos não devem ultrapassar uma página e, de forma genérica, devem respo
 
 % Palavras-chave do resumo em Português
 \begin{keywords}
-Palavra-chave 1, Palavra-chave 2, Palavra-chave 3,  \ldots
+  Permafrost; \gls{RTS}; Imagens de satelite;  Multispectral Instrument; \gls{ML}; \gls{DL}; Artificial Intelligence; U-Net; Redes Neuronais Con-
+  volucionais; Visão computacional \ldots
 \end{keywords}
 % to add an extra black line
