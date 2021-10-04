@@ -110,7 +110,7 @@ def pre_read_history_csv(path,param,n=1):
     df = pd.read_csv(path)
     score_zip = dict(zip(df.iloc[-2,0:5].to_list(),df.iloc[-1,0:5].astype(float).round(decimals=2).to_list()))
     df = df.iloc[:-2,1:].astype(float).round(decimals=2)
-    latex_input = f"{param} & {df.iloc[-n]['val_dice_coef']} & {df.iloc[-n]['dice_coef']} & {score_zip['dice_coef']} & {df.iloc[-n]['val_loss']} & {df.iloc[-n]['loss']} & {score_zip['loss']}  \\"
+    latex_input = f"{param} & {df['val_dice_coef'].max()} & {df['dice_coef'].max()} & {score_zip['dice_coef']} & {df['val_loss'].min()} & {df['loss'].min()} & {score_zip['loss']}  \\"
     return latex_input
 
 def read_history_csv(path):
@@ -139,7 +139,7 @@ def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
     plt.grid(True)
     plt.ylabel(metric_name)
     plt.legend(legend_list)
-    # plt.legend(legend_list,loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol = len(legend_list)//2)
+    #plt.legend(legend_list,loc='upper left')
     plt.show()
     plt.savefig(fr'C:\Users\leo__\Downloads\thesis_images\experiment plots new\{parameter_name}_{metric_name}.png')
     plt.close()
@@ -165,15 +165,18 @@ def plot_metric(metric, metric_name,parameter_name, df_list, legend_list, n=50):
 # param_list_var=['he_normal', 'he_uniform', 'glorot_normal', 'glorot_uniform', 'random_normal', 'random_uniform']
 # parameter_name='loss function selu'
 # param_list_var=['dice_coef_loss','crossentropy_dice_loss','iou_loss','ce_jaccard_loss','binary_focal_loss']
-parameter_name='planetary'
-param_list_var=['']
+parameter_name='more data hyperparmameter tuning'
+param_list_var=['rmsprop','adam','nadam']
 param_list_var_2=['']
-def plot_and_table(parameter,param_list_1,param_list_2,n=200):
+param_list_var_3=['']
+def plot_and_table(parameter,param_list_1,param_list_2,param_list_3,n=200):
     list_df=[]
     list_legend=[]
     table_content=[]
 
-    for i in param_list_1 :
+    for i in param_list_1:
+        for j in param_list_2:
+            for z in param_list_3:
         #CHANGE PATH
         #norm
         # path = f'history_files_norm_selection\history_{i}_4_crossentropy_dice_loss_adam_0.0001_64_50.csv'
@@ -204,19 +207,22 @@ def plot_and_table(parameter,param_list_1,param_list_2,n=200):
         # path=f'history_files_loss_iou_selection_ne/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
         # path=f'history_files_loss_fixed_selection_new/history_z_score_6_{i}_rmsprop_0.001_64_elu_he_uniform_100.csv'
         # path=f'history_files_experiment_fixed_early_stopping/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200{i}.csv'
-        #path =f'history_files_experiment_fixed_loss/history_naive_1_{i}_rmsprop_0.0001_64_elu_he_normal_50.csv'
-        path=f'history_files_adam_new_data_recontruct_naive_1/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200planetretrain.csv'
+        # path =f'history_files_experiment_fixed_loss/history_naive_1_{i}_rmsprop_0.0001_64_elu_he_normal_50.csv'
+        #path=f'history_files_adam_new_data_recontruct_naive_1/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200planetretrain.csv'
         #path= f'history_files_experiment_fixed_no_dropout/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200.csv'
-        list_df.append(read_history_csv(path))
-        #list_legend.append(f'{i}')
-
-        table_content.append(pre_read_history_csv(path,i,n=1))
-        # list_legend.append(f'{i}')
-    for i in param_list_2:
-        path = f'history_files_adam_new_data_naive_planetary\history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200.csv'
-        table_content.append(pre_read_history_csv(path, i, n=1))
-        list_df.append(read_history_csv(path))
-    list_legend = ['Retraining','Training from scratch']
+                path= f'history_files_final_experiment_more_data/history_naive_1_crossentropy_dice_loss_{i}_0.0001_64_elu_he_normal_100.csv'
+                list_df.append(read_history_csv(path))
+                table_content.append(pre_read_history_csv(path,f'1_{i}_0.0001',n=1))
+                list_legend.append(f'1_{i}_0.0001')
+    for i in param_list_1:
+        for j in param_list_2:
+            for z in param_list_3:
+                #path = f'history_files_final_experiment/history_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200{i}.csv'
+                path = f'history_files_final_experiment_more_data/history_naive_10_crossentropy_dice_loss_{i}_0.001_64_elu_he_normal_100.csv'
+                table_content.append(pre_read_history_csv(path, f'10_{i}_0.001', n=1))
+                list_df.append(read_history_csv(path))
+                list_legend.append(f'dice_10_{i}_0.001')
+    #list_legend = ['Baseline','Training from scratch','Retraining',]
     plot_metric('dice_coef', 'Validation dice coefficient', parameter, list_df, list_legend)
     # plot_metric('jaccard_coef_int','Validation jaccard coefficient', parameter_name, list_df, list_legend)
     plot_metric('loss', 'Validation loss', parameter, list_df, list_legend)
@@ -224,7 +230,7 @@ def plot_and_table(parameter,param_list_1,param_list_2,n=200):
         f.write('\ '.join(table_content))
     return ' '.join(table_content)
 
-plot_and_table(parameter_name,param_list_var,param_list_var_2)
+plot_and_table(parameter_name,param_list_var,param_list_var_2, param_list_var_3)
 
 # list_df=[]
 # list_legend=[]

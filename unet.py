@@ -376,70 +376,51 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
     # t1 = tf.keras.layers.experimental.preprocessing.RandomTranslation(0.2,0.2, 'nearest', interpolation = 'bilinear')(inputs)
     # t2 = tf.keras.layers.experimental.preprocessing.RandomRotation(0.2, 'nearest', interpolation='bilinear')(t1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(inputs)
-    # c1 = Dropout(0.1, )(c1)
+    c1 = Dropout(0.1, )(c1)
     c1 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c1)
     p1 = MaxPooling2D((2, 2))(c1)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p1)
-    # c2 = Dropout(0.1, )(c2)
+    c2 = Dropout(0.1, )(c2)
     c2 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c2)
     p2 = MaxPooling2D((2, 2))(c2)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p2)
-    # c3 = Dropout(0.2, )(c3)
+    c3 = Dropout(0.2, )(c3)
     c3 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c3)
     p3 = MaxPooling2D((2, 2))(c3)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p3)
-    # c4 = Dropout(0.2, )(c4)
+    c4 = Dropout(0.2, )(c4)
     c4 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c4)
     p4 = MaxPooling2D(pool_size=(2, 2))(c4)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(p4)
-    # c5 = Dropout(0.3, )(c5)
+    c5 = Dropout(0.3, )(c5)
     c5 = Conv2D(256, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c5)
     u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
     u6 = concatenate([u6, c4])
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u6)
-    # c6 = Dropout(0.2, )(c6)
+    c6 = Dropout(0.2, )(c6)
     c6 = Conv2D(128, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c6)
     u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
     u7 = concatenate([u7, c3])
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u7)
-    # c7 = Dropout(0.2, )(c7)
+    c7 = Dropout(0.2, )(c7)
     c7 = Conv2D(64, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c7)
     u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
     u8 = concatenate([u8, c2])
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u8)
-    # c8 = Dropout(0.1, )(c8)
+    c8 = Dropout(0.1, )(c8)
     c8 = Conv2D(32, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c8)
     u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
     u9 = concatenate([u9, c1], axis=3)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(u9)
-    # c9 = Dropout(0.1, )(c9)
+    c9 = Dropout(0.1, )(c9)
     c9 = Conv2D(16, (3, 3), activation=activation_func, kernel_initializer=init_method, padding='same')(c9)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
     model = Model(inputs=[inputs], outputs=[outputs])
     # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[dice_coef, mean_iou(2)])
     return model
 
-
-# MODEL_DIR = ''
-# m = tf.keras.models.load_model(MODEL_DIR)
-# m.summary()
-
-# params = {"height": height
-#     , "width": width
-#     ,"n_channels": n_channels
-#     ,"normalisation": ">10000/10000",
-#      "model": "UNET"}
-
-# logdir= 'logs/hparam_tuning'
-# logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
-# dice_list = []
-# dice_val_list = []
-# jaccard_list = []
-# jaccard_val_list = []
-# loss_list = []
-# batch_list = []
 # CHANGEME
-experiment_folder = 'experiment_fixed_no_dropout'
+experiment_folder = 'final_experiment'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -449,8 +430,6 @@ for i in ['model_files', 'history_files', 'weights_files', 'plots']:
 
 
 def train_test_model(hparams, run_dir, name, n_epochs=5):
-    # 5. Set the callbacks for saving the weights and the tensorboard
-    # + "/lr_{}".format(round(learning_rate,8))
     height = hparams[PATCH_SIZE]
     width = hparams[PATCH_SIZE]
     activation_name = hparams[ACTIVATION]
@@ -473,10 +452,9 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     weights_path = fr"C:\Users\leo__\PycharmProjects\Perma_Thesis\weights_files_{experiment_folder}\weights_{name}.hdf5"
     checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=True)
-    # 4. Select the optimizer and the learning rate (default option is Adam)
     # epsilon=1e-07, A small constant for numerical stability
     if optimiser_name == 'rmsprop':
-        optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate, rho=0.9, epsilon=None, decay=0.0)  # default momentum =0.0, 0.9 did not go well xD
+        optimiser = tf.keras.optimizers.RMSprop(learning_rate=learning_rate, rho=0.9, epsilon=None, decay=0.0)  # default momentum =0.0, 0.9 did not go well
         # https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/RMSprop
         # This implementation of RMSprop uses plain momentum, not Nesterov momentum.
         # The centered version additionally maintains a moving average of the gradients, and uses that average to estimate the variance.
@@ -504,12 +482,7 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
     else:
         raise ValueError("unexpectedloss_func: %r" % (loss_name,))
     model.compile(
-        # optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
-        optimizer=optimiser,  # this LR is overriden by base cycle LR if CyclicLR callback used
-        # loss=dice_coef_loss,
-        # metrics=dice_score,
-        # loss="binary_crossentropy",
-        # metrics=metrics
+        optimizer=optimiser,
         loss=loss_func,
         metrics=['accuracy',
                  jaccard_coef_int,
@@ -653,7 +626,7 @@ for norm_name in HP_NORM.domain.values:
                                     INITIALISATION: init_name
                                 }
                                 run_name = "run-%d" % session_num
-                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}'
+                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}gee'
                                 print('--- Starting trial: %s' % run_name)
                                 print({h.name: hparams[h] for h in hparams})
 

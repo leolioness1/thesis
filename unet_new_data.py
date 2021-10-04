@@ -11,6 +11,8 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 from tensorflow.keras import backend as K
 import random
 from tensorboard.plugins.hparams import api as hp
+from csv import writer
+
 import shutil
 # seed_value= 0
 # random.seed(seed_value)
@@ -20,6 +22,7 @@ import shutil
 # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
 # tf.compat.v1.keras.backend.get_session(sess)
+
 # using just positive image labels
 # !/usr/bin/env python
 # coding: utf-8
@@ -279,7 +282,7 @@ window = 64
 #
 # print(test_X.shape)
 # print(test_Y.shape)
-i='new' #balanced
+# i='balanced' #balanced
 # import pickle
 # with open(f'train_X{i}.pkl','wb') as f: pickle.dump(train_X, f)
 # with open(f'val_X{i}.pkl','wb') as f: pickle.dump(val_X, f)
@@ -310,11 +313,6 @@ for i, arr in enumerate(val_X):
 scaled_test_X = np.empty(test_X.shape)
 for i, arr in enumerate(test_X):
     scaled_test_X[i] = test_X[i] / 10000
-
-
-
-
-
 
 #Fit scaler to train data, defualt is MinMaxScaler()
 # scaler_type=StandardScaler() #MinMaxScaler()#
@@ -485,28 +483,8 @@ def get_unet(IMG_WIDTH=256, IMG_HEIGHT=256, IMG_CHANNELS=4, activation_func='elu
     # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[dice_coef, mean_iou(2)])
     return model
 
-
-# MODEL_DIR = ''
-# m = tf.keras.models.load_model(MODEL_DIR)
-# m.summary()
-
-# params = {"height": height
-#     , "width": width
-#     ,"n_channels": n_channels
-#     ,"normalisation": ">10000/10000",
-#      "model": "UNET"}
-
-# logdir= 'logs/hparam_tuning'
-# logs_dir = "logs/scalars/" + datetime.now().strftime("%Y%m%d%H%M%S")
-# dice_list = []
-# dice_val_list = []
-# jaccard_list = []
-# jaccard_val_list = []
-# loss_list = []
-# batch_list = []
 # CHANGEME
-
-experiment_folder = 'adam_new_data_recontruct_naive_1'
+experiment_folder = 'final_experiment_more_data_planetary'
 for i in ['model_files', 'history_files', 'weights_files', 'plots']:
     if os.path.exists(f'{i}_{experiment_folder}'):
         print('already here')
@@ -516,17 +494,19 @@ for i in ['model_files', 'history_files', 'weights_files', 'plots']:
 
 
 def train_test_model(hparams, run_dir, name, n_epochs=5):
-    # 5. Set the callbacks for saving the weights and the tensorboard
-    # + "/lr_{}".format(round(learning_rate,8))
+    #get hyperparameter values
     height = hparams[PATCH_SIZE]
     width = hparams[PATCH_SIZE]
     activation_name = hparams[ACTIVATION]
+
     init_name = hparams[INITIALISATION]
     n_channels = 4
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir=run_dir, histogram_freq=0, update_freq="epoch")
-    terminate_nan=tf.keras.callbacks.TerminateOnNaN()
-    model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name, init_method=init_name)
-    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto',  restore_best_weights=True)
+    terminate_nan = tf.keras.callbacks.TerminateOnNaN()
+    #initiate unet model
+    model = get_unet(IMG_WIDTH=height, IMG_HEIGHT=width, IMG_CHANNELS=n_channels, activation_func=activation_name,init_method=init_name)
+    #early stopping definition
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto',restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.1, patience=3, min_lr=0.000001, verbose=1, mode='min')
     optimiser_name = hparams[HP_OPTIMIZER]
     norm_name = hparams[HP_NORM]
@@ -570,13 +550,9 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
         loss_func = crossentropy_dice_loss
     else:
         raise ValueError("unexpectedloss_func: %r" % (loss_name,))
+
     model.compile(
-        # optimizer=tf.keras.optimizers.Nadam(lr=1e-2),  # this LR is overriden by base cycle LR if CyclicLR callback used
-        optimizer=optimiser,  # this LR is overriden by base cycle LR if CyclicLR callback used
-        # loss=dice_coef_loss,
-        # metrics=dice_score,
-        # loss="binary_crossentropy",
-        # metrics=metrics
+        optimizer=optimiser,
         loss=loss_func,
         metrics=['accuracy',
                  jaccard_coef_int,
@@ -587,44 +563,35 @@ def train_test_model(hparams, run_dir, name, n_epochs=5):
 
     train_generator = ImageGenerator(scaled_train_X, train_Y, dim=(shape[0], shape[1]),batch_size=batch_size, n_channels=shape[2])
     val_generator = ImageGenerator(scaled_val_X, val_Y, dim=(shape[0], shape[1]), n_channels=shape[2])
-    # train_generator = DataGenerator_segmentation(train, dimension=(height, width),
-    #                                              batch_size=batch_size,
-    #                                              n_channels=n_channels)
-    # val_generator = DataGenerator_segmentation(val, dimension=(height, width),
-    #                                            batch_size=batch_size,
-    #                                            n_channels=n_channels)
+
     history = model.fit(train_generator,
                         steps_per_epoch=len(train_Y) // batch_size, shuffle=True,
                         epochs=n_epochs,
                         verbose=1,
                         validation_data=val_generator, callbacks=[
-            #early_stopping,
-            reduce_lr,
-            checkpoint,
-            tensorboard,  # log metrics
-            terminate_nan, #exploding gradients termination
-            hp.KerasCallback(run_dir, hparams),  # log hparams
-        ],
+                                                        early_stopping,#early stopping strategy
+                                                        reduce_lr, #learning rate schedule
+                                                        checkpoint, #store best val loss weights
+                                                        tensorboard,  # log metrics
+                                                        terminate_nan, #exploding gradients termination
+                                                        hp.KerasCallback(run_dir, hparams),  # log hparams
+                                                        ],
                         )
     print(history.history['val_dice_coef'][-1])
     print(history.history['dice_coef'][-1])
-    # dice_list.append(history.history['dice_coef'][-1])
-    # dice_val_list.append(history.history['val_dice_coef'][-1])
-    # jaccard_list.append(history.history['jaccard_coef_int'][-1])
-    # jaccard_val_list.append(history.history['val_jaccard_coef_int'][-1])
 
     return history.history['val_accuracy'][-1], history.history['val_dice_coef'][-1], \
            history.history['val_jaccard_coef_int'][-1], history, model
 
 
 # CHANGEME
-n_epochs = 200
+n_epochs = 100
 tf.summary.experimental.set_step(True)
-HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001]))
-HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop']))  # ,['adam','nadam','sgd','rmsprop']
+HP_LEARNING_RATE = hp.HParam('learning_rate', hp.Discrete([0.0001,0.001]))
+HP_OPTIMIZER = hp.HParam('optimiser', hp.Discrete(['rmsprop','adam','nadam']))  # ,['adam','nadam','sgd','rmsprop']
 HP_NORM = hp.HParam('norm_name', hp.Discrete(['naive']))  # 'max','naive',
 LOSS = hp.HParam('loss', hp.Discrete( ['crossentropy_dice_loss']))  # 'crossentropy_dice_loss','ce_jaccard_loss','iou_loss','binary_focal_loss','dice_coef_loss'
-BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
+BATCH_SIZE = hp.HParam('batch_size', hp.Discrete([1,10]))  # 1,2,3,4,5,6,10,15,25,30 between 1 and 2 for best 1,2,4,6,10,16,20
 PATCH_SIZE = hp.HParam('patch_size', hp.Discrete([64]))  # 256,128,64,32
 ACTIVATION = hp.HParam('activation_name', hp.Discrete(['elu']))  # ['elu','relu','gelu','selu','tanh']? Leaky Relu needs to be implemented as a separate layer :( PRelu also does https://tensorlayer.readthedocs.io/en/latest/modules/layers.html#prelu-layer
 INITIALISATION = hp.HParam('init_name', hp.Discrete(['he_normal'])) #['he_normal', 'he_uniform', 'glorot_normal','glorot_uniform','random_normal','random_uniform']
@@ -635,7 +602,7 @@ METRIC_IOU = 'jaccard_coef_int'
 METRIC_LOSS = 'loss'
 
 hp.hparams_config(
-    hparams=[LOSS, BATCH_SIZE, HP_OPTIMIZER, HP_NORM, HP_LEARNING_RATE, PATCH_SIZE, ACTIVATION,INITIALISATION],
+    hparams=[LOSS, BATCH_SIZE, HP_OPTIMIZER, HP_NORM, HP_LEARNING_RATE, PATCH_SIZE, ACTIVATION, INITIALISATION],
     metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy'), hp.Metric(METRIC_DICE, display_name='Dice'),
              hp.Metric(METRIC_IOU, display_name='IoU'), hp.Metric(METRIC_BCE, display_name='BCE'),
              hp.Metric(METRIC_LOSS, display_name='Loss')],
@@ -684,10 +651,8 @@ def plot_metric(history, metric, name):
     plt.ylabel(metric)
     plt.legend(["train_" + metric, 'val_' + metric])
     plt.savefig(fr'C:\Users\leo__\PycharmProjects\Perma_Thesis\plots_{experiment_folder}\{name}_{metric}_curve.png')
+    plt.close()
 
-
-from csv import writer
-import pickle
 
 def append_list_as_row(file_name, list_of_elem):
     # Open file in append mode
@@ -699,7 +664,7 @@ def append_list_as_row(file_name, list_of_elem):
 
 
 # runner
-session_num = 0
+session_num = 324
 
 log_dir = f'logs/hparam_tuning_loss_{experiment_folder}/'
 for norm_name in HP_NORM.domain.values:
@@ -721,7 +686,7 @@ for norm_name in HP_NORM.domain.values:
                                     INITIALISATION: init_name
                                 }
                                 run_name = "run-%d" % session_num
-                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}planet'
+                                name = f'{norm_name}_{batch_size}_{loss_func}_{optimiser}_{learning_rate}_{patch_size}_{activation_name}_{init_name}_{n_epochs}'
                                 print('--- Starting trial: %s' % run_name)
                                 print({h.name: hparams[h] for h in hparams})
 
@@ -735,9 +700,9 @@ for norm_name in HP_NORM.domain.values:
                                 file_writer = tf.summary.create_file_writer(log_dir + run_name)
                                 file_writer.set_as_default()
                                 print("Model exported to: ", export_path)
-                                acc_fig = plot_metric(history, "jaccard_coef_int", name)
-                                acc_fig = plot_metric(history, "dice_coef", name)
-                                loss_fig = plot_metric(history, "loss", name)
+                                # acc_fig = plot_metric(history, "jaccard_coef_int", name)
+                                # acc_fig = plot_metric(history, "dice_coef", name)
+                                # loss_fig = plot_metric(history, "loss", name)
                                 # test_generator_gt = DataGenerator_segmentation(test, dimension=(patch_size, patch_size),
                                 #                                                batch_size=len(test),
                                 #                                                n_channels=4)
@@ -760,65 +725,63 @@ for norm_name in HP_NORM.domain.values:
 print(history.history.keys())
 print(log_dir)
 
-norm_method = 'naive'
-test_generator_gt = ImageGenerator(scaled_test_X, test_Y, dim=(shape[0], shape[1]),
-                                                         n_channels=shape[2],batch_size=len(test_Y))
-test_gt = test_generator_gt.__getitem__(0)
-
-test_gt[0][-1].shape
-test_gt[1][0].shape
-
-
-x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
-mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
-
-print('Running predictions...')
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_he_naive_selection\model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
-# model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_opt_lr_selection\model_z_score_4_crossentropy_dice_loss_nadam_0.0001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_2\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
-# #model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_batch_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_he_normal_200'
-#model_path='model_files_adam_new_data_recontruct_naive_balanced\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
-model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
-reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
-reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.0001,rho=0.9, epsilon=None,decay=0.0),
-                            loss=crossentropy_dice_loss,
-                            metrics=['accuracy',
-                                     jaccard_coef_int,
-                                     dice_coef,
-                                     "binary_crossentropy"
-                                     ])
-predictions = reconstructed_model.predict(test_gt[0], verbose=1)
-score = reconstructed_model.evaluate(test_gt[0], test_gt[1], verbose=1)
-
-
-def plot_sample(ix=None):
-    """Function to plot the results"""
-
-    fig, ax = plt.subplots(1, 3, figsize=(20, 10))  # 4
-    ax[0].imshow(test_gt[0][ix])
-
-    ax[0].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
-    ax[0].set_title('Image')
-
-    ax[1].imshow(test_gt[1][ix].squeeze())
-    ax[1].set_title('Mask')
-
-    ax[2].imshow(predictions[ix].squeeze(), vmin=0, vmax=1)
-
-    ax[2].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
-    ax[2].set_title('Predicted')
-    plt.show()
-
-list = []
-for i in range(0, len(predictions)):
-    list.append(np.max(predictions[i]))
-    plot_sample(i)
+#
+#
+# norm_method = 'naive'
+# test_generator_gt = ImageGenerator(scaled_test_X, test_Y, dim=(shape[0], shape[1]),
+#                                                          n_channels=shape[2],batch_size=len(test_Y))
+# test_gt = test_generator_gt.__getitem__(0)
+# x_example_ex = np.expand_dims(test_gt[0][0], axis=0)
+# mask_example_ex = np.expand_dims(test_gt[1][0], axis=0)
+#
+# print('Running predictions...')
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_3_crossentropy_dice_loss_run-2_50'
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files\model_z_score_3_crossentropy_dice_loss_adam_run-36_100_aug'
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_first_selection\model_z_score_4_crossentropy_dice_loss_adam_0.0001_64_20'
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_optimiser_batch_lr_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_50' #best so far
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_loss_he_naive_selection\model_naive_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_normal_100'
+# # model_path = r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_opt_lr_selection\model_z_score_4_crossentropy_dice_loss_nadam_0.0001_64_elu_he_uniform_200'
+# # model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_2\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
+# # model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_recontruct_3\model_z_score_4_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
+# # model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_selection\model_z_score_10_crossentropy_dice_loss_rmsprop_0.001_64_elu_he_uniform_200'
+# # #model_path =r'C:\Users\leo__\PycharmProjects\Perma_Thesis\model_files_adam_new_data_z_score_batch_selection\model_z_score_6_crossentropy_dice_loss_rmsprop_0.001_64_gelu_he_normal_200'
+# #model_path='model_files_adam_new_data_recontruct_naive_balanced\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200from_scratch'
+# model_path='model_files_adam_new_data_naive_planetary\model_naive_1_crossentropy_dice_loss_rmsprop_0.0001_64_elu_he_normal_200'
+# reconstructed_model = tf.keras.models.load_model(model_path, compile=False)
+# reconstructed_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.0001,rho=0.9, epsilon=None,decay=0.0),
+#                             loss=crossentropy_dice_loss,
+#                             metrics=['accuracy',
+#                                      jaccard_coef_int,
+#                                      dice_coef,
+#                                      "binary_crossentropy"
+#                                      ])
+# predictions = reconstructed_model.predict(test_gt[0], verbose=1)
+# predictions = reconstructed_model.predict(test_gt[0], verbose=1)
+# score = reconstructed_model.evaluate(test_gt[0], test_gt[1], verbose=1)
+#
+#
+# def plot_sample(ix=None):
+#     """Function to plot the results"""
+#
+#     fig, ax = plt.subplots(1, 3, figsize=(20, 10))  # 4
+#     ax[0].imshow(test_gt[0][ix])
+#
+#     ax[0].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
+#     ax[0].set_title('Image')
+#
+#     ax[1].imshow(test_gt[1][ix].squeeze())
+#     ax[1].set_title('Mask')
+#
+#     ax[2].imshow(predictions[ix].squeeze(), vmin=0, vmax=1)
+#
+#     ax[2].contour(test_gt[1][ix].squeeze(), colors='r', levels=[0.5])
+#     ax[2].set_title('Predicted')
+#     plt.show()
+#
+# list = []
+# for i in range(0, len(predictions)):
+#     list.append(np.max(predictions[i]))
+#     plot_sample(i)
 
 print(list)
 print(score)
