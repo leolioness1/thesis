@@ -10,20 +10,16 @@ Permafrost is characterised as frozen ground that has a temperature colder than 
 
 As the Arctic has warmed twice as fast as the globe on average, \gls{a.k.a.} Arctic amplification (\cite{climatechangefur}) the consequences of global warming are disproportionally felt in the Arctic. 
 
-\paragraph{}
 In the Northern Hemisphere, huge amounts of soil organic carbon are trapped in permafrost soils. Any change in boundary conditions that causes the ground to warm will result in the thaw of permafrost. These abrupt thaw processes will expose previously frozen soil organic matter, causing it to undergo microbial degradation, and release GHGs e.g. methane and carbon dioxide as a result.
-\paragraph{}
-The thaw of permafrost (degradation) can not only lead to damage to roads and other man-made infrastructures but also lead to the release of said trapped GHGs which consequently could contribute further to global warming and even more permafrost degradation (\cite{MURTON2021857}) as it warms and thaws at a faster rate, creating a vicious cycle of global warming.
 
+The thaw of permafrost (degradation) can not only lead to damage to roads and other man-made infrastructures but also lead to the release of said trapped GHGs which consequently could contribute further to global warming and even more permafrost degradation (\cite{MURTON2021857}) as it warms and thaws at a faster rate, creating a vicious cycle of global warming.
 
 This could further exacerbate Arctic amplification, therefore it is imperative to monitor and predict the volume of GHGs released into the atmosphere due to the abrupt thaw of permafrost.
 
 \subsection{Thermokarst landforms}  \label{thermokarst_intro}
-
 \paragraph{}
 The extent of permafrost and its degradation is difficult to measure and historically requires extensive and costly investigation. A way to attempt this is to look for evidence of the formation of thermokarst landforms such as those depicted in Figure \ref{fig_thermokrast} which cause visible geological changes in close range of abrupt thaw locations.
 
-\paragraph{}
 Thermokarst is the sinking of the ground's surface due to thawing of the ground (permafrost degradation). There are many examples of thermokarst landforms, amongst the most common and fast-changing are lakes and ponds (\cite{thawpic}).
 
 In Figure \ref{fig_thermokrast}, identified by label number 10, we can also see another relevant example, \gls{RTS}, this paper will focus on the identification of this thermokarst feature in an attempt to capture some extent of permafrost degradation in the Arctic. The next sub-section will describe \gls{RTS}s further.
@@ -42,7 +38,6 @@ In Figure \ref{fig_thermokrast}, identified by label number 10, we can also see 
 \paragraph{}
 \gls{RTS}s can usually be described as horseshoe-shaped landslides caused by the thawing of ice-rich permafrost, which causes erosion mostly at its steep head scarp. \gls{RTS} usually occur on sloped terrain so that the thawed material can flow downslope, usually into nearby water features such as lakes and rivers. (\cite{articleperma})
  
- \paragraph{}
 This means that \gls{RTS}s have particular parts that can ease their visual identification through the mentioned head scarp, the headwall that forms after the slump, the slump floor itself (\cite{LANTUIT200884}) which is also described as slump scar zone. These have been labeled in Figure \ref{fig_RTS} for the reader's benefit. 
 
     \begin{figure}[hbt!]
@@ -55,16 +50,13 @@ ground photo and remote sensing image of an \gls{RTS} whose central location is 
 
 
 As some sections of the slump scar stabilise they become vegetated (\cite{KOKELJ201556}) and thus harder to identify using only visual Red (R), Green(G) and Blue (B) channels, this is where remote sensing's other "sensor" bands can identify other features not seen with the "naked eye" (\cite{HUANG2020111534})
-
 \section{Artificial Intelligence Applications in Remote Sensing}  \label{ai_rs}
 \paragraph{}
 The advancements in Artificial Intelligence have made it possible to identify and classify particular features in images and like in this case, even remote sensing imagery, this section will introduce the techniques used in this field.
 
-
 Given the lack of research found on the specific task of identifying \gls{RTS}s using remote sensing imagery, a more expansive approach on looking at \gls{DL} and \gls{ML} techniques using remote sensing imagery was taken.
 
 \subsection{Conventional \gls{ML} applications in Remote Sensing}  \label{ml_rs}
-
 \paragraph{}
 In a study (\cite{isprs-archives-XLII-3-79-2018}) on extracting built-up areas from Sentinel-2 remote sensing imagery, \gls{DL} techniques were compared against the most widely used conventional \gls{ML} methods in remote sensing classification, both Gaussian \gls{SVM} and \gls{BPNN} were evaluated.
 
@@ -75,17 +67,14 @@ According to a 2010 review (\cite{MOUNTRAKIS2011247}) of over 100 studies on the
 \paragraph{\gls{RF}}
 \paragraph{}
 \gls{RF} has always been a popular method, as it is an ensemble classifier that makes use of multiple decision trees combined with random subsampling of the training data and variables. 
-\paragraph{}
+
 According to a review on the use of \gls{RF} in remote sensing, (\cite{BELGIU201624}) \gls{RF} became a popular classifier in remote sensing due to the high accuracy of its classifications. It also seems to successfully handle the high dimensionality and multicollinearity of remote sensing data, as well as, being fast and not prone to overfitting. Its main limitation is its sensitivity to the sampling design.
 
 \paragraph{\gls{BPNN}}
 \paragraph{}
 The traditional \gls{BPNN} is a popular \gls{ML} algorithm, according to a review (\cite{YUAN2020111716}) in environmental remote sensing it has been used extensively for research in this field. Yuan et al. reports improvement in accuracy against traditional regression methods across a number of papers by using \gls{BPNN}, but highlights a couple of limitations: the slow convergence of the algorithm and how much it is affected by weight initialisation being susceptible to getting stuck in local minimums. 
 
-\paragraph{}
 This traditional Neural Network forms the back-bone of many \gls{DL} models, so it is important to understand its inner works.
-
-\paragraph{}
 
 A \gls{BPNN} consists of one or more hidden layers between an input and an output layer, each layer having many neurons/nodes that are fully connected to the next layer as it can be seen from Figure \ref{fig_bpnn}.  It is trained via forward and backward propagation, that is: starting with forward propagation, the input is propagated through the hidden layers in the network until it reaches the output layer where the error between the predicted and actual values is calculated. 
 
@@ -99,7 +88,6 @@ Straight after the error is calculated, it is propagated backward to update the 
     \end{figure}
 
 \subsection{\gls{DL} applications in Remote Sensing Imagery} \label{dl_rs}
-
 \paragraph{}
 Looking at the field of \gls{DL} with Remote Sensing, most studies have been focused on the field of \gls{LULC} classification, as suggested by a \gls{DL} in Remote sensing application review (\cite{MA2019166}) in Figure \ref{fig_dl_studies}. Object detection, Scene Classification and Segmentation (\gls{a.k.a.} pixel-wise classification) are also techniques to classify images or areas of these images.
 
@@ -110,7 +98,6 @@ Looking at the field of \gls{DL} with Remote Sensing, most studies have been foc
         \label{fig_dl_studies}
     \end{figure}
 
-\paragraph{}
 In traditional natural images, image classification is the task of assigning a label to a whole input image, either by outputting a class or a probability of tasks that describe said image. However, this is not the case in remote sensing, where the concept is broader, referring to either pixel-wise or "scene" classification, as shown in Figure \ref{fig_img_class_frame}.
 
 \paragraph{Pixel-wise classification} The classification of each pixel, similar to the concept of image segmentation, as it is known when performed in natural images. Each pixel in a remote sensing image could represent, as an example, a 10 by 10 meter area, which would usually be associated with a natural image area. 
@@ -139,13 +126,11 @@ The same review (\cite{MA2019166}) also suggests that the most used \gls{DL} mod
         \label{fig_dl_rs}
     \end{figure}
     
-\paragraph{}
 The models in Figure \ref{fig_dl_rs} can be classified into two types of \gls{DL} models:
 \gls{CNN}, \gls{RNN}, and \gls{FCN} are supervised models, whereas \gls{AE}, \gls{DBN}, \gls{GAN} models are unsupervised models. 
-\paragraph{}
+
 Supervised models require labeled data to learn from the ground truth, whereas unsupervised ones don't.  For example, Alvarez et al. (\cite{alvarez2020s2cgan}) use \gls{GAN} to solve the binary change detection problems in remote sensing by exploiting the discriminator likelihood to generate the distribution of unchanged samples.
 
-\paragraph{}
 As labeled data has been collected for this project, its focus will be on a supervised \gls{DL} Model. \gls{CNN} has been chosen as its the most popular supervised techniques, section \ref{cnn_subsect} will expand on this.
 
 %Expand on these?     
@@ -157,9 +142,8 @@ As labeled data has been collected for this project, its focus will be on a supe
 
 \section{\gls{CNN}} \label{cnn_subsect}
 \paragraph{}
-
 \gls{CNN}s are a type of \gls{ANN} that have been praised for their contribution to the field of computer vision. \gls{CNN}s have been very successful and efficient in image classification, object detection, and many other computer vision applications (\cite{GoodBengCour16}).
-\paragraph{}
+
 In general, a \gls{CNN} takes an input image, extracts low-level features, and hierarchically builds on this to extract more abstract features, so that it is able to extract features that are common for all outputs. This concept has its origin in the biology of the visual cortex, which has small regions of cells that "light up" to specific characteristics of the visual field until the entire visual field is processed and categorised.
 
 \subsection{Main Layers of a \gls{CNN}} \label{cnn_layers}
@@ -185,9 +169,8 @@ Each image is represented as a 3D matrix with dimensions of  width (W), height (
 The objective of the Convolution Operation, after which the layer has been named, is to extract features from an image. It is the key differentiator from a Dense layer, as it enables the ability to capture dependencies between pixels through the application of filters. It learns local patterns rather than global patterns.
 In abstract mathematical terms, it takes the matrix of the image and the matrix of a filter/kernel and merges the information in both. By making the filter smaller than the input dimension, sparse interaction can be achieved, reducing the memory requirements and improving the model's  efficiency.
 
-\paragraph{}
 It also means that neurons are constrained to using the same set of weights for getting the output, \gls{a.k.a.} shared parameters. This parameter sharing gives the Convolution Operator the property of translation equivariance, meaning that if we translate the input the output will also be translated, giving \gls{CNN}s the ability to learn features regardless of their position.
-\paragraph{}
+
 A Convolutional layer is a layer that applies different convolution operations to the data, making it the most essential building block of a \gls{CNN}, and its most computationally expensive one as well. To fully understand this process, it will be broken down below.
 
 The filter/kernel, introduced above has dimensions ($K$) smaller than the input image for height and width but the same third dimension, the number of channels ($n$). The filter moves along the width and height of the input image, with a certain stride ($s$) value, performing matrix multiplication between the filter and the same dimensional portion of the image over which the filter is passing (depicted by the shaded area in Figure \ref{fig_cnn_filter}) until it traverses the entire image.
@@ -198,8 +181,7 @@ The filter/kernel, introduced above has dimensions ($K$) smaller than the input 
         \caption{The movement of the filter in a 2D \gls{CNN} layer (\cite{2dcnnpic})}
         \label{fig_cnn_filter}
     \end{figure}
-    
-\paragraph{}   
+     
 In the case of images with $n$-channels, the matrix multiplication is performed between the kernel and input channel stacks as depicted in Figure \ref{fig_cnn_conv}, all the results are then summed with the bias to give a one-depth channel convoluted feature map with depth equal to the number of filters ($m$).
 
     \begin{figure}[hbt!]
@@ -208,8 +190,7 @@ In the case of images with $n$-channels, the matrix multiplication is performed 
         \caption{The Convolution Operation in an n-channel input \gls{CNN} (\cite{9053228})}
         \label{fig_cnn_conv}
     \end{figure}
-    
-\paragraph{}     
+      
 The size of this feature map will be affected by several parameters, some of which have been mentioned above already:
 
 \begin{itemize}
@@ -218,8 +199,7 @@ The size of this feature map will be affected by several parameters, some of whi
     \item \textbf{Number of filters ($m$)} The number of filters used in the convolutional layer. It is said that the higher the number of features the more image features get extracted and the better the \gls{CNN} gets at recognising patterns in unseen images.
     \item \textbf{Zero Padding ($p$)} Sometimes the filter dimensions don't fit the image input dimensions perfectly. A strategy commonly used to maintain the input matrix dimensions and avoid the loss of information is to pad said matrix with 0s around the borders.
 \end{itemize}
-
-\paragraph{}     
+  
 The output convolution dimensions, assuming a symmetric \gls{CNN} architecture and image to be square that is height equals width, so both dimensions have the same values, can be calculated as follows (\cite{dumoulin2018guide}):
 
 \begin{equation}
@@ -236,7 +216,6 @@ When it comes to depth as shown in Figure \ref{fig_cnn_conv}, the output depth d
     D_{out} = m
 \end{equation}
 
-\paragraph{}     
 A \gls{CNN} will usually have several convolutional layers to learn spatially hierarchical patterns. The first convolutional layer will learn local simple patterns such as lines and edges, then a second convolutional layer will learn features made up of the features learned in the first layer to learn more complex patterns. 
 
 As we go deeper into the network, the filters also begin to be more responsive to a larger region of the pixel space, enabling it to learn larger patterns. The process will repeat itself for subsequent layers, the number of layers will depend on the complexity of the input image's features.
@@ -268,7 +247,6 @@ When it comes to depth, the output depth dimension is always equal to the input 
     depth_{out} = depth_{in}
 \end{equation}
 
-\paragraph{}
 To achieve this, several spatial pooling types can be applied interchangeably, the most common ones are described below. Figure \ref{fig_pooling} depicts an example of a non-overlapping pooling layer, where $K_p = s$:
 
 \begin{itemize}
@@ -287,9 +265,8 @@ To achieve this, several spatial pooling types can be applied interchangeably, t
 \subsubsection{Fully Connected Layer}
 \paragraph{}
 Finally, once the outputs of all the layers above successfully represent the high-level features of the input image, this output is flattened into a 1D matrix that can be fed to the Fully Connected Layers. The first few layers of this type learn non-linear combinations of these features to identify which of these features most strongly correlate with the output classes.
-\paragraph{}
+
 In a scene classification problem, to identify the most likely output class, the last of these fully connected layers usually has a softmax (multi-class problem)  or sigmoid (binary class problem) activation function to output a $1$x$N$ matrix of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class and all of these probabilities summing to one.
-\paragraph{}
 
 In a pixel-wise classification problem, the final layer could be used to perform a pixel-wise prediction and will output a $W$x$H$ matrix of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class. More detail on how the necessary $W$x$H$ dimensions are upsampled is given in the following layer.
 
@@ -297,7 +274,6 @@ In a pixel-wise classification problem, the final layer could be used to perform
 \paragraph{}
 For example, in an architecture that allows for end-to-end pixel-wise classification, such as \gls{FCN}), a fractionally-strided layer (\cite{long2015fully}) is needed to link the network's outputs back to the pixels  using learnable parameters. It is used to upsample the feature map within the network back to the image size dimensions as a segmentation map to enable end-to-end learning by backpropagating the pixel-wise loss. It is often misleadingly  referred to as deconvolutional layer, due mainly to its use in a study (\cite{zeiler2013visualizing}) that visualises convolutional networks. 
 
-\paragraph{}
 In a pixel-wise classification problem, this could also be used as the last layer, like in Deconvnet (\cite{7410535}) instead of feature maps this Transposed Convolutional Layer generates pixel-wise class probabilities corresponding to the size of the input images, the said $W$x$H$ matrix described above.
 
 \subsection{Activation Functions} \label{cnn_activation}
@@ -316,11 +292,10 @@ Anytime we want to represent a probability distribution over a discrete variable
     \sigma(z_i) = \frac{e^{z_{i}}}{\sum_{j=1}^K e^{z_{j}}} \ \ \ for\ i=1,2,\dots,K
 \end{equation}
 
-\paragraph{}
 In \gls{NN}, the softmax activation function is commonly used for multi-class classification, being an output layer that predicts the multinomial probability distribution described above.
 
 As it can be seen in Figure \ref{fig_softmax}, the softmax activation will output one value for each node in the output layer, this outputted vector of probabilities that sum to $1$, is interpreted as the probability of membership for each class.
-\paragraph{}
+
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=0.4\linewidth]{softmaximg.jpg}
@@ -345,18 +320,18 @@ These days, since it outputs values between 0 and 1, the sigmoid activation func
 \paragraph{}
 The hyperbolic tangent activation function \gls{a.k.a.} Tanh function was used as the default activation function for hidden layers in the late 90s to 2010s after it showed signs of typically performing better than the logistic sigmoid activation function (\cite{GoodBengCour16}).
 Both of these activation functions are depicted in Figure \ref{fig_tahn_sigmoid}.
-\paragraph{}
+
 As shown in Equation \ref{tanh_eq}, it takes as input any real value and outputs values between -1 and 1.
 
 \begin{equation}
     \label{tanh_eq}
     Tanh(x) = \frac{1 - e^{-\alpha x}}{1 + e^{-\alpha x}} 
 \end{equation}
-\paragraph{}
+
 Despite their ability to learn complex mapping functions, both the Sigmoid and Tahn activation functions have a known limitation, they saturate for extreme values of z, only being strongly sensitive to their input when z is near 0, which can be seen from Figure \ref{fig_tahn_sigmoid}. 
 
 This problem is known as vanishing gradients, it makes it very difficult to know how the parameters should change to improve the cost function (\cite{GoodBengCour16}) and consequently for Deep Neural Networks to learn effectively.
-\paragraph{}
+
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=0.5\linewidth]{tahn sigmoid funciton.jpg}
@@ -369,7 +344,6 @@ This problem is known as vanishing gradients, it makes it very difficult to know
 \paragraph{}
 \gls{ReLU}s were introduced to address the problem of vanishing gradients and quickly replaced the Sigmoid and Tahn activation functions by providing  performance improvements, Deep \gls{CNN}s with \gls{ReLU}s trained several times faster than the same ones with Tahn units(\cite{GoodBengCour16}).
 
-\paragraph{}
 The rectified linear activation function simply returns the input value provided if this value is greater than 0, or the value 0 if the input is 0 or less.
 
 \begin{equation}
@@ -377,13 +351,11 @@ The rectified linear activation function simply returns the input value provided
     Relu(z) = max(0, z)
 \end{equation}
 
-\paragraph{}
 In this sense, it can be said that because \gls{ReLU}s are nearly linear, they preserve properties that make linear models easy to optimise and generalise well (\cite{GoodBengCour16}).
 
-\paragraph{}
 \gls{ReLU}s do not come without limitations, large updates to the weights could mean that the input to the activation function is always negative, therefore the activation value will always be $0$, this is known as the dying \gls{ReLU} problem.
 This means the gradient is $0$, so the unit will never activate, the weights will not be adjusted, so like the vanishing gradient problem the learning will be slow with constant 0 gradients (\cite{Maas13rectifiernonlinearities}).
-\paragraph{}
+
 This can be corrected by several variations of the \gls{ReLU}, for example Leaky and Parametric \gls{ReLU}s  that change the slope to the left of $x < 0$. Either by a fixed parameter in Leaky \gls{ReLU} as shown in Figure \ref{fig_relu} or by a parameter that is learned by backpropagation using weights and biases in Parametric \gls{ReLU}. 
 
 There are more complex examples like \gls{ELU}s  and Threshold \gls{ReLU} functions that are known to improve accuracy compared to \gls{ReLU}s.
@@ -394,7 +366,6 @@ There are more complex examples like \gls{ELU}s  and Threshold \gls{ReLU} functi
         \caption{Rectified Linear activation functions (\cite{leakyreluimg})}
         \label{fig_relu}
 \end{figure}
-
 
 \subsection{Classical \gls{CNN} Architectures and their evolution} \label{classic_cnn}
 \paragraph{}
@@ -441,7 +412,6 @@ VGGNet (\cite{simonyan2014deep}) won the ImageNet Challenge 2014. This network i
 
 \end{itemize}
 
-
 \subsubsection{Other Evolutions}
 \paragraph{}
 Several meaningful contributions were made by other architectures, such as:
@@ -467,14 +437,12 @@ In the field of Remote Sensing applications, the goal is usually pixel-wise clas
 Long et al. (\cite{long2015fully}) proposed \gls{FCN} to address the task of semantic segmentation. Having taken as base models some Classical \gls{CNN} architectures introduced in Section \ref{classic_cnn}, these were transformed from classifiers to \gls{FCN} by swapping the fully connected layers with convolutional layers and dropping the final classifier layer. 
 
 Maggiori et al. (\cite{7730322}) celebrates the improvements of using \gls{FCN} over patch-based \gls{CNN} for pixel-wise labelling in Remote Sensing imagery.
-\paragraph{}
+
 To achieve pixel-wise classification, at each of the coarse output locations a 1x1 convolution with a depth dimension of m, where m is the number of classes, is used to predict scores for each class, followed by the Fractionally-strided layer introduced in section \ref{cnn_layers} to bilinearly upsample the outputs to pixel-wise outputs. 
 
-\paragraph{}
 The authors (\cite{long2015fully}) note that even though bilinearly upsampling was used in \gls{FCN}, the convolution filter in such a layer need not be fixed to this but can be learned, emphasising that a stack of said layers and activation functions can even learn nonlinear upsampling.
-\paragraph{}
-Many of the architectures introduced below are extensions of the \gls{FCN} architecture (\cite{long2015fully}), bringing new evolutions to the field of Semantic Segmentation namely Deeplab models (\cite{chen2016semantic}), \gls{CRF}-\gls{RNN} (\cite{Zheng_2015}), ParseNet (\cite{liu2015parsenet}), U-NET(\cite{ronneberger2015unet}) and dilated convolutions (\cite{yu2016multiscale}).
 
+Many of the architectures introduced below are extensions of the \gls{FCN} architecture (\cite{long2015fully}), bringing new evolutions to the field of Semantic Segmentation namely Deeplab models (\cite{chen2016semantic}), \gls{CRF}-\gls{RNN} (\cite{Zheng_2015}), ParseNet (\cite{liu2015parsenet}), U-NET(\cite{ronneberger2015unet}) and dilated convolutions (\cite{yu2016multiscale}).
 
 Despite this, \gls{FCN} is still being used widely in remote sensing applications, it has been used together with a \gls{DSM} on remote sensing imagery (\cite{8281008}), for multi-label remote sensing image retrieval by extracting a segmentation map (\cite{8954885}), for the classification of multi-source remote sensing data with  Fusion-\gls{FCN} (\cite{8518295}) amongst others.
 
