@@ -8,41 +8,33 @@
 
 \typeout{NT FILE abstrac-pt.tex}
 \paragraph{}
-Nas últimas décadas o aquecimento global tem sido tópico de discussão, no entanto o seu impacto no derretimento de “permafrost” (solo permanentemente congelado) e vise versa não tem sido bem registado. Isto pode ser devido ao “permafrost” se encontrar no Ártico ou em regiões remotas de difícil acesso, o que faz com que a recolha de dados seja difícil e com demasiados custos.
+Nas últimas décadas o aquecimento global tem sido tópico de discussão. Contudo o seu impacto no derretimento de “permafrost” (solo permanentemente congelado) e vice-versa não tem sido bem registado no passado. Uma das razões que pode ter levado a isto é o facto do “permafrost” se encontrar no Ártico ou em regiões igualmente remotas de difícil acesso, o que faz com que a recolha de dados seja difícil e com demasiados custos.
 
-Uma das soluções para este problema é a recolha de imagens de satélite para analisar as mudanças nas regiões de “permafrost”, uma técnica que já é usada há muitas décadas. Apesar dos seus benefícios esta técnica requer muita análise detalhada que quando é feita manualmente pelos cientistas se pode tornar monótona e demorada.
 
-Nos últimos anos, o “Deep Learning” ganhou alguma relevância para a análise de imagens de satélite, este popularismo deve-se ao aumento da quantidade e disponibilidade das mesmas, no entanto para o uso específico na análise de “permafrost” não é muito usada.
+Uma das soluções para este problema é a recolha de imagens de satélite para analisar as mudanças nas regiões de “permafrost”, onde já é usada há muitas décadas. Apesar dos seus inúmeros benefícios, esta técnica requer inspeção e análise detalhada das imagens, e quando é feita manualmente pelos cientistas pode tornar-se monótona e demorada.
 
-Os dados obtidos por esta tecnologia têm sido cada vez mais específicos devido ao uso de sensores multiespectrais de alta resolução espacial, como aqueles usados neste projeto provenientes da missão “Sentinel-2”.
+Nos últimos anos, o uso de “Deep Learning” para a análise de imagens de satélite tem aumentado, este popularismo deve-se ao aumento da quantidade e disponibilidade das mesmas. Os dados obtidos por esta tecnologia têm sido cada vez mais relevantes devido ao uso de sensores multiespectrais de alta resolução espacial, como aqueles usados neste projeto, provenientes da missão “Sentinel-2”.
 
-O modelo proposto neste projeto visa ajudar a identificação das formas de relevo formadas pelo derretimento do “permafrost” na esperança que possamos fazer progressos na mitigação no impacto deste poderoso fenómeno geofísico.
 
-% O aquecimento global tem sido um tópico de discussão por muitas décadas, no entanto, seu impacto no degelo do permafrost (solo congelado) e vice-versa não foi muito bem capturado ou documentado no passado. Isso pode ser devido ao fato de a maior parte do permafrost estar no Ártico e em áreas remotas igualmente vastas, o que torna a coleta de dados difícil e cara.
+No entanto, o uso de “Deep Learning” específicamente para a identificação de “permafrost” não tem sido amplamente estudado. Para combater este problema, o modelo de “semantic segmentation” proposto neste projeto, classifica cada pixel nas imagens de satélite para identificar "Retrogressive Thaw Slumps (RTSs)”, usando a arquitetura “U-Net”.
 
-% Uma solução parcial para esse problema é o uso de imagens de satelite, o que não é novidade na documentação das mudanças nas regiões de permafrost, onde tem sido amplamente utilizado por décadas. No entanto, isso ainda exigia a inspeção manual das imagens, o que poderia ser uma tarefa lenta e entediante para pesquisadores da área.
+Com o uso desta técnica, este projeto visa ajudar na identificação destas formas de relevo de uma maneira mais automática e numa escala maior. Como estas formas de relevo são uma boa indicação do derretimento de “permafrost”, a esperança é que este projeto possa ajudar na mitigação do impacto deste poderoso fenómeno geofísico.
 
-% Na última década, o uso de algoritmos de Deep Learning para imagens de sensoriamento remoto aumentou em popularidade, principalmente devido ao aumento da disponibilidade e escala dos dados de sensoriamento remoto. Isso foi alimentado nos últimos anos por dados de alta resolução espacial multiespectrais de código aberto, como os dados do Sentinel-2 usados ​​neste projeto.
-% O uso de Deep Learning para o caso de uso específico de identificação do degelo do permafrost abordado neste projeto, no entanto, não foi amplamente estudado.
+% Palavras-chave do resumo em Português
+\begin{keywords}
+  Permafrost; Retrogressive Thaw Slump (RTS); Imagens de satelite;  Multispectral Instrument; Machine Learning (ML); Deep Learning (DL); Artificial Intelligence (AI);; U-Net; Redes Neuronais Con-
+  volucionais; Visão computacional \ldots
+\end{keywords}
 
-% O modelo proposto neste projeto visa auxiliar na identificação de formas de relevo que possam ser proxy para o degelo do permafrost, na esperança de poder avançar na mitigação do impacto de tão poderoso fenômeno geofísico.
-
+% to add an extra black line
 % \begin{enumerate}
 %   \item Qual é o problema?
 %   \item Porque é que é um problema interessante/desafiante?
 %   \item Qual é a proposta de abordagem/solução?
 %   \item Quais são as consequências/resultados da solução proposta?
 % \end{enumerate}
-
 % E agora vamos fazer um teste com uma quebra de linha no hífen a ver se a \LaTeX\ duplica o hífen na linha seguinte se usarmos \verb+"-+… em vez de \verb+-+.
 %
 % zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz comentar"-lhe zzz zzzz zzz zzzz
 %
 % Sim!  Funciona! :)
-
-% Palavras-chave do resumo em Português
-\begin{keywords}
-  Permafrost; \gls{RTS}; Imagens de satelite;  Multispectral Instrument; \gls{ML}; \gls{DL}; Artificial Intelligence; U-Net; Redes Neuronais Con-
-  volucionais; Visão computacional \ldots
-\end{keywords}
-% to add an extra black line

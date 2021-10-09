@@ -300,7 +300,7 @@ of the requirements for the degree of %
   \fontsize{17}{17}\selectfont%
   \textcolor{imsdarkgrey}{\textbf{\thedoctitle(\option{/novathesis/coverlang},main,cover)}}\\[0.25ex]%
   \fontsize{16}{16}\selectfont%
-  \textcolor{imslightgrey}{\thespecialization(\option{/novathesis/coverlang})}%
+  \textcolor{imsmidgrey}{\thespecialization(\option{/novathesis/coverlang})}%
 }
 
 % Author name

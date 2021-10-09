@@ -16,24 +16,53 @@ In this project a \textbf{convolution block($x$, $z$)} consists of:
         \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{Dropout layer with $z$ rate} of input units to drop.
         \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
-        \item \textbf{2D Maximum Pooling layer} with a 2x2 pooling dimension, no padding and stride defaulting to pooling dimensions, this MAx pooling layer is omitted in the layers after the first Transpose convolutional layer.
+        \item \textbf{2D Maximum Pooling layer} with a 2x2 pooling dimension.
     \end{enumerate}
+This can be seen as Python Tensorflow Keras code in Figure \ref{conv_block_1}
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\linewidth]{conv_block_1.png}
+    \caption{Example of convolution block($x=16$, $z=0.1$)}
+    \label{conv_block_1}
+\end{figure}
+
 \paragraph{}
-In this project a \textbf{transpose convolution block($x$)} consists of:
+In this project a \textbf{transpose convolution block($x$,$z$)} consists of:
     \begin{enumerate}
         \item \textbf{2D transpose convolutional layer with $x$ channels} with 2x2 filter dimensions, stride of 2x2 and "same" padding.
         \item \textbf{Skip connection} concatenate weights of 2D transpose convolutional layer with $x$ channels and the weights of the previous 2D convolutional layer with the same number of $x$ channels.
-    \end{enumerate}    
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{Dropout layer with $z$ rate} of input units to drop.
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+    \end{enumerate}  
+
+This can be seen as Python Tensorflow Keras code in Figure \ref{deconv_block_1}
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\linewidth]{deconv_block_1.png}
+    \caption{Example of transpose convolution block($x=16$, $z=0.1$)}
+    \label{deconv_block_1}
+\end{figure}
 \paragraph{}
 With the above concepts and the U-Net architecture diagram introduced in Figure \ref{fig_unet} in mind, the initial baseline U-Net architecture used in this project is composed of the following blocks in sequential order:
 %maybe should make a picture to make this clearer
 
     \begin{enumerate}
-        \item convolution block(16, 0.1), convolution block(32, 0.1), convolution block(64, 0.2), convolution block(128, 0.2)
-        \item convolution block(256, 0.3)
-        \item transpose convolution block(128), convolution block(128, 0.2), transpose convolution block(64), convolution block(64, 0.2), transpose convolution block(32), convolution block(32, 0.1), transpose convolution block(16), convolution block(16, 0.1)
-        \item finally an output layer of a 1x1 2D convolutional layer with a sigmoid activation function to create the per-pixel class probability map
+        \item convolution block($16$, $0.1$), convolution block($32$, $0.1$), convolution block($64$, $0.2$), convolution block($128$, $0.2$)
+        \item convolution block($256$, $0.3$)
+        \item transpose convolution block($128$,$0.2$), transpose convolution block($64$,$0.2$), transpose convolution block($32$,$ 0.1$), transpose convolution block($16$, $0.1$)
+        \item finally an output layer of a $1$x$1$ 2D convolutional layer with a sigmoid activation function to create the per-pixel class probability map
     \end{enumerate}
+
+This is depicted in a lower level of detail by Figure \ref{unet_mine}, where yellow shade represents a Convolutional layer,darker yellow shade its activation function, red shade represents a Pooling layer, blue shade represents a Transpose Convolutional layer and arrows represent the skip connection.
+
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\linewidth]{U-Net diagram mine_smaller.png}
+    \caption{U-Net architecture used in this project}
+    \label{unet_mine}
+\end{figure}
+
 \subsection{Evaluating the use of transfer learning}
 Given the small labelled dataset and the difference compared to ImageNet, since we are dealing with aerial shots of landscapes, the rule of thumb would be to fine-tune the hidden layers.
 \paragraph{}
