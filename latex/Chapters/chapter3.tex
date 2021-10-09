@@ -20,9 +20,9 @@ As mentioned in Section \ref{introduction}, the primary data source for this pro
 The latter is the one used in this project, as it is pre-processed to minimise atmospheric effects, leading to better normalisation across different regions.
 There are 13 spectral bands available, from the \gls{VNIR} and \gls{NIR} all the way to the \gls{SWIR} (\cite{sentinel2}).
 
-There are four 10 meter resolution bands: the three \gls{RGB} bands - Blue ($\approx$493 nm), Green ($\approx$560 nm), and Red (665 nm) plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
+There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands - Blue ($\approx$493 nm), Green ($\approx$560 nm), and Red (665 nm) plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
 
-In addition, there are six 20 metre bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two 60 metre bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
+In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two \SI{60}{\metre} bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
 
 \subsection{Sentinel-2 data collection} \label{rs_data_collection}
 \paragraph{\gls{GEE} and JavaScript}
@@ -36,7 +36,7 @@ In addition, there are six 20 metre bands: 4 narrow bands in the \gls{VNIR} vege
         \label{gee_console_ui}
     \end{figure}
 
-A bespoke JavaScript script was created that extracts satellite data for a fixed area and stores it in \gls{GCS}, this method of data collection will hereby be referred to as \textit{\gls{GEE} data}. This is an area of \SI{2.56}{\kilo\metre\squared}, so that the input size is close to 256x256 pixel representation, since for the highest resolution band one pixel represents a 10x10 \SI{}{\metre} area.
+A bespoke JavaScript script was created that extracts satellite data for a fixed area and stores it in \gls{GCS}, this method of data collection will hereby be referred to as \textit{\gls{GEE} data}. This is an area of \SI{2.56}{\kilo\metre\squared}, so that the input size is close to 256x256 pixel representation, since for the highest resolution band one pixel represents a $10$x\SI{10}{\metre} area.
 
 For positive label, when a (retrogressive) thaw slump is present in the area the data is extracted so that the \gls{RTS} polygons presented in section \ref{labeled_data} are at the centre of the image for the extraction.
 For negative labels, control images are extracted based on \SI{2.56}{\kilo\metre\squared} squares centred around random points, that are checked for intersection with \gls{RTS} polygons and any overlapping random features are removed. 
@@ -44,9 +44,9 @@ For negative labels, control images are extracted based on \SI{2.56}{\kilo\metre
 This method has the limitation of introducing bias towards positive pixels always being in the centre of the image. This is a type of selection bias, as the subsample of images the model is being trained on does not represent the overall population of images, leading to poor generalisation of the model. For example, if the positive \gls{RTS} pixels are anywhere else but the centre of the image, the model would display poor performance
 % , as will be shown and discussed in section \ref{}.
 
-All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus thawslumpLabel.These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}),\gls{NIR} (B8) plus an additional thaw slump mask.This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a 20 \SI{}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s).
-Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
+All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus thawslumpLabel.These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}),\gls{NIR} (B8) plus an additional thaw slump mask.This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a \SI{20}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s).The reason why only these 4 bands were take was due to the extra challenge of resampling other 20 meter or 60 meter resolution bands to 20 meter or vice-versa, given the limited timeframe of this project, doing this would have introduced extra complexity to the problem.
 
+Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
 Files are in GeoTiff format with float32 pixel values that have not been scaled, so are in raw format at this stage, these values returned by the \gls{GEE} API that can reach values of $10,000$ or more in some instances. This is the case as even though reflectances are typically percentage values between $0$ and $100$ (or $0$-$1$), these are often scaled by a certain factor (e.g. $1 e^4$) to be able to use integer values instead to save disk space. 
 
 The \gls{CRS}, which associates numerical coordinates with a position on the Earth's surface, is defined by organisations such as the \gls{EPSG}.
@@ -62,7 +62,7 @@ Sentinel-2 data is made free and available on \gls{GCP} by the European Commissi
 
 This method involved downloading granules that contained sites used for the collection of the merged thaw slumps validated labelled data presented in section \ref{labeled_data} at the time the labels were delineated +/- $1$ month as a filter to guaranty low ($0-10\%$) cloud coverage, was applied.
 
-The polygons were reprojected from \gls{EPSG}:$4326$ to the respective \gls{CRS} associated with each of the extracted tiles, data was then consolidated in a data cube containing the same 10 m resolution bands (\gls{RGB}, \gls{NIR} channels)  shown in Figure \ref{thaw_slump_img} after normalisation, plus the thaw slump mask shown in Figure \ref{thaw_slump_mask}. Dta was split using sliding windows of 64x64 pixels,after this any empty tiles, ones without any positive \gls{RTS} pixels and ones with unexpected reflectance patterns were discarded. This pre-processed input data was kindly provided by Adam Wickenden as part of Accenture's collaboration  with \gls{SEI} and \gls{AWI} and will be hereby referred to as \textit{\gls{JP2} data}.
+The polygons were reprojected from \gls{EPSG}:$4326$ to the respective \gls{CRS} associated with each of the extracted tiles, data was then consolidated in a data cube containing the same \SI{10}{\metre} resolution bands (\gls{RGB}, \gls{NIR} channels)  shown in Figure \ref{thaw_slump_img} after normalisation, plus the thaw slump mask shown in Figure \ref{thaw_slump_mask}. Dta was split using sliding windows of $64$x$64$ pixels,after this any empty tiles, ones without any positive \gls{RTS} pixels and ones with unexpected reflectance patterns were discarded. This pre-processed input data was kindly provided by Adam Wickenden as part of Accenture's collaboration  with \gls{SEI} and \gls{AWI} and will be hereby referred to as \textit{\gls{JP2} data}.
 
 \begin{figure}[hbt!]
     \begin{minipage}[c]{0.45\linewidth}
@@ -81,7 +81,7 @@ The polygons were reprojected from \gls{EPSG}:$4326$ to the respective \gls{CRS}
 \subsection{Data understanding and preparation} \label{dataprep}
 \subsubsection{Scene classification labelled data}
 \paragraph{}
-The original \textit{\gls{GEE} data} collection method extracted a total of 313 scenes containing \gls{RTS} positive samples, and 311 control negative samples containing only background pixels. These were split into train and validation datasets with a $80$/$20$ proportion respectively. A stratified method was used to ensure class representation and avoidance of class imbalance in any one dataset. These datasets were used in the training of the initial scene classification model introduced:
+The original \textit{\gls{GEE} data} collection method extracted a total of $313$ scenes containing \gls{RTS} positive samples, and $311$ control negative samples containing only background pixels. These were split into train and validation datasets with a $80$/$20$ proportion respectively. A stratified method was used to ensure class representation and avoidance of class imbalance in any one dataset. These datasets were used in the training of the initial scene classification model introduced:
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{c|c|c}    
@@ -106,7 +106,7 @@ The original \textit{\gls{GEE} data} collection method extracted a total of 313 
 \subsubsection{Pixel-wise classification labelled data}
 \paragraph{}
 In terms of pixel distribution in each image, there is an imbalance for semantic segmentation models, that are given proportionally more negative background pixels than positive \gls{RTS} pixels. 
-Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{GEE} data}, as it can be seen from the figure most images have less than 500 pixels of the positive class which is less than $1\%$ of a 256×256 pixel image.
+Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{GEE} data}, as it can be seen from the figure most images have less than 500 pixels of the positive class which is less than $1\%$ of a $256$×$256$ pixel image.
 
     \begin{figure}[hbt!]
         \centering
@@ -115,7 +115,7 @@ Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} po
         \label{rts_pixel_dist}
     \end{figure}
     
-To train the segmentation models, only the 313 images in the \textit{\gls{GEE} data} containing positive \gls{RTS} pixels were used for training, to avoid further imbalances in the model towards background negative pixels, for training the data was split as follows:
+To train the segmentation models, only the $313$ images in the \textit{\gls{GEE} data} containing positive \gls{RTS} pixels were used for training, to avoid further imbalances in the model towards background negative pixels, for training the data was split as follows:
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{c|c|c}     
@@ -188,7 +188,7 @@ In addition to this, the network hyperparameters also need to be defined before 
 \paragraph{}
 In segmentation models, the spatial size of the input tensor has an impact on the performance of the model. With lower dimension sizes a more complex architecture could be required (higher number of filters), however with  greater dimensions more training samples are likely to be needed.
 
-So it is important to have input image dimensions ($W$ x $H$) that are adequate for the problem at hand, especially when the \gls{RTS} only covers a small area (a few pixels, since each pixel represents a 10 m x 10 m area.
+So it is important to have input image dimensions ($W$ x $H$) that are adequate for the problem at hand, especially when the \gls{RTS} only covers a small area (a few pixels, since each pixel represents a 10m x 10m area.
 
 There are a few ways of increasing the dimensions of an image through different interpolation strategies, some of them are:
     \begin{itemize}
@@ -343,7 +343,7 @@ Most algorithms used for \gls{DL} use more than $1$ but less than all the traini
 
 \gls{SGD} aims to get an unbiased estimate of the gradient by averaging the gradient in the mini-batch drawn randomly from the training data and follow the gradient downhill (\cite{GoodBengCour16}).
 
-The learning rate is an essential parameter in the gradient descent process, it is advised that it gradually decreases during training time, through strategies described in more detail in section \ref{learning_rate}. It is known that stochastic gradient descent has slower asymptotic convergence then \gls{BGD} for example.
+The learning rate is an essential parameter in the gradient descent process, it is advised that it gradually decreases during training time, through strategies described in more detail in section \ref{learning_rate}. It is known that stochastic gradient descent has slower asymptotic convergence than \gls{BGD} for example.
 \paragraph{Momentum}
 \paragraph{}
 Momentum has been designed to overcome \gls{SGD}'s limitations by accelerating learning, it accumulates an exponentially decaying moving average of previous gradients and keeps moving in their direction (\cite{GoodBengCour16}), creating \gls{SGD} with momentum. 

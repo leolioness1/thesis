@@ -61,12 +61,12 @@ In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the 
     \bottomrule
     \end{tabular}
   \end{center} 
-  \caption{Retraining on new data comparision of Dice coefficient and Loss}\label{tab_fs}
+  \caption{Retraining on new data comparison of Dice coefficient and Loss}\label{tab_fs}
 \end{table}
 
-\subsection{Hyperparameter tuning from scratch}
+\subsection{Hyperparameter tuning from scratch} \label{hp_new_data}
 \paragraph{}
-What works well for a certain dataset in terms of hyperparameters may not work well for another, specially when there is considerable difference in sample size, with this in mind,  hyperparameter tuning using random search was performed on the new data with the following parameter variations using the same Early Stopping strategy as before, restoring the weights of the best performing epoch \gls{w.r.t.} Validation Loss:
+What works well for a dataset in terms of hyperparameters may not work well for another, especially when there is a considerable difference in sample size. With this in mind, hyperparameter tuning using random search was performed on the new data with the following parameter variations using the same Early Stopping strategy as before, restoring the weights of the best performing epoch \gls{w.r.t.} Validation Loss:
 
 \begin{itemize}
     \item{Learning Rate: 0.0001 and 0.001}
@@ -77,12 +77,12 @@ What works well for a certain dataset in terms of hyperparameters may not work w
     \item{Initialisation Method: He Normal}
 \end{itemize}
 \paragraph{}
-Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{hp}, the best hyperparemeters for the JP2 data were batch size of 10, \gls{RMSProp} optimiser and learning rate of 0.001.
+Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{hp}, the best hyperparameters for the JP2 data were batch size of 10, \gls{RMSProp} optimiser and learning rate of 0.001.
 
 \begin{figure}[hbt!]
     \centering
     % \begin{minipage}[c]{0.45\linewidth}
-    \includegraphics[width=0.75\linewidth]{more data hyperparmameter tuning_Validation dice coefficient.png}
+    \includegraphics[width=0.75\linewidth]{planetary data hp_Validation dice coefficient.png}
     \caption{Subset of hyperparameter experiments with new data Validation dice coefficient}
     \label{hp}
         % \end{minipage}
@@ -94,7 +94,7 @@ Results were logged using Tensorboard, the best validation dice coefficient comb
     % \end{minipage}
 \end{figure}
 \paragraph{}
-As it can be seen from Table \ref{tab_hp} the difference in performance with regards to the Validation Dice Coefficient is marginal between the different hyperparameter combinations, showing that the previous experiments in Chapter \ref{experiments_chapter} provided good insights that genrerally apply to a different bigger dataset.
+As it can be seen from Table \ref{tab_hp} the difference in performance with regards to the Validation Dice Coefficient is marginal between the different hyperparameter combinations, showing that the previous experiments in Chapter \ref{experiments_chapter} provided good insights that generally apply to a different bigger dataset.
 
 \begin{table}[ht!] 
     \begin{center}
@@ -103,8 +103,8 @@ As it can be seen from Table \ref{tab_hp} the difference in performance with reg
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
     Hyperparameter combination & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
 %\rowcolor{lightgray}
-    1 rmsprop 0.0001 & 0.88 & 0.93 & 0.85 & 0.17 & 0.09 & 0.31  \\ 1 adam 0.0001 & 0.88 & 0.92 & 0.86 & 0.18 & 0.11 & 0.28  \\ 1 nadam 0.0001 & 0.9 & 0.95 & 0.87 & 0.15 & 0.07 & 0.27  \\ \rowcolor{lightgray} 10 rmsprop 0.001 & 0.91 & 0.97 & 0.88 & 0.14 & 0.05 & 0.24  \\ 10 adam 0.001 & 0.88 & 0.94 & 0.85 & 0.17 & 0.09 & 0.27  \\ 10 nadam 0.001 & 0.89 & 0.95 & 0.87 & 0.16 & 0.08 & 0.24  \\
-    \bottomrule
+    1 rmsprop 0.0001 & 0.86 & 0.94 & 0.93 & 0.2 & 0.07 & 0.15  \\ 1 adam 0.0001 & 0.87 & 0.93 & 0.91 & 0.19 & 0.09 & 0.14  \\ 1 nadam 0.0001 & 0.86 & 0.93 & 0.76 & 0.2 & 0.09 & 0.22  \\ \rowcolor{lightgray}10 rmsprop 0.001 & 0.91 & 0.96 & 0.95 & 0.13 & 0.05 & 0.11  \\ 10 adam 0.001 & 0.6 & 0.68 & 0.64 & 0.55 & 0.44 & 0.36  \\ 10 nadam 0.001 & 0.59 & 0.72 & 0.84 & 0.56 & 0.38 & 0.33  \\
+\bottomrule
     \end{tabular}
   \end{center} 
   \caption{Hyperparameter combinations comparison of Dice Coefficient and Loss}\label{tab_hp}
