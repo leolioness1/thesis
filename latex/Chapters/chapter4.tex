@@ -13,9 +13,9 @@ The decision to use a U-Net architecture as baseline came from a lot of the lite
 \paragraph{}
 In this project a \textbf{convolution block($x$, $z$)} consists of:
     \begin{enumerate}
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{Dropout layer with $z$ rate} of input units to drop.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{2D Maximum Pooling layer} with a 2x2 pooling dimension.
     \end{enumerate}
 This can be seen as Python Tensorflow Keras code in Figure \ref{conv_block_1}
@@ -29,11 +29,11 @@ This can be seen as Python Tensorflow Keras code in Figure \ref{conv_block_1}
 \paragraph{}
 In this project a \textbf{transpose convolution block($x$,$z$)} consists of:
     \begin{enumerate}
-        \item \textbf{2D transpose convolutional layer with $x$ channels} with 2x2 filter dimensions, stride of 2x2 and "same" padding.
+        \item \textbf{2D transpose convolutional layer with $x$ channels} with 2x2 filter dimensions, stride of 2x2 and same padding.
         \item \textbf{Skip connection} concatenate weights of 2D transpose convolutional layer with $x$ channels and the weights of the previous 2D convolutional layer with the same number of $x$ channels.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{Dropout layer with $z$ rate} of input units to drop.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and "same" padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
     \end{enumerate}  
 
 This can be seen as Python Tensorflow Keras code in Figure \ref{deconv_block_1}
@@ -70,13 +70,13 @@ However, given that most models are only trained on a depth of 3 channels, the w
 Therefore, this author deemed it better to re-train the model even though there is a small labelled dataset present.
 \subsection{Pixel-level class imbalance} \label{class_imbalance}
 
-Given the process of data collection adopted initially in this project where the area of interest i.e. the \gls{RTS} positive pixels are in the centre of the image and an area of $256$x$256$ is "cut" around it to create a patch. 
+Given the process of data collection adopted initially in this project where the area of interest i.e. the \gls{RTS} positive pixels are in the centre of the image and an area of $256$x$256$ is cropped around it to create a patch. 
 
 The large area of the patch created a pixel-wise class imbalance which led to the model's poor performance when identifying positive \gls{RTS} sample. This is due to the low level of \gls{RTS} pixels where $75\%$ of images have less than $360$ pixels this when compared with the area size of a $256$x$256$ image is less than $0.55\%$ of the image, a needle in a haystack as some would say. By for example reducing the image area by $16$ times to $4096$, the area of a $64$x$64$ image that is now more almost $9\%$ of the image.
 
-It also made accuracy a very misleading metric to follow, since the model would be rewarded for the hundreds of negative sample pixels it correctly identified, but wouldn't absorb the cost of misclassifying the pixels this project is most interested in finding the \gls{RTS} pixels. 
+It also made accuracy a very misleading metric to follow, since the model would be rewarded for the hundreds of negative sample pixels it correctly identified, but would not absorb the cost of misclassifying the pixels this project is most interested in finding the \gls{RTS} pixels. 
 
-For example, say that $1\%$ of the image is made up of positive \gls{RTS} pixels while the rest is made up of background negative pixels, if the model predicts negative background pixel for the whole image it would still be $99\%$ accurate, even though it didn't classify a single \gls{RTS} pixel correctly, this can be very misleading.
+For example, say that $1\%$ of the image is made up of positive \gls{RTS} pixels while the rest is made up of background negative pixels, if the model predicts negative background pixel for the whole image it would still be $99\%$ accurate, even though it did not classify a single \gls{RTS} pixel correctly, this can be very misleading.
 This unsuitability of accuracy as a performance measure, is also part of the justification for using the dice score introduced in section \ref{performance_measures} as the performance measure of choice in the experiments that follow. Being the harmonic mean between precision and recall, it makes it one of the best candidates for unbalanced class problems.
 
 Following this realisation, the size of the input patch was reduced to create a more even pixel-wise class distribution, the results of this experiment will be described in detail in section \ref{patch_size_exp}.
@@ -117,7 +117,7 @@ In order to identify a baseline model, trial runs for only 20 epochs were perfor
     &  ReduceLROnPlateau  \\
     \hline
     Initialisation method
-    &  "He" Normal  \\
+    &  He Normal  \\
     \hline
     Regulariser
     &  Dropout with varying rates \\
@@ -163,7 +163,7 @@ The model with the highest validation dice coefficient was the one where the ima
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
 \subsection{Normalisation of input}
 \paragraph{}
-Another key factor in the success of the training of the model is adequate normalisation of the inputs, specially with the extremely high values reflectance values in remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
+Another key factor in the success of the training of the model is adequate normalisation of the inputs, especially with the extremely high values reflectance values in remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
 
 The na\"ive approach of simply converting any pixel $x>10,000=10,000$ followed by $x=x/10,000$ was the one used for the initial experiments.
 
@@ -274,12 +274,12 @@ Contradicting the literature, perhaps given the small dataset in this project co
 
 Figure \ref{opt_loss} shows similar validation loss coefficient between \gls{RMSProp}, \gls{NAdam} and \gls{Adam}, in order of minimisation performance, with \gls{SGD} lagging behind significantly, given the baseline learning rate of $0.0001$ and mini-batch size of $4$.
 
-This may be due to the fact that the default parameters (apart from learning rate) of the Tensorflow implementation of all the optimisers are being used and need tuning for better performance and perhaps that \gls{Adam} is better used in problems with a lot of data and/or parameters. (\cite{kingma2017adam}) 
+This may be due to the fact that the default parameters (apart from learning rate) of the Tensorflow implementation of all the optimisers are being used and need tuning for better performance and perhaps that \gls{Adam} is better used in problems with a lot of data and/or parameters (\cite{kingma2017adam}). 
 
 Given its performance, \gls{RMSProp} will be the optimiser of choice in the experiments to follow.
 \subsection{Learning rate}
 \paragraph{}
-The Keras method "ReduceLROnPlateau" was applied, this involved reducing the learning rate by a factor of $10$, if there is no improvement in the validation set loss for $10$ epochs. This is enabled by the callback method that monitor loss and other metrics for each epoch.
+The Keras method \textit{ReduceLROnPlateau} was applied, this involved reducing the learning rate by a factor of $10$, if there is no improvement in the validation set loss for $10$ epochs. This is enabled by the callback method that monitor loss and other metrics for each epoch.
 
 The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on the literature introduced in section \ref{learning_rate} for this experiment, the results can be seen in Table \ref{tab_lr}.
 
@@ -312,7 +312,7 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
 \end{figure}
 
 Figure \ref{lr_dice} shows a big difference between the performance of $0.01$ learning rate and the other values, this could be due to the large learning rate overshooting the global or a local minimum and arriving at a suboptimal final set of weights.
-In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD}  optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the "ReduceLROnPlateau" learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
+In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD}  optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the \textit{ReduceLROnPlateau} learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
 
 The top learning rate for the RMSProp optimiser was $0.0001$, therefore this will be used for the experiments.
 
@@ -348,9 +348,9 @@ This is validated by the results of the experience, as it can be seen in Table \
 
 \subsection{Initialisation}
 \paragraph{}
-As presented in section \ref{initialisation}, "He" initialisation methods outperform the "Xavier" (glorot) initialisation method, according to the literature "He" initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
+As presented in section \ref{initialisation}, He initialisation methods outperform the Xavier (Glorot) initialisation method. According to the literature, He initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
 
-The random normal initialiser has the same final performance as the "He" normal method in Table \ref{tab_init}, this results may have been due to a particularly good random weight initialisation, in order to assess it's validity it should be run several times to establish it's significance, however due to time and computational constraints this author did not investigate this further.
+The random normal initialiser has the same final performance as the He normal method in Table \ref{tab_init}, this results may have been due to a particularly good random weight initialisation, in order to assess its validity it should be run several times to establish its significance, however due to time and computational constraints this author did not investigate this further.
 
 In a complete opposite way, using the random uniform initialisation function leads to a low stagnated validation dice coefficient, as can be seen from Figure \ref{init_dice}. This may be due to a bad initialisation, which lead to the backpropagation algorithm being unable to identify the right direction to transform the weights to optimise the cost function, which consequently stalls training.
 
@@ -368,7 +368,7 @@ In a complete opposite way, using the random uniform initialisation function lea
   \caption{Initialisation method comparison of Dice Coefficient and Loss}\label{tab_init}
 \end{table}
 
-However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stable and achieve a better performance at an earlier step than the Random Normal initialiser, therefore going forward the "He" Normal initialisation method will be used.
+However, by looking at Figure \ref{init_dice} He Normal seems to be more stable and achieve a better performance at an earlier step than the Random Normal initialiser, therefore going forward the He Normal initialisation method will be used.
 
 \begin{figure}[hbt!]
     % \begin{minipage}[c]{0.45\linewidth}
@@ -385,15 +385,15 @@ However, by looking at Figure \ref{init_dice} "He" Normal seems to be more stabl
     % \end{minipage}
 \end{figure}    
 
-From here on, "He" Normal initialisation will be used for the consequent experiments.
+From here on, He Normal initialisation will be used for the consequent experiments.
 
 \subsection{Activation function}
 \paragraph{}
 The discussion of the advantages and disadvantages of different the different activation functions has been discussed in detail in section \ref{cnn_activation}.
 
-From Figure \ref{loss_dice} \gls{ReLU} stands out since the validation loss completely stalls which indicates that the entire network has died, leading to unsuccessful convergence despite increasing the number of epochs. Dying \gls{ReLU} is a known phenomena with many explanations on how neurons become inactive always outputting $0$ for any given input. Lu et al. argue that symmetric probability distributions such as "He" initialisation for initialisation is a big cause of dying \gls{ReLU} and propose their own randomised asymmetric initialisation (\cite{Lu_2020}).
+From Figure \ref{loss_dice} \gls{ReLU} stands out since the validation loss completely stalls which indicates that the entire network has died, leading to unsuccessful convergence despite increasing the number of epochs. Dying \gls{ReLU} is a known phenomena with many explanations on how neurons become inactive always outputting $0$ for any given input. Lu et al. argue that symmetric probability distributions such as He initialisation for initialisation is a big cause of dying \gls{ReLU} and propose their own randomised asymmetric initialisation (\cite{Lu_2020}).
 
-On the contrary, \gls{ELU} performs very well, having the highest Validation Dice coefficient, as can be seen from Table \ref{tab_act}. Since the constant value of $0$ for any negative input range is what causes dying \gls{ReLU},using one of its variations in this experiment avoids the problem associated with the zero-slope segment.
+On the contrary, \gls{ELU} performs very well, having the highest Validation Dice coefficient, as can be seen from Table \ref{tab_act}. Since the constant value of $0$ for any negative input range is what causes dying \gls{ReLU}, using one of its variations in this experiment avoids the problem associated with the zero-slope segment.
 
 The \gls{SELU} function was also considered but as it is self normalising the \gls{NN} (\cite{klambauer2017selfnormalizing}) it deemed necessary yet another implementation, LeCun Normal initialisation and a special version of Dropout called Alpha Dropout, which this author did not perform at this point.
 

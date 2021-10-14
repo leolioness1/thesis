@@ -31,32 +31,31 @@ Although little can be done to prevent permafrost degradation, the ability to id
 
 \gls{DL} in remote sensing has been used in a wide range of applications, many of which have been captured in a recent review study, including but not limited to \gls{LULC} classification, image fusion, image registration, object detection, scene classification and image segmentation (\cite{MA2019166}).
 
-This project aims to combine remote sensing multispectral imagery data with the advancements of \gls{DL} frameworks to construct an automated way of helping to identify signs of the patterns and processes associated with permafrost degradation.
+This project aims to combine remote sensing multi-spectral imagery data with the advancements of \gls{DL} frameworks to construct an automated way of helping to identify signs of the patterns and processes associated with permafrost degradation.
 
 \section{Project Objectives and Research questions} \label{projectqs}
 \paragraph{}
-This project has the primary aim of using remote sensing multispectral imagery to build a \gls{DL} neural network that allows the identification of retrogressive thaw slumps in an attempt to assess the thawing of permafrost in the Arctic.
+This project has the primary aim of using remote sensing multi-spectral imagery to build a \gls{DL} neural network that allows the identification of \gls{RTS} in an attempt to assess the thawing of permafrost in the Arctic.
 
 To achieve this goal, this project aims to answer the following questions:
 
 \begin{enumerate}
     \item How to deal effectively with the challenge of extracting and pre-processing multi-spectral imagery?
-    \item How well can different \gls{CNN} meta-architectures perform on remote sensing imagery?
     \item What is the impact of changing hyperparameters and input parameters in the network?
     \item Is it possible to achieve satisfactory results using only 10-meter resolution imagery, or is higher resolution needed?
 \end{enumerate}
 
 \section{The task of identifying \gls{RTS}s using remote sensing data} \label{rts_task}
 \paragraph{}
-The use of remote sensing imagery to analyse and monitor \gls{RTS}s has been widespread for many decades for many use cases in remote regions where \gls{RTS}s are more commonly found. Due to this remote location access to these areas is not only logistically complicated but also expensive, this may have contributed to the popularity of use of remote sensing imagery due to its reduced cost and ease of data collection.
+The use of remote sensing imagery to analyse and monitor \gls{RTS}s has been widespread for many decades across many use cases in remote regions where \gls{RTS}s are more commonly found. Due to this remote location, access to these areas is not only logistically complicated but also expensive. This may have contributed to the popularity of remote sensing imagery due to its reduced cost and ease of data collection.
 
-Up until the last 5 years, most techniques used to identify \gls{RTS}s were either manual visual inspection, traditional statistical methods or conventional \gls{ML} techniques such as Linear Regression, Random Forest amongst others.
+Up until the last five years, most techniques used to identify \gls{RTS}s were either manual visual inspection, traditional statistical methods or conventional \gls{ML} techniques such as Linear Regression, Random Forest amongst others.
 
 \gls{RTS}s were often identified manually, either by simply identifying \gls{RTS}s visually with tools such as \gls{GEE} Timelapse (\cite{lewkowicz_extremes_2019}) or by combining remote sensing imagery with other data such as field observations and historical weather data to investigate the growth of \gls{RTS}s (\cite{KOKELJ201556}). This is a lengthy laborious process, taking precious research time away from specialists, leading to a desire to automate this process as much as possible.
 
 In a step towards this, Nitze et al. (\cite{articleing2018}) take remote sensing data and apply Linear Regression and Random Forest techniques to classify \gls{RTS}s and other types of \gls{PRD}.
 
-Futhermore, since 2018, Huang et al. (\cite{HUANG10122067}) (\cite{HUANG2020111534}) (\cite{HUANG2021102399}) makes use of \gls{DL} techniques to identify \gls{RTS}s, making unprecedented contributions to the field of identification of \gls{RTS}s by using DeepLabv3+ to assign a label to each pixel in satellite images taken by the Planet CubeSat constellation at a regional level.
+Furthermore, since 2018, Huang et al. (\cite{HUANG10122067}) (\cite{HUANG2020111534}) (\cite{HUANG2021102399}) makes use of \gls{DL} techniques to identify \gls{RTS}s, making unprecedented contributions to the field of identification of \gls{RTS}s by using DeepLabv3+ to assign a label to each pixel in satellite images taken by the Planet CubeSat constellation at a regional level.
 
 The availability of labelled data from the Arctic, provided by researchers during a project with both the \gls{AWI} and \gls{SEI}, was the missing element, proving the feasibility of using DL for the identification of \gls{RTS}s in this region.
 
@@ -66,13 +65,13 @@ To this author's knowledge, there are no state-of-the-art segmentation models fo
 
 \subsection{The relevance of identifying \gls{RTS}s using \gls{DL} and remote-sensing imagery} \label{rts_ref}
 \paragraph{}
-Nitze et al. (\cite{articleing2018}) highlight the uncertainty of the scale of permafrost degradation at a rapid pace is a result of most \gls{PRD} not being documented due to their under-representation in the remote sensing studies. 
-They also expect permafrost to degrade faster than the current projections by models that don't consider \gls{PRD}-driven thaw. These models don't take into account the full extent of increased carbon emissions from permafrost thaw, which can further contribute to global warming, \gls{a.k.a.} permafrost carbon feedback (\cite{articlecarbonfeedback}).
+Nitze et al. (\cite{articleing2018}) highlight uncertainty around the scale of permafrost degradation at a rapid pace is a result of most \gls{PRD} not being documented due to their under-representation in the remote sensing studies. 
+They also expect permafrost to degrade faster than the current projections by models that do not consider \gls{PRD}-driven thaw. These models do not take into account the full extent of increased carbon emissions from permafrost thaw, which can further contribute to global warming, \gls{a.k.a.} permafrost carbon feedback (\cite{articlecarbonfeedback}).
 
-In (\cite{book1}) the need for more research targeted at identifying and monitoring \gls{PRD} for the benefit of monitoring \gls{GHGs}, and the estimation of the consequences of its monitoring on global warming and the future of life on earth, is well-argued.
+In (\cite{book1}) the need for more research targeted at identifying and monitoring \gls{PRD} for the benefit of monitoring \gls{GHGs}, and the estimation of the consequences of its monitoring on global warming and the future of life on Earth, is well-argued.
 
-Despite the extensive literature on using remote sensing imagery and \gls{DL} in the field of \gls{LULC}, it is very limited when it comes to the identification of permafrost disturbances.
-A recent review study on remote sensing for permafrost-related analysis (\cite{rs13061217}) found that only a handful amongst 325 articles in the last two decades actually used \gls{DL} for permafrost-related analysis, and only one by Huang et al. (\cite{HUANG2020111534}) refers to \gls{RTS}s in particular. 
+Despite the extensive literature on using remote sensing imagery and \gls{DL} in the field of \gls{LULC}, it is limited when it comes to the identification of permafrost disturbances.
+A recent review study on remote sensing for permafrost-related analysis in the last two decades(\cite{rs13061217}) found that only a handful amongst 325 articles used \gls{DL} and only one by Huang et al. (\cite{HUANG2020111534}) refers to \gls{RTS}s in particular. 
 
 By developing a project through Accenture with researchers from both the \gls{AWI} and \gls{SEI} the feasibility of using DL for the identification of \gls{RTS}s the relevance of this project became clear.
 
@@ -80,17 +79,17 @@ This project aims to make a significant contribution to this field by attempting
 
 \subsection{Challenges and Opportunities} \label{challenges}
 \paragraph{}
-One of the biggest challenges ahead of this project will be the satellite data extraction in an automated way, this is due to the unreliability of the \gls{API}s available to perform this task. Another challenge could be the identification of small \gls{RTS}s given that the smallest pixel resolution available in this project represents a 10x10 meter area, and some thaw slumps can be as small as that if not smaller.
+One of the biggest challenges ahead of this project will be the automated satellite data extraction due to the unreliability of the \gls{API}s available to perform this task. Another challenge could be the identification of small \gls{RTS}s given that the smallest pixel resolution available in this project represents a 10x10 meter area, and some thaw slumps can be as small as that if not smaller.
 
-There is an opportunity of using techniques used in other widely researched remote sensing applications, for example \gls{LULC} use cases, that could provide some guidance in designing and training the DL model introduced in this project.
+There is an opportunity of using techniques used in other widely researched remote sensing applications, for example, \gls{LULC} use cases, that could provide some guidance in designing and training the DL model introduced in this project.
 
 \section{Report Structure} \label{report_struct}
-\begin{inparaitem}[]
+\begin{enumerate}
     \item Chapter 2 will consist of the theoretical context of this project. 
     \item Chapter 3 will describe the chosen methodology, including the chosen data and algorithms. 
     \item Chapter 4 will outline the experiments conducted in the optimisation of the model of choice.
     \item Chapter 5 will assess the behaviour of the model when trained on more data.
-    \item Chapter 6 will be dedicated to the final model and its evaluation on unseen data.
+    \item Chapter 6 will introduce the final model and its evaluation using unseen data.
     % \item chapter 7 will be composed of the final deployment and application for ease of use of citizen data scientists.
     \item Chapter 7 will summarise the conclusions of this project, its limitations, and suggestions for future work.
-\end{inparaitem}
+\end{enumerate}
