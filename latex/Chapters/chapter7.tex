@@ -5,7 +5,7 @@
 % Research Questions
 Two models trained on different datasets were fine-tuned and evaluated in this project, during this process there were several conclusions made:
 \begin{enumerate}
-    \item{Despite the challenges of data extraction and preprocessing, once a script is in place that does this in a semi-automatic way, it is relatively easy to iterate on that and improve it. The challenge comes in the time required to understand the open-source \gls{API}s one can access the data through and the format of that data. For example, GeoTiff files are not as common as JPEG or PNG files, so there is a certain level of upskilling and understanding of these different files.}
+    \item{Despite the challenges of data extraction and preprocessing, once a script is in place that does this processing in a semi-automatic way it is relatively easy to improve it. The challenge comes in the time required to understand the open-source \gls{API}s one can access the data through and the format of that data. For example, GeoTiff files are not as common as JPEG or PNG files, so there is a certain level of upskilling and understanding of these different files.}
     
     \item{Changing input parameters has a great impact on the performance of the model. For example, it was seen that the patch size was a very important hyperparameter in the improvement of the model performance. The improvement in performance came from getting the right balance between background (non-\gls{RTS}) pixels and foreground (\gls{RTS}) pixels without losing too much context.}
     
@@ -36,8 +36,8 @@ To improve the generalisation of the model, a wider research area, not limited t
 
 Given more time, there are considerations on model inference time, throughput and size that could be improved by simplifying the U-Net model to a simpler model architecture. This could be useful, if the model were to be used in edge devices or applications that require low latency.
 
-The use of Bayesian optimisation techniques or even Constraint Active Search (\cite{pmlr-v139-malkomes21a}) to perform hyperparameter tuning rather than using Random Search techniques would likely lead to better model optimisation without the time-consuming experiment set up presented in Chapter \ref{experiments_chapter}
+The use of Bayesian optimisation techniques or even Constraint Active Search (\cite{pmlr-v139-malkomes21a}) to perform hyperparameter tuning rather than using Random Search techniques, would likely lead to better model optimisation without the time-consuming experiment set up presented in Chapter \ref{experiments_chapter}.
 
 In the future, the model could be trained on higher resolution images such as those available through Planet data (\SI{3}{\metre} resolution) to evaluate how it affects model performance, especially when dealing with smaller  \gls{RTS} and those with more complex shapes.
 
-To increase model performance on tiles with no, or a small number of \gls{RTS} the model should be trained on a balanced dataset of tiles containing thaw slumps, as well as some not containing any.
+To increase model performance on tiles with a small number or no \gls{RTS}  at all, the model should be trained on a balanced dataset of tiles containing thaw slumps, as well as some not containing any.

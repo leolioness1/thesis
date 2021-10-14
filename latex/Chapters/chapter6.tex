@@ -46,7 +46,7 @@ As it can be seen from Figure \ref{best_loss}, there is no evidence of overfitti
 
 \section{Test Evaluation}
 
-During the Training/ Validation/ Test split process $39$ images were assigned to the test set, that is completely unseen data by the model. Using the best model's frozen weights (the best weights are restored as part of the Early Stopping strategy) and architecture, inference is performed of the test dataset to assess model performance by comparing the predictions against the ground truth mask.
+During the Training/ Validation/ Test split process $39$ images were assigned to the test set, that is completely unseen data by the model. Using the best model's frozen weights (the best weights are restored as part of the \gls{ES} strategy) and architecture, inference is performed of the test dataset to assess model performance by comparing the predictions against the ground truth mask.
 
 \paragraph{}
 The overall performance of the model at image level is summarised in Table \ref{sum_test}, where $3$ categories are defined according to model performance, the individual performance evaluation scores of each test image are then compared in Figure \ref{scatter_test_scores} according to those categories.
@@ -121,7 +121,7 @@ The model struggles with elongated thaw slumps as seen in Figure \ref{medium_sco
         \caption{Test set predicted vs. ground truth low score examples}
     \end{figure}
 
-Another level of analysis involves looking at the input images (X) next to the ground truth and predictions (y and predicted y) to check if there is any visible evidence of the assumptions made above. An example of this can be seen in Figure \ref{medium_score_input_pic}. By analysing the input image (on the left), it can be seen that the image is corrupted at the top. This could be perhaps due to an error in the multispectral instrument during the collection, or perhaps during further post-processing. When it comes to the \gls{RTS} \gls{ROI}, the lighter shading in the input image corresponds to the predicted area on the right side, indicating that perhaps the reprojection of the labelled data (red contour) to the input image's \gls{CRS} is incorrect and the algorithm is indeed more accurate than the dice score of $58\%$ seems to suggest.
+Another level of analysis involves looking at the input images ($X$) next to the ground truth and predictions ($y$ and predicted $y$) to check if there is any visible evidence of the assumptions made above. An example of this can be seen in Figure \ref{medium_score_input_pic}. By analysing the input image (on the left), it can be seen that the image is corrupted at the top. This could be perhaps due to an error in the multispectral instrument during the collection, or perhaps during further post-processing. When it comes to the \gls{RTS} \gls{ROI}, the lighter shading in the input image corresponds to the predicted area on the right side, indicating that perhaps the reprojection of the labelled data (red contour) to the input image's \gls{CRS} is incorrect and the algorithm is indeed more accurate than the dice score of $58\%$ seems to suggest.
     % \begin{figure}[hbt!]
     %     \centering
     %     \includegraphics[width= \textwidth]{1_0.97.png}

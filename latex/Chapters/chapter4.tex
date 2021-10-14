@@ -7,7 +7,7 @@ All the below experiments were carried out using this author's personal computer
 % \subsection{Scene classification model}
 % For the scene classification model Transfer Learning was used with Mobile V2 using ImageNet weights
 \subsection{Pixel-wise classification model} \label{pixel_model}
-After framing the problem as a scene classification problem and getting quite good results, in the search for a more challenging problem and due to the availability of data labels for each pixel form polygons it was decided by the author to frame the problem as a pixel-wise classification problem.
+After framing the problem as a scene classification problem and getting quite good results, in the search for a more challenging problem and due to the availability of data labels for each pixel from polygons it was decided by the author to frame the problem as a pixel-wise classification problem.
 
 The decision to use a U-Net architecture as baseline came from a lot of the literature on remote sensing images being modified U-Net architectures, below is a description of the U-Net architecture this project implements as a baseline.
 \paragraph{}
@@ -48,13 +48,13 @@ With the above concepts and the U-Net architecture diagram introduced in Figure 
 %maybe should make a picture to make this clearer
 
     \begin{enumerate}
-        \item convolution block($16$, $0.1$), convolution block($32$, $0.1$), convolution block($64$, $0.2$), convolution block($128$, $0.2$)
-        \item convolution block($256$, $0.3$)
-        \item transpose convolution block($128$,$0.2$), transpose convolution block($64$,$0.2$), transpose convolution block($32$,$ 0.1$), transpose convolution block($16$, $0.1$)
-        \item finally an output layer of a $1$x$1$ 2D convolutional layer with a sigmoid activation function to create the per-pixel class probability map
+        \item convolution block($16$, $0.1$), convolution block($32$, $0.1$), convolution block($64$, $0.2$), convolution block($128$, $0.2$).
+        \item convolution block($256$, $0.3$).
+        \item transpose convolution block($128$,$0.2$), transpose convolution block($64$,$0.2$), transpose convolution block($32$,$ 0.1$), transpose convolution block($16$, $0.1$).
+        \item an output layer of a $1$x$1$ 2D convolutional layer with a sigmoid activation function to create the per-pixel class probability map.
     \end{enumerate}
 
-This is depicted in a lower level of detail by Figure \ref{unet_mine}, where yellow shade represents a Convolutional layer,darker yellow shade its activation function, red shade represents a Pooling layer, blue shade represents a Transpose Convolutional layer and arrows represent the skip connection.
+This is depicted in a lower level of detail by Figure \ref{unet_mine}, where yellow shade represents a Convolutional layer, darker yellow shade its activation function, red shade represents a Pooling layer, blue shade represents a Transpose Convolutional layer and arrows represent the skip connection.
 
 \begin{figure}[hbt!]
     \centering
@@ -68,11 +68,12 @@ Given the small labelled dataset and the difference compared to ImageNet, since 
 \paragraph{}
 However, given that most models are only trained on a depth of 3 channels, the weights of such pre-trained models are not compatible with the choice of 4 channels or more.
 Therefore, this author deemed it better to re-train the model even though there is a small labelled dataset present.
+
 \subsection{Pixel-level class imbalance} \label{class_imbalance}
 
 Given the process of data collection adopted initially in this project where the area of interest i.e. the \gls{RTS} positive pixels are in the centre of the image and an area of $256$x$256$ is cropped around it to create a patch. 
 
-The large area of the patch created a pixel-wise class imbalance which led to the model's poor performance when identifying positive \gls{RTS} sample. This is due to the low level of \gls{RTS} pixels where $75\%$ of images have less than $360$ pixels this when compared with the area size of a $256$x$256$ image is less than $0.55\%$ of the image, a needle in a haystack as some would say. By for example reducing the image area by $16$ times to $4096$, the area of a $64$x$64$ image that is now more almost $9\%$ of the image.
+The large area of the patch created a pixel-wise class imbalance which led to the model's poor performance when identifying positive \gls{RTS} sample. This is due to the low level of \gls{RTS} pixels, $75\%$ of images have less than $360$ pixels,which when compared with the area size of a $256$x$256$ image is less than $0.55\%$ of the image, a needle in a haystack as some would say. For example, by reducing the image area by $16$ times to $4096$ pixels in total (the area of a $64$x$64$ image) that is now almost $9\%$ of the image.
 
 It also made accuracy a very misleading metric to follow, since the model would be rewarded for the hundreds of negative sample pixels it correctly identified, but would not absorb the cost of misclassifying the pixels this project is most interested in finding the \gls{RTS} pixels. 
 
@@ -163,7 +164,7 @@ The model with the highest validation dice coefficient was the one where the ima
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
 \subsection{Normalisation of input}
 \paragraph{}
-Another key factor in the success of the training of the model is adequate normalisation of the inputs, especially with the extremely high values reflectance values in remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
+Another key factor in the success of the training of the model is adequate normalisation of the inputs, especially with the extremely high reflectance values that remote sensing images can take, as described in section \ref{img_norm}. Getting this wrong can lead to explosive gradients and invalid (NaN) loss and performance metrics when training the model, as witnessed in this project.
 
 The na\"ive approach of simply converting any pixel $x>10,000=10,000$ followed by $x=x/10,000$ was the one used for the initial experiments.
 

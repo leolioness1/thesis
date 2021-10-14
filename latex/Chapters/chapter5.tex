@@ -1,11 +1,11 @@
 \typeout{NT FILE chapter5.tex}
 \chapter{Training the model on more data} \label{new_data_train}
 \paragraph{}
-In section \ref{rs_data_collection} JP2 data is introduced as a larger dataset sourced to address the issues of bias in data collection. This chapter is dedicated to the evaluation of the impact of using such data on the model fine-tuned on the smaller GEE dataset through the experiments in Chapter \ref{experiments_chapter}.
+In section \ref{rs_data_collection} \gls{JP2} data is introduced as a larger dataset sourced to address the issues of bias in data collection. This chapter is dedicated to the evaluation of the impact of using such data on the model fine-tuned on the smaller \gls{GEE} dataset through the experiments in Chapter \ref{experiments_chapter}.
 
-\section{Using the weights of the previous model to retrain using new data}
+\section{Using transfer learning to train the model using more dada}
 \paragraph{}
-The model was frozen using the best hyperparameters at the end of the Chapter \ref{experiments_chapter} and the model was trained on new data using those weights, this will be compared with the performance of training the model from scratch on new data in section \ref{new_data_train}, the same ES strategy will be used for this experiment to prevent overfitting.
+The model was frozen using the best hyperparameters at the end of the Chapter \ref{experiments_chapter} and the model was trained on new data using those weights, this will be compared with the performance of training the model from scratch on new data in section \ref{new_data_train}, the same \gls{ES} strategy will be used for this experiment to prevent overfitting. Using the weights of the previous model trained on the \gls{GEE} data to retrain using new \gls{JP2} data is in essence the same as using transfer learning techniques.
 
 \begin{figure}[hbt!]
     \centering
@@ -22,9 +22,9 @@ The model was frozen using the best hyperparameters at the end of the Chapter \r
     % \end{minipage}
 \end{figure}
 
-Using the frozen weights did not improve model performance, it had the opposite effect which is expected since the original model has a smaller dataset than the one it was trained on now. It can be seen from Figure \ref{rt_dice} that up to $20$ epochs the transfer learning by using frozen weights from the model trained on less data is performing better than the model training from scratch. 
+Using the frozen weights did not improve model performance, it had the opposite effect which is expected since the original model has a smaller dataset than the one it was trained on now. It can be seen from Figure \ref{rt_dice} that up to $20$ epochs the transfer learning, by using frozen weights from the model trained on less data, is performing better than the model training from scratch. 
 
-Early stopping is also triggered in the model using frozen weights around 30 epochs before the model being trained from scratch, which makes sense since when there is less data the model has a greater likelihood of overfitting.
+Early stopping is also triggered in the model using frozen weights around $30$ epochs before the model being trained from scratch, which makes sense since when there is less data the model has a greater likelihood of overfitting.
 
 \section{Training the model from scratch on new data} \label{new_data_fs}
 \subsection{Comparison with the \gls{GEE} dataset model - same parameters}
@@ -46,9 +46,9 @@ With the same model architecture and hyperparameters as in the previous Chapter,
     % \end{minipage}
 \end{figure}
 \paragraph{}
-As can be seen from Figure \ref{fs_loss} the model trained on more data has a lower validation loss consistently after 20 epochs despite initialising with a higher validation loss, which shows its better performance. 
+As can be seen from Figure \ref{fs_loss} the model trained on more data has a lower validation loss consistently after $20$ epochs despite initialising with a higher validation loss, which shows its better performance. 
 
-In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the improvement in performance is the most evident in the Test dataset where there is an improvement of 0.08 in the dice coefficient metric when using Early stopping (ES) to prevent overfitting.
+In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the improvement in performance is the most evident in the Test dataset where there is an improvement of $0.08$ in the dice coefficient metric when using \gls{ES} to prevent overfitting.
 
 \begin{table}[ht] 
     \begin{center}
@@ -77,7 +77,7 @@ What works well for a dataset in terms of hyperparameters may not work well for 
     \item{Initialisation Method: He Normal}
 \end{itemize}
 \paragraph{}
-Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{hp}, the best hyperparameters for the JP2 data were batch size of 10, \gls{RMSProp} optimiser and learning rate of 0.001.
+Results were logged using Tensorboard, the best validation dice coefficient combinations of hyperparameters are shown in Figure \ref{hp}, the best hyperparameters for the \gls{JP2} data were batch size of $10$, \gls{RMSProp} optimiser and learning rate of $0.001$.
 
 \begin{figure}[hbt!]
     \centering

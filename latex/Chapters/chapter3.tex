@@ -139,7 +139,7 @@ To train the segmentation models only the $313$ images in the \textit{\gls{GEE} 
     \end{center}
 \end{table}
 
-Later in the project the \textit{\gls{JP2} data} was introduced with a total of $585$ $64$x$64$ slices containing positive \gls{RTS} pixels that can be used for the supervised \gls{DL} model its distribution is as follows:
+Later in the project the \textit{\gls{JP2} data} was introduced with a total of $807$ $64$x$64$ slices containing positive \gls{RTS} pixels that can be used for the supervised \gls{DL} model its distribution is as follows:
 
 \begin{table}[ht!] 
     \begin{center}
@@ -147,16 +147,16 @@ Later in the project the \textit{\gls{JP2} data} was introduced with a total of 
     \textbf{Dataset} & \textbf{Thaw Slump} & \textbf{Percentage of total} \\
     \hline
     Train 
-    & 468 & 80\% \\
+    & 654 & 81\% \\
     \hline
     Validation 
-    &  90 & $\approx 15\%$  \\
+    &  114 & $\approx 14\%$  \\
     \hline
     Test 
-    &  27 & $\approx 5\%$ \\
+    &  39 & $\approx 6\%$ \\
     \hline
     Total 
-    &  585 & 100\% \\
+    &  807 & 100\% \\
     \hline
     \end{tabular}
     \end{center}
@@ -339,7 +339,6 @@ In Deep Learning, optimisation refers to the process of finding the parameters $
 
 Most algorithms used for \gls{DL} use more than $1$ but less than all the training examples \gls{a.k.a.} mini-batch. Even though they do not use only one example, they are nowadays referred to as just stochastic methods rather than mini-batch stochastic methods. In a similarly confusing way, even though that \gls{BGD} implies the processing of the whole training set, the term batch size is usually referring to the mini-batch size, which Goodfellow et al.(\cite{GoodBengCour16}) clarify very well.
 \paragraph{\gls{SGD}}
-\paragraph{}
 \gls{SGD} and its variants are probably the most popular algorithms in \gls{DL} as it can converge even when the training dataset gets very large, however it has slower asymptotic convergence then \gls{BGD} for example.
 
 \gls{SGD} aims to get an unbiased estimate of the gradient by averaging the gradient in the mini-batch drawn randomly from the training data and follow the gradient downhill (\cite{GoodBengCour16}).
@@ -347,7 +346,6 @@ Most algorithms used for \gls{DL} use more than $1$ but less than all the traini
 The learning rate is an essential parameter in the gradient descent process, so it is advised that it gradually decreases during training time, through strategies described in more detail in section \ref{learning_rate}. It is known that stochastic gradient descent has slower asymptotic convergence than \gls{BGD} for example.
 
 \paragraph{Momentum}
-\paragraph{}
 Momentum has been designed to overcome \gls{SGD}'s limitations by accelerating learning, it accumulates an exponentially decaying moving average of previous gradients and keeps moving in their direction (\cite{GoodBengCour16}), creating \gls{SGD} with momentum. 
 
 Momentum helps accelerate \gls{SGD} in the right direction and reduces oscillations (\cite{ruder2017overview}), defined by a new momentum hyperparameter $\alpha$ between $0$ and $1$, determines how quickly this moving average decays.
@@ -357,18 +355,15 @@ Common values of $\alpha$ used in practice are $0.5$, $0.9$, and $0.99$, for the
 The next few variations of stochastic gradient descent have adaptive learning rates, so it is recommended not to change its default parameters.
 
 \paragraph{\gls{RMSProp}}
-\paragraph{}
 \gls{RMSProp}, is an unpublished optimiser created by Tijemen Tieleman and Geoffrey Hinton in $2012$. It divides the learning rate by an exponentially decaying average of squared gradients to discard history from the extreme past so that it can converge rapidly. It has been shown it is effective and practical for \gls{DL} problems (\cite{GoodBengCour16}).
 
 \paragraph{\gls{Adam}}
-\paragraph{}
 The \gls{Adam} optimiser (\cite{kingma2017adam}) is a variation of the combination of momentum, which points the model in a better direction and \gls{RMSProp}, which adapts how far the model goes in the direction to converge quickly.
 
 Unlike the previous algorithms, \gls{Adam} includes bias correction to both the ﬁrst-order moments (the momentum term) and the (uncentered) second-order moments (also in \gls{RMSProp}) making \gls{Adam} fairly robust to the choice of hyperparameters (\cite{GoodBengCour16}).
 
 The authors (\cite{kingma2017adam}) show that \gls{Adam} works well in practice and compares well with other adaptive learning-method algorithms.
 \paragraph{\gls{NAdam} Optimiser}
-\paragraph{}
 \gls{NAdam} showed dramatic improvements in this paper (\cite{nadam}) the authors argue that it is a no-brainer to incorporate Nesterov momentum into \gls{Adam}, specially where combining momentum and \gls{RMSProp} is concerned, this was actually present in Chapter 8 of Goodfellow et al.'s book (\cite{GoodBengCour16}).
 
 It was also derived and explained by Ruder(\cite{ruder2017overview}), who also emphasizes that \gls{NAG} is superior to vanilla momentum, thus combining \gls{Adam} and NAG seems to make sense theoretically. 
