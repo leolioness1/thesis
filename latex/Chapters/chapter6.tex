@@ -1,144 +1,43 @@
 \typeout{NT FILE chapter6.tex}
-\chapter{Final model and evaluation}
-\section{Final Model}
+\chapter{Conclusions and Future Work}
+\section{Conclusions}
 \paragraph{}
-The best model found was that from the hyperparameter tuning performed on the new \textit{JP2} data in Section \ref{hp_new_data}, the performance of this model was summarised in Table \ref{tab_hp}, which shows a Dice Score on the test dataset of $95\%$. More in-depth analysis per epoch will now be performed in this section.
+% Research Questions
+Two models trained on different datasets were fine-tuned and evaluated in this project, during this process there were several conclusions made:
+\begin{enumerate}
+    \item{Despite the challenges of data extraction and preprocessing, once a script is in place that does this processing in a semi-automatic way it is relatively easy to improve it. The challenge comes in the time required to understand the open-source \gls{API}s one can access the data through and the format of that data. For example, GeoTiff files are not as common as JPEG or PNG files, so there is a certain level of upskilling and understanding of these different files.}
+    
+    \item{Changing input parameters has a great impact on the performance of the model. For example, it was seen that the patch size was a very important hyperparameter in the improvement of the model performance. The improvement in performance came from getting the right balance between background (non-\gls{RTS}) pixels and foreground (\gls{RTS}) pixels without losing too much context.}
+    
+    \item{Satisfactory results were achieved with 10-meter resolution images for the identification of thaw slumps. For a more valuable task of monitoring the changes in \gls{RTS}, however, the model could benefit from higher resolution images, as the change may be less than \SI{10}{\metre} and therefore be hard to track. It could also help improve the performance on smaller \gls{RTS} or those with more intricate shapes, as it would provide a more detailed view.}
+    
+    \item{All the points above put a great emphasis on the input data. For this project, the importance of having the correct data collected and preprocessed in the right way is essential for the successful performance of the model. In hindsight, this author would have spent more time getting this step correct to avoid having to backtrack to get more data halfway through the project.}
+    
+    \item{Learning rate and batch size hyperparameters are some of the most important hyperparameters to tune in a model. This together with the correct regularisation strategy to prevent overfitting were some of the most important aspects found when conducting experiments.}
+\end{enumerate}
+
+\section{Limitations}
 \paragraph{}
-As it can be seen from Figure \ref{best_loss}, there is no evidence of overfitting before the Early Stopping strategy kicks off at the 88th epoch. It can also be seen from Figure \ref{best_dice}, that the Training and Validation curve follow a similar shape with less fluctuation towards the final epochs, as would be expected from a well-performing model.
+The data extraction part of the project came with many limitations. The dependency on third-party tools to extract data led to a small dataset to work with, given the limited time constraints, it was hard to focus on a more automated process for data extraction.
 
-\begin{figure}[hbt!]
-    % \centering
-    \begin{minipage}[c]{0.5\linewidth}
-    \includegraphics[width=\linewidth]{Best model_Dice coefficient.png}
-    \caption{Dice Score comparison}
-    \label{best_dice}
-    \end{minipage}
-        \hfill
-        \begin{minipage}[c]{0.5\linewidth}
-        \includegraphics[width=\linewidth]{Best model_Loss.png}
-        \caption{Loss
-        comparison}
-        \label{best_loss}
-    \end{minipage}
-\end{figure}
+The \gls{GEE} and JavaScript data extraction method introduced bias and potentially a misalignment between the input data and the mask.  This was addressed by the second batch of data extraction, where \gls{JP2} tiles were extracted directly and processed into 64x64 windows. This allowed for debiased images and larger sample size to work with, improving generalisation.
 
+Since this model was only trained on tiles containing positive labels, it does not know how to identify tiles with no thaw slumps, which is an important characteristic when performing inference across the Arctic. 
 
-% \begin{figure}[hbt!]
-%     \centering
-%     \includegraphics[width=1 \textwidth]{Best model_Dice coefficient.png}
-%     \caption{Best Model Training and Validation Dice Score comparison)}
-%     \label{fig_tp_fp}
-% \end{figure}
+No model architecture hyperparameter tuning was made, that is the number of filters, kernel size, padding type, stride, pooling stride, type of pooling were not optimised and other model architectures were not evaluated, so potentially the solution presented may not be the most efficient or the network might be too deep for the problem at hand.
 
-% \begin{figure}[hbt!]
-%     \centering
-%     \includegraphics[width=1 \textwidth]{Best model_Loss.png}
-%     \caption{Best Model Training and Validation Loss
-%      comparison)}
-%     \label{fig_tp_fp}
-% \end{figure}
-% \begin{figure}[hbt!]
-%     \centering
-%     \includegraphics[width=1 \textwidth]{Best model_Jaccard coefficient.png}
-%     \caption{Best Model Training and Validation Jaccard Score comparison)}
-%     \label{fig_tp_fp}
-% \end{figure}
-
-\section{Test Evaluation}
-
-During the Training/ Validation/ Test split process $39$ images were assigned to the test set, that is completely unseen data by the model. Using the best model's frozen weights (the best weights are restored as part of the \gls{ES} strategy) and architecture, inference is performed of the test dataset to assess model performance by comparing the predictions against the ground truth mask.
-
+\section{Future Work}
 \paragraph{}
-The overall performance of the model at image level is summarised in Table \ref{sum_test}, where $3$ categories are defined according to model performance, the individual performance evaluation scores of each test image are then compared in Figure \ref{scatter_test_scores} according to those categories.
+In the future, an approach that aims to measure the change in \gls{RTS}s through time, like in Huang et al.'s latest paper (\cite{HUANG2021102399}) would be more beneficial to the problem this project aims to address. This increases the complexity of the task at hand because it introduces an additional dimension of time and its sequence, however it provides better means for estimation and prediction of permafrost thaw year on year.
 
-    \begin{table}[ht!] 
-        \begin{center}
-        \begin{tabular}{ccc} 
-        \toprule
-        \textbf{Category} & \textbf{Dice Score range}  & \textbf{Number of images}  \\ \midrule
-        High & Greater than or equal to 0.7 & 29  \\
-        Medium & Between 0.7 and 0.4 & 5  \\
-        Low & Smaller or equal to 0.4 & 5  \\
-    \bottomrule
-        \end{tabular}
-      \end{center} 
-      \caption{Dice score test image summary}\label{sum_test}
-    \end{table}
-    \begin{figure}[hbt!]
-        \centering
-        \includegraphics[width=0.75 \textwidth]{test images scores.png}
-        \caption{Dice Score vs. \gls{IoU} Score Test images scatter plot}
-        \label{scatter_test_scores}
-    \end{figure}
-\paragraph{}
-A short image by image analysis will be performed for $2$ images of each category, where purple colour represents background (non-\gls{RTS}) pixels and yellow represents foreground (\gls{RTS}) pixels, with varying opacity according to prediction confidence, the lighter the shade the lower the confidence, there is also a red contour which represents the ground truth mask outline.
-\paragraph{}
-As can be seen from Figure \ref{high_score_pic} the algorithm can deal with both simpler thaw slump shapes (on the left) and more complex shapes (on the right), although the latter shows lower confidence in the pixel prediction confidence, as can be seen by lower intensity pixel shading and is also reflected in a lower dice score.
+It would also be beneficial to try different architecture parameters such as filter size and kernel size or even other architectures such as DeepLab v3+ or \gls{FCN} and assess the impact on the model performance.
 
-    \begin{figure}[hbt!]
-        % \centering
-        \begin{minipage}[c]{0.55\linewidth}
-        \includegraphics[width=\linewidth]{1_0.97.png}
-        \label{best_dice}
-        \end{minipage}
-            \hfill
-            \begin{minipage}[c]{0.55\linewidth}
-            \includegraphics[width=\linewidth]{25_0.87.png}
-            \label{high_score_pic}
-        \end{minipage}
-        \caption{Test set predicted vs. ground truth high score examples}
-    \end{figure}
+To improve the generalisation of the model, a wider research area, not limited to the sites where labels were provided, should be covered so that the model can be used in other geographical characteristics.
 
-The model struggles with elongated thaw slumps as seen in Figure \ref{medium_score_pic} on the left and in some instances correctly predicts the thaw slump \gls{ROI} but also predicts False Positive \gls{RTS} which then has an impact on the dice score (right side). This presence of False Positives could be an indication of an actual \gls{RTS}, which has not been labeled yet. Due to the lack of expert knowledge, these False Positives have not been validated but could point researchers in the right direction when looking for new \gls{RTS}.
+Given more time, there are considerations on model inference time, throughput and size that could be improved by simplifying the U-Net model to a simpler model architecture. This could be useful, if the model were to be used in edge devices or applications that require low latency.
 
-    \begin{figure}[hbt!]
-        % \centering
-        \begin{minipage}[c]{0.55\linewidth}
-        \includegraphics[width=\linewidth]{11_0.55.png}
-        \label{best_dice}
-        \end{minipage}
-            \hfill
-            \begin{minipage}[c]{0.55\linewidth}
-            \includegraphics[width=\linewidth]{10_0.54.png}
-            \label{medium_score_pic}
-        \end{minipage}
-        \caption{Test set predicted vs. ground truth medium score examples}
-    \end{figure}
+The use of Bayesian optimisation techniques or even Constraint Active Search (\cite{pmlr-v139-malkomes21a}) to perform hyperparameter tuning rather than using Random Search techniques, would likely lead to better model optimisation without the time-consuming experiment set up presented in Chapter \ref{experiments_chapter}.
 
- The really low performing test images can be seen in Figure \ref{low_score_pic}, the model seems to not be very good at predicting very small \gls{RTS}, this could be due to the fact that each pixel represents a \SI{10}{\metre\squared} area and some \gls{RTS} may be smaller than that, or that the image reprojection has a slight misalignment, as can be seen from the image on the left which predicts a False Positive \gls{RTS} to the left of the ground truth red contour.
+In the future, the model could be trained on higher resolution images such as those available through Planet data (\SI{3}{\metre} resolution) to evaluate how it affects model performance, especially when dealing with smaller  \gls{RTS} and those with more complex shapes.
 
-    \begin{figure}[hbt!]
-        % \centering
-        \begin{minipage}[c]{0.55\linewidth}
-        \includegraphics[width=\linewidth]{19_0.09.png}
-        \label{best_dice}
-        \end{minipage}
-            \hfill
-            \begin{minipage}[c]{0.55\linewidth}
-            \includegraphics[width=\linewidth]{31_0.0.png}
-            \label{low_score_pic}
-        \end{minipage}
-        \caption{Test set predicted vs. ground truth low score examples}
-    \end{figure}
-
-Another level of analysis involves looking at the input images ($X$) next to the ground truth and predictions ($y$ and predicted $y$) to check if there is any visible evidence of the assumptions made above. An example of this can be seen in Figure \ref{medium_score_input_pic}. By analysing the input image (on the left), it can be seen that the image is corrupted at the top. This could be perhaps due to an error in the multispectral instrument during the collection, or perhaps during further post-processing. When it comes to the \gls{RTS} \gls{ROI}, the lighter shading in the input image corresponds to the predicted area on the right side, indicating that perhaps the reprojection of the labelled data (red contour) to the input image's \gls{CRS} is incorrect and the algorithm is indeed more accurate than the dice score of $58\%$ seems to suggest.
-    % \begin{figure}[hbt!]
-    %     \centering
-    %     \includegraphics[width= \textwidth]{1_0.97.png}
-    %     \caption{Test set predicted vs. ground truth high score example}
-    %     \label{fig_tp_fp}
-    % \end{figure}
-    \begin{figure}[hbt!]
-        \centering
-        \includegraphics[width=1\textwidth]{38_0.58_input.png}
-        \caption{Test set predicted vs. ground medium score example}
-        \label{medium_score_input_pic}
-    \end{figure}
-    % \begin{figure}[hbt!]
-    %     \centering
-    %     \includegraphics[width=0.75 \textwidth]{19_0.09.png}
-    %     \caption{Test set predicted vs. ground truth low score example}
-    %     \label{low_score_pic}
-    % \end{figure}
-
-Given more time, all the above assumptions would be investigated further.
+To increase model performance on tiles with a small number or no \gls{RTS}  at all, the model should be trained on a balanced dataset of tiles containing thaw slumps, as well as some not containing any.

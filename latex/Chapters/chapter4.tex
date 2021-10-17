@@ -64,13 +64,14 @@ This is depicted in a lower level of detail by Figure \ref{unet_mine}, where yel
 \end{figure}
 
 \subsection{Evaluating the use of transfer learning}
-Given the small labelled dataset and the difference compared to ImageNet, since we are dealing with aerial shots of landscapes, the rule of thumb would be to fine-tune the hidden layers.
 \paragraph{}
+Given the small labelled dataset and the difference compared to ImageNet, since we are dealing with aerial shots of landscapes, the rule of thumb would be to fine-tune the hidden layers.
+
 However, given that most models are only trained on a depth of 3 channels, the weights of such pre-trained models are not compatible with the choice of 4 channels or more.
 Therefore, this author deemed it better to re-train the model even though there is a small labelled dataset present.
 
 \subsection{Pixel-level class imbalance} \label{class_imbalance}
-
+\paragraph{}
 Given the process of data collection adopted initially in this project where the area of interest i.e. the \gls{RTS} positive pixels are in the centre of the image and an area of $256$x$256$ is cropped around it to create a patch. 
 
 The large area of the patch created a pixel-wise class imbalance which led to the model's poor performance when identifying positive \gls{RTS} sample. This is due to the low level of \gls{RTS} pixels, $75\%$ of images have less than $360$ pixels,which when compared with the area size of a $256$x$256$ image is less than $0.55\%$ of the image, a needle in a haystack as some would say. For example, by reducing the image area by $16$ times to $4096$ pixels in total (the area of a $64$x$64$ image) that is now almost $9\%$ of the image.
@@ -127,8 +128,10 @@ In order to identify a baseline model, trial runs for only 20 epochs were perfor
 
 For each of the experiments, there will be trial runs of each potential value for $50$ epochs to identify the best value, keeping everything else as the baseline value. The objective is to maximise the performance measure of choice, the dice coefficient (coef) by minimising the loss.
 \section{Preprocessing experiments}
+\paragraph{}
 The experiments in this section ran for $50$ epochs, due to the non-deterministic nature of neural networks the results are not always of comparable performance between experiments, but were run within the same Tensorflow session within each experiment for comparability.
 \subsection{Size of the input patch} \label{patch_size_exp}
+\paragraph{}
 As described in section \ref{class_imbalance}, class imbalance became an issue with model performance, in order to test if cropping the image to create a more balanced pixel-level class distribution could be linked to model performance, experiments were carried out. This was done by cropping the input patch from $256$×$256$ to $128$×$128$, $64$×$64$ and finally $32$×$32$ pixels, which would be reflected in the input layer dimensions of the model as well.
 
 \begin{figure}[hbt!]
@@ -145,7 +148,7 @@ As described in section \ref{class_imbalance}, class imbalance became an issue w
     %     \label{patch_loss}
     % \end{minipage}
 \end{figure}
-\paragraph{}
+
 % As seen from Figure \ref{patch_dice}, 
 The model with the highest validation dice coefficient was the one where the image was cropped to a $64$×$64$ pixel area, with a validation dice coefficient of $0.7$ vastly outperforming the other patch sizes, shown in figure \ref{patch_dice}.
 \begin{table}[ht!] 
@@ -160,7 +163,7 @@ The model with the highest validation dice coefficient was the one where the ima
   \end{center} 
   \caption{Input patch size comparison of Dice Coefficient and Loss}\label{tab_patch}
 \end{table}
-\paragraph{}
+
 The results shown in table \ref{tab_patch}, indicate increasing performance with the decrease of the patch size, up until the 64×64 patch size, which would indicate that at 32×32 patch size the context surrounding the larger thaw slumps (which just fit in the 64×64 patch) is lost leading to decreasing performance, therefore the remaining experiments of this project will use a 64×64 patch size and input layer dimensions.
 \subsection{Normalisation of input}
 \paragraph{}
@@ -193,7 +196,6 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
     Normalisation method & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
     % max & 0.53 & 0.58 & 0.45 & 0.67 & 0.62 & 0.78  \\ naive & 0.68 & 0.86 & 0.82 & 0.55 & 0.21 & 0.27  \\ \rowcolor{lightgray} z-score & 0.77 & 0.87 & 0.87 & 0.41 & 0.18 & 0.18  \\
     max & 0.69 & 0.87 & 0.71 & 0.49 & 0.18 & 0.41  \\ \rowcolor{lightgray} naive & 0.75 & 0.89 & 0.8 & 0.39 & 0.16 & 0.27  \\ z score & 0.7 & 0.92 & 0.8 & 0.5 & 0.13 & 0.28  \\
-
     \bottomrule
     \end{tabular}
   \end{center} 
@@ -232,6 +234,7 @@ At this point in the experiment process, the experiments will proceed without an
 % \subsection{Image resizing methodology}
 \section{Training experiments}
 \subsection{Network Hyperparameters}
+\paragraph{}
 Given the complexity of an optimiser's performance and its interaction with the learning rate and batch size parameters, a comprehensive grid search experiment was performed to avoid a misleading evaluation of the parameters to follow.
 % Full results of this grid search experiment can be found in the Annex. 
 
@@ -331,21 +334,11 @@ This is validated by the results of the experience, as it can be seen in Table \
     Batch size & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
 %\rowcolor{lightgray}
     \rowcolor{lightgray} 1 & 0.85 & 0.93 & 0.8 & 0.47 & 0.1 & 0.29  \\ 2 & 0.79 & 0.88 & 0.77 & 0.46 & 0.17 & 0.31  \\ 4 & 0.68 & 0.84 & 0.71 & 0.6 & 0.23 & 0.39  \\ 6 & 0.67 & 0.83 & 0.73 & 0.61 & 0.25 & 0.37  \\ 10 & 0.58 & 0.65 & 0.64 & 0.65 & 0.51 & 0.49  \\ 16 & 0.55 & 0.7 & 0.5 & 0.63 & 0.45 & 0.7  \\ 20 & 0.49 & 0.65 & 0.66 & 0.82 & 0.51 & 0.48  \\
-
     \bottomrule
     \end{tabular}
   \end{center} 
   \caption{Batch size comparison of Dice Coefficient and Loss}\label{tab_batch}
 \end{table}
-
-    % \begin{figure}[hbt!]
-    %     \centering
-    %     \includegraphics[width=0.9\textwidth]{batch size_Validation dice coefficient.png}
-    %     \caption{Batch size dice coefficient comparison}
-    %     \label{batch_dice}
-    % \end{figure}
-
-
 
 \subsection{Initialisation}
 \paragraph{}
@@ -372,18 +365,10 @@ In a complete opposite way, using the random uniform initialisation function lea
 However, by looking at Figure \ref{init_dice} He Normal seems to be more stable and achieve a better performance at an earlier step than the Random Normal initialiser, therefore going forward the He Normal initialisation method will be used.
 
 \begin{figure}[hbt!]
-    % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\linewidth]{initilisation method_Validation dice coefficient.png}
     \caption{Initialisation method Dice Coefficient comparison}
     \label{init_dice}
-    %     \end{minipage}
-    %     \hfill
-    %     \begin{minipage}[c]{0.45\linewidth}
-    %     \includegraphics[width=\linewidth]{init_evaluation_loss_elu.png}
-    %     \caption{Initialisation method dice loss comparison}
-    %     \label{init_loss}
-    % \end{minipage}
 \end{figure}    
 
 From here on, He Normal initialisation will be used for the consequent experiments.
@@ -399,18 +384,10 @@ On the contrary, \gls{ELU} performs very well, having the highest Validation Dic
 The \gls{SELU} function was also considered but as it is self normalising the \gls{NN} (\cite{klambauer2017selfnormalizing}) it deemed necessary yet another implementation, LeCun Normal initialisation and a special version of Dropout called Alpha Dropout, which this author did not perform at this point.
 
 \begin{figure}[hbt!]
-    % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{activation functions_Validation loss.png}
     \caption{Activation function Loss comparison}
     \label{act_dice}
-    %     \end{minipage}
-    %     \hfill
-    %     \begin{minipage}[c]{0.45\linewidth}
-    %     \includegraphics[width=\linewidth]{act_evaluation_loss_uniform.png}
-    %     \caption{Activation function loss comparison}
-    %     \label{act_loss}
-    % \end{minipage}
 \end{figure}
 
 \begin{table}[ht!]
@@ -437,18 +414,10 @@ The implementation of the loss functions in Python under the Tensorflow Keras fr
 Figure \ref{loss_dice} shows that they are all successfully training the model as the chosen model scoring metric is showing an increasing trend as the number of epochs increase as would be expected if the gradient descent is working correctly.
 
 \begin{figure}[hbt!]
-    % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\linewidth]{loss function_Validation dice coefficient.png}
     \caption{Loss function Dice Coefficient comparison}
     \label{loss_dice}
-        % \end{minipage}
-    %     \hfill
-    % \begin{minipage}[c]{0.45\linewidth}
-    %     \includegraphics[width=\textwidth]{loss function_Validation loss.png}
-    %     \caption{Loss function loss comparison}
-    %     \label{loss_loss}
-    % \end{minipage}
 \end{figure}
 
 \begin{table}[ht!] 
@@ -467,13 +436,6 @@ Figure \ref{loss_dice} shows that they are all successfully training the model a
 
 The best loss function is still the \gls{CE} dice loss, this could be because combining the two losses allows for some diversity, whilst still benefitting from the stability of \gls{CE}, so it will continue to be used in the following experiments.
 
-% \subsection{Architecture Hyperparameters}
-% \paragraph{Number of Filters}
-% \paragraph{Kernel size and Stride of Conv}
-% \paragraph{Kernel size and Stride of Pooling}
-% \paragraph{Number of Layers}
-% \paragraph{Dropout value}
-
 \subsection{Preventing over-fitting} \label{regularisation_sec}
 \subsubsection{\gls{ES}}
 \paragraph{}
@@ -484,18 +446,10 @@ The early stopping strategy consisted of monitoring the validation set loss for 
 In order to perform this experiment an arbitrarily large number of epochs was set to $200$, \gls{ES} was triggered at $79$ epochs when validation loss did not improve from $0.24$, as can be seen from Figure \ref{es_loss} \gls{ES} was successful at preventing an overfitting situation, as the loss increased after epoch $79$.
 
 \begin{figure}[hbt!]
-    % \begin{minipage}[c]{0.45\linewidth}
-    %     \includegraphics[width=\linewidth]{early stoppping_Validation dice coefficient.png}
-    %     \caption{Loss function dice coefficient comparison of \gls{ES} usage}
-    %     \label{es_dice}
-    %     \end{minipage}
-    %     \hfill
-    % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{early stoppping_Validation loss.png}
     \caption{\gls{ES} usage Loss comparison}
     \label{es_loss}
-    % \end{minipage}
 \end{figure}
 
 \subsubsection{Dropout}
@@ -505,18 +459,10 @@ As part of the base network architecture introduced in section \ref{pixel_model}
 As an experiment, the network with the same architecture with one change, all the dropout values introduced will be reduced to $0$, so there is no Dropout in the network.
 
 \begin{figure}[hbt!]
-    % \begin{minipage}[c]{0.45\linewidth}
-    %     \includegraphics[width=\linewidth]{dropout_Validation dice coefficient.png}
-    %     \caption{Loss function dice coefficient comparison of removal of Dropout}
-    %     \label{dropout_dice}
-    %     \end{minipage}
-    %     \hfill
-    % \begin{minipage}[c]{0.45\linewidth}
     \centering
     \includegraphics[width=0.75\textwidth]{dropout_Validation loss.png}
     \caption{Removal of Dropout Loss comparison}
     \label{dropout_loss}
-    % \end{minipage}
 \end{figure}
 
 Without dropout in place the validation loss starts increasing drastically which triggers \gls{ES} much earlier, as we can see from Figure \ref{dropout_loss} this could be due to exploding gradients.
@@ -524,7 +470,6 @@ Without dropout in place the validation loss starts increasing drastically which
 \section{Learnings from conducting experiments}
 \paragraph{}
 In summary, there are a few things that have been concluded from the experiments conducted with the \textit{\gls{GEE} data} and will motivate the decisions made for the section that follows where the model will be trained on the \textit{\gls{JP2} data} .
-
 \begin{enumerate}
     \item{When there is a background and foreground class, where the foreground class represents the \gls{ROI}, in this case the \gls{RTS} pixels, it is important to adjust the patch size of the image as a way of reducing pixel imbalance between the negative more frequent background class and the positive more valuable foreground class. Depending on the size of the \gls{ROI} this has to be done taking into consideration that context around the \gls{ROI} is also valuable in its correct identification. For example in the context of this thesis reducing the patch size showed improvement until the $64$x$64$ patch size, but once it was further reduced to $32$x$32$ the performance was worst.}
     \item{The relationship between the learning rate hyperparameter and the optimiser is very strong, this was particularly evident with a higher learning rate of $0.1$, which incredibly benefitted the \gls{SGD} optimiser but drastically reduced the performance of the other optimisers, perhaps more experiments with the other parameters of optimisers and different learning rate schedules would be interesting, given more time.}

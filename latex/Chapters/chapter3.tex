@@ -13,7 +13,7 @@ Two different types of shapefiles containing \gls{RTS} polygons were provided:
     \item \textbf{Merged thaw slumps first iteration} Delineated by students and awaiting validation from Doctor Nitze, this type contains a total of $8,005$ features.
     \item \textbf{Merged thaw slumps validated} Delineated by students and validated by Dr. Nitze, this type contains a total of $1,203$ features.
 \end{itemize}
-\subsection{Sentinel-2 data} \label{sentinel2_section}
+\subsection{Sentinel-2 data collection} \label{rs_data_collection}
 \paragraph{}
 As mentioned in Section \ref{introduction}, the primary data source for this project will involve the use of Sentinel-2 satellite imagery. There are two product types available to users, Level 1-C Top Of Atmosphere reflectances and level 2-A Bottom Of Atmosphere reflectance images, both in cartographic geometry (\cite{sentinel2}). 
 
@@ -23,9 +23,7 @@ There are 13 spectral bands available, from the \gls{VNIR} and \gls{NIR} all the
 There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands - Blue ($\approx$493 nm), Green ($\approx$560 nm), and Red (665 nm) plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
 
 In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two \SI{60}{\metre} bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
-
-\subsection{Sentinel-2 data collection} \label{rs_data_collection}
-\paragraph{\gls{GEE} and JavaScript}
+\subsubsection{\gls{GEE} and JavaScript}
 \paragraph{}
 \gls{GEE} provides the ability of extracting satellite data using bespoke JavaScript queries through a Console \gls{UI} (shown in Figure \ref{gee_console_ui}, the Sentinel-2 data is available in the \gls{GEE} image collection with ID \textit{COPERNICUS/S2}.
 
@@ -55,7 +53,7 @@ The projections are identified through an authority: code format, where the auth
 
 This method of data collection came with its limitations. The \gls{GEE} \gls{UI} would crash for more than 30 images extracted at any one time and would freeze while extracting those images, taking hours at a time. This method was not automatable, which explains why the number of images collected is so low compared to the number of features present in the ground truth polygons.
 
-\paragraph{\gls{GCS} and \gls{JP2} data}
+\subsection{\gls{GCS} and \gls{JP2} data}
 \paragraph{}
 To address both the bias and automation limitations of the \gls{GEE} method, downloading images directly from \gls{GCS} was explored later in the project.
 
@@ -108,7 +106,6 @@ The original \textit{\gls{GEE} data} collection method extracted a total of $313
 \paragraph{}
 In terms of pixel distribution in each image, there is an imbalance for semantic segmentation models, that are given proportionally more negative background pixels than positive \gls{RTS} pixels. 
 Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{GEE} data}, as it can be seen from the figure most images have less than 500 pixels of the positive class which is less than $1\%$ of a $256$×$256$ pixel image.
-
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.55\textwidth]{Distribution of RTS Positive Pixels.png}
@@ -140,7 +137,6 @@ To train the segmentation models only the $313$ images in the \textit{\gls{GEE} 
 \end{table}
 
 Later in the project the \textit{\gls{JP2} data} was introduced with a total of $807$ $64$x$64$ slices containing positive \gls{RTS} pixels that can be used for the supervised \gls{DL} model its distribution is as follows:
-
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{c|c|c}     
@@ -165,7 +161,6 @@ Later in the project the \textit{\gls{JP2} data} was introduced with a total of 
 
 Figure \ref{jp2_rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{JP2} data} across different datasets, to attempt a stratified sampling method the random seed was changed until the distribution looked similar across the datasets.
 % as it can be seen from Figure \ref{thaw_slump_mask} in section \ref{rs_data_collection}.
-
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.75\textwidth]{jp2_rtscount_split.png}
@@ -281,7 +276,6 @@ Ma (\cite{LossOdyssey}) breaks down known segmentation loss functions into categ
 
 
 \paragraph{Binary \gls{CE}}
-\paragraph{}
 \gls{CE} is an example of a distribution-based loss, it is derived from Kullback-Leibler (KL) divergence, which measures the dissimilarity of two distributions (\cite{LossOdyssey}). This makes the objective of this category of loss to minimise this dissimilarity. 
 
 For this project, the most relevant \gls{CE} for binary classification tasks is the Binary \gls{CE}, which can be defined as follows:
@@ -296,7 +290,6 @@ Focal loss can be highlighted as a potential derivation to deal with extreme pix
  
 All the other functions depicted under the distribution-based loss in Figure \ref{fig_loss_odissey} are derivations of \gls{CE}, therefore will not be covered in detail. 
 \paragraph{Dice Loss}
-\paragraph{}
 Dice Loss is the key element of region-based loss functions, which aim to minimise the mismatch between predicted $\widehat{y}$ and ground-truth $y$ regions (\cite{LossOdyssey}). It can directly optimise the Dice coefficient, which is defined in section \ref{performance_measures}, this was implemented as a custom loss function hereby known as \textit{dice coef loss}.
 
 \begin{equation}\label{eq_dice_loss}
@@ -304,7 +297,6 @@ L_{dice}=1-\frac{2\sum_{{i}}^{N}\widehat{y}_{i}y_{i}}{\sum_{i}^{N}\widehat{y}_{i
 \end{equation}
 
 \paragraph{\gls{IoU} loss}
-\paragraph{}
 The \gls{IoU} \gls{a.k.a.} Jaccard index is used to directly optimise the segmentation class metric, it can be seen as a similarity measure between two sets $A$ and $B$ is defined as the following:
 \begin{equation}
 \label{eq_jaccard}
@@ -322,7 +314,6 @@ L_{\gls{IoU}}(y, \widehat{y}) = 1- \sum_{i=1}^n \frac{y_i \cdot \widehat{y_i}}{y
 \paragraph{}
 It has been argued that \gls{IoU} loss is better for binary segmentation than those trained with the standard softmax loss(\cite{Rahman_2016}), making it a very relevant loss function for this project.
 \paragraph{Compound loss}
-\paragraph{}
 There are many compound losses that combine and transform some loss functions introduced above. A Compound loss function, inspired by a paper (\cite{DBLP:journals/corr/IglovikovMO17}) that applies semantic segmentation to satellite imagery, appears to also be a feasible solution.
 In this paper, their compound loss function is defined as a combination of Eq.\ref{eq:bintropy} and Eq.\ref{eq_iou_loss}, this will be referred to as \textit{ce jaccard loss} during implementation:
 \begin{equation}
@@ -399,6 +390,7 @@ In He initialisation, weights of layer $l$ are initialised with a zero-mean Gaus
 
 The difference between this He and the Xavier initialisation is the $\frac{1}{2}$ that comes from the \gls{ReLU} activation function.
 
+
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=0.5\textwidth]{xavier vs he init.png}
@@ -410,7 +402,7 @@ When fine-tuning pre-trained models, it is very likely that overfitting will bec
 \paragraph{$l1$ and $l2$ regularisation}
 Performing $l2$ regularisation \gls{a.k.a.} weight decay constrains weight values towards 0 (but not actually zero) whereas $l1$ regularisation \gls{a.k.a.} Lasso regression drives the weights to be $0$, tends to work well as a feature selection technique. 
 
-Regularisers are usually attached to the loss function as a penalty term, $l1$ penalises the absolute value whereas $l2$ penalises the square value of the weights (\cite{shanmugamani2018deep}). 
+Regularisers are usually attached to the loss function as a penalty term, $l1$ penalises the absolute value whereas $l2$ penalises the square value of the weights (\cite{shanmugamani2018deep}. 
 
 $l2$ is more popular, as $l1$ can remove relevant information from high-dimensional data where these are correlated, leading to underperforming models. Most of the segmentation models introduced in section \ref{seg_nets} use weight decay with values between 0.0001 and 0.0005 (\cite{sultana2020106062}).
 \paragraph{Dropout} 
@@ -453,7 +445,7 @@ It is common to decay the learning rate until it makes a couple of hundred passe
 \end{equation}
 where $\alpha=\frac{k}{\tau}$. After iteration $\tau$ , it is usual to leave $\epsilon$ constant.
 \paragraph{Step Decay} 
-Step decay drops the learning rate by a factor every few epochs. For example, in the DeepLab model's original paper (\cite{chen2016semantic}) uses a $\epsilon_0=0.001$ and an $\epsilon_\tau=0.01$ in the final classification layer. It drops it $10\%$ by multiplying it by $0.1$ at every $2000$ iterations.
+Step decay drops the learning rate by a factor every few epochs. For example, in the DeepLab model's original paper (\cite{chen2017deeplab}) uses a $\epsilon_0=0.001$ and an $\epsilon_\tau=0.01$ in the final classification layer. It drops it $10\%$ by multiplying it by $0.1$ at every $2000$ iterations.
 \paragraph{Exponential Decay} 
 As the name implies, an exponential decay function is applied to the initial learning rate $\epsilon_0$:
 

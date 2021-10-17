@@ -160,7 +160,7 @@ of the requirements for the degree of\\[1ex]%
 \dissertationstr(mscplan,en):={Dissertation plan submitted in partial fulfillment\\%
 of the requirements for the degree of\\[1ex]%
 \thedegreestr(\option{/novathesis/docdegree},\theauthorgender,\option{/novathesis/coverlang})\ in {\themajorfield(\option{/novathesis/coverlang})}}
-\dissertationstr(msc,en):={Dissertation presented as partial requirement for obtaining the Master’s degree in Advanced Analytics}
+\dissertationstr(msc,en):={Dissertation presented as partial requirement for obtaining the Master’s degree in Data Science and Advanced Analytics, with a Major in Data Science}
 
 \dissertationstr(phdplan,pt):={A thesis plan submitted in partial fulfillment %
 of the requirements for the degree of %
