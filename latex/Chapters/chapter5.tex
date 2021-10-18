@@ -38,7 +38,7 @@ In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the 
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Model type & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Model type & Validation & Training & Test & Validation & Training & Test \\ \midrule
     \rowcolor{lightgray}
     Training from scratch & 0.89 & 0.96 & 0.88 & 0.16 & 0.05 & 0.28  \\ Training from scratch with ES & 0.86 & 0.94 & 0.86 & 0.2 & 0.08 & 0.3  \\ Baseline model & 0.88 & 0.97 & 0.82 & 0.27 & 0.05 & 0.27  \\ Baseline Model with ES & 0.88 & 0.96 & 0.78 & 0.26 & 0.07 & 0.33  \\
     \bottomrule
@@ -52,7 +52,7 @@ In terms of evaluation metrics, it can be seen from Table \ref{tab_fs} that the 
 What works well for a dataset in terms of hyperparameters may not work well for another, especially when there is a considerable difference in sample size. With this in mind, hyperparameter tuning using random search was performed on the new data with the following parameter variations using the same Early Stopping strategy as before, restoring the weights of the best performing epoch \gls{w.r.t.} Validation Loss:
 \begin{itemize}
     \item{Learning Rate: 0.0001 and 0.001}
-    \item{Optimiser: RMSprop,Adam and Nadam}
+    \item{Optimiser: RMSprop, Adam and Nadam}
     \item{Loss Function: CE Dice Loss}
     \item{Batch Size: 1 and 10}
     \item{Activation Function: ELU}
@@ -74,7 +74,7 @@ As it can be seen from Table \ref{tab_hp} the difference in performance with reg
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Hyperparameter combination & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Hyperparameter combination & Validation & Training & Test & Validation & Training & Test \\ \midrule
 %\rowcolor{lightgray}
     1 rmsprop 0.0001 & 0.86 & 0.94 & 0.93 & 0.2 & 0.07 & 0.15  \\ 1 adam 0.0001 & 0.87 & 0.93 & 0.91 & 0.19 & 0.09 & 0.14  \\ 1 nadam 0.0001 & 0.86 & 0.93 & 0.76 & 0.2 & 0.09 & 0.22  \\ \rowcolor{lightgray}10 rmsprop 0.001 & 0.91 & 0.96 & 0.95 & 0.13 & 0.05 & 0.11  \\ 10 adam 0.001 & 0.6 & 0.68 & 0.64 & 0.55 & 0.44 & 0.36  \\ 10 nadam 0.001 & 0.59 & 0.72 & 0.84 & 0.56 & 0.38 & 0.33  \\
 \bottomrule
@@ -108,12 +108,12 @@ As it can be seen from Figure \ref{best_loss}, there is no evidence of overfitti
 \section{Test Evaluation}
 \paragraph{}
 During the Training/ Validation/ Test split process $39$ images were assigned to the test set, that is completely unseen data by the model. Using the best model's frozen weights (the best weights are restored as part of the \gls{ES} strategy) and architecture, inference is performed of the test dataset to assess model performance by comparing the predictions against the ground truth mask.
-The overall performance of the model at image level is summarised in Table \ref{sum_test}, where $3$ categories are defined according to model performance, the individual performance evaluation scores of each test image are then compared in Figure \ref{scatter_test_scores} according to those categories.
+The overall performance of the model at image level is summarised in Table \ref{sum_test}, where three categories are defined according to model performance, the individual performance evaluation scores of each test image are then compared in Figure \ref{scatter_test_scores} according to those categories.
     \begin{table}[!h] 
         \begin{center}
         \begin{tabular}{ccc} 
         \toprule
-        \textbf{Category} & \textbf{Dice Score range}  & \textbf{Number of images}  \\ \midrule
+        \textbf{Category} & \textbf{Dice Score range} & \textbf{Number of images} \\ \midrule
         High & Greater than or equal to 0.7 & 29  \\
         Medium & Between 0.7 and 0.4 & 5  \\
         Low & Smaller or equal to 0.4 & 5  \\
@@ -129,7 +129,7 @@ The overall performance of the model at image level is summarised in Table \ref{
         \label{scatter_test_scores}
     \end{figure}
 
-A short image-by-image analysis will be performed for $2$ images of each category, where purple colour represents background (non-\gls{RTS}) pixels and yellow represents foreground (\gls{RTS}) pixels, with varying opacity according to prediction confidence, the lighter the shade the lower the confidence, there is also a red contour which represents the ground truth mask outline.
+A short image-by-image analysis will be performed for two images of each category, where purple colour represents background (non-\gls{RTS}) pixels and yellow represents foreground (\gls{RTS}) pixels, with varying opacity according to prediction confidence, the lighter the shade the lower the confidence, there is also a red contour which represents the ground truth mask outline.
 
 As can be seen from Figure \ref{high_score_pic} the algorithm can deal with both simpler thaw slump shapes (on the left) and more complex shapes (on the right), although the latter shows lower confidence in the pixel prediction confidence, as can be seen by lower intensity pixel shading and is also reflected in a lower dice score.
     \begin{figure}[htp]

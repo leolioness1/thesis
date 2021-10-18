@@ -2,7 +2,7 @@
 \chapter{ Modelling Experiments} \label{experiments_chapter}
 \paragraph{}
 In this chapter, experiments will be performed to identify the best pre-processing and training parameters to increase the classification performance of the model of choice. 
-All the below experiments were carried out using this author's personal computer with Intel(R) Core(TM) i7-10750H \gls{CPU} @ 2.60GHz, 16GB \gls{RAM} with a GeForce RTX 2070 with Max-Q Design 8GB \gls{GPU}
+All the below experiments were carried out using this author's personal computer with Intel(R) Core(TM) i7-10750H \gls{CPU} @ $2.60$GHz, $16$GB \gls{RAM} with a GeForce RTX $2070$ with Max-Q Design $8$GB \gls{GPU}.
 \section{Choosing the most appropriate classification model} \label{classification_models}
 % \subsection{Scene classification model}
 % For the scene classification model Transfer Learning was used with Mobile V2 using ImageNet weights
@@ -13,9 +13,9 @@ The decision to use a U-Net architecture as baseline came from a lot of the lite
 \paragraph{}
 In this project a \textbf{convolution block($x$, $z$)} consists of:
     \begin{enumerate}
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with $3$x$3$ filter dimensions, stride of $1$ and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{Dropout layer with $z$ rate} of input units to drop.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with $3$x$3$ filter dimensions, stride of $1$ and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{2D Maximum Pooling layer} with a 2x2 pooling dimension.
     \end{enumerate}
 This can be seen as Python Tensorflow Keras code in Figure \ref{conv_block_1}
@@ -31,9 +31,9 @@ In this project a \textbf{transpose convolution block($x$,$z$)} consists of:
     \begin{enumerate}
         \item \textbf{2D transpose convolutional layer with $x$ channels} with 2x2 filter dimensions, stride of 2x2 and same padding.
         \item \textbf{Skip connection} concatenate weights of 2D transpose convolutional layer with $x$ channels and the weights of the previous 2D convolutional layer with the same number of $x$ channels.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with $3$x$3$ filter dimensions, stride of $1$ and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
         \item \textbf{Dropout layer with $z$ rate} of input units to drop.
-        \item \textbf{2D convolutional layer with $x$ channels} with 3x3 filter dimensions, stride of 1 and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
+        \item \textbf{2D convolutional layer with $x$ channels} with $3$x$3$ filter dimensions, stride of $1$ and same padding so that if you use a stride of 1, the layer's outputs will have the same spatial dimensions as its inputs.
     \end{enumerate}  
 
 This can be seen as Python Tensorflow Keras code in Figure \ref{deconv_block_1}
@@ -67,7 +67,7 @@ This is depicted in a lower level of detail by Figure \ref{unet_mine}, where yel
 \paragraph{}
 Given the small labelled dataset and the difference compared to ImageNet, since we are dealing with aerial shots of landscapes, the rule of thumb would be to fine-tune the hidden layers.
 
-However, given that most models are only trained on a depth of 3 channels, the weights of such pre-trained models are not compatible with the choice of 4 channels or more.
+However, given that most models are only trained on a depth of three channels, the weights of such pre-trained models are not compatible with the choice of four channels or more.
 Therefore, this author deemed it better to re-train the model even though there is a small labelled dataset present.
 
 \subsection{Pixel-level class imbalance} \label{class_imbalance}
@@ -92,37 +92,37 @@ In order to identify a baseline model, trial runs for only 20 epochs were perfor
     \textbf{Parameter} & \textbf{Value}  \\
     \hline
     Patch Size
-    &  64x64 \\
+    & 64x64 \\
     \hline
     Normalisation
     & na\"ive \\
     \hline
     Augmentation Method
-    &  None \\
+    & None \\
     \hline
     Activation Function
-    &  Exponential Linear Unit (ELU) \\
+    & Exponential Linear Unit (ELU) \\
     \hline
     Loss Function
-    &  CE Dice Loss\\
+    & CE Dice Loss\\
     \hline
     Optimiser
-    &  Adam \\
+    & Adam \\
     \hline
     Batch size
-    &  $4$ \\
+    & $4$ \\
     \hline
     Initial Learning Rate
-    &  $0.0001$  \\
+    & $0.0001$ \\
     \hline
     Learning Rate Schedule
-    &  ReduceLROnPlateau  \\
+    & ReduceLROnPlateau \\
     \hline
     Initialisation method
-    &  He Normal  \\
+    & He Normal \\
     \hline
     Regulariser
-    &  Dropout with varying rates \\
+    & Dropout with varying rates \\
     \end{tabular}
 \end{center}
 
@@ -156,7 +156,7 @@ The model with the highest validation dice coefficient was the one where the ima
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Patch size & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Patch size & Validation & Training & Test & Validation & Training & Test \\ \midrule
 32 & 0.38 & 0.59 & 0.34 & 1.2 & 0.82 & 1.27 \\ \rowcolor{lightgray} 64 & 0.7 & 0.82 & 0.78 & 0.5 & 0.26 & 0.3  \\ 128 & 0.53 & 0.6 & 0.62 & 0.57 & 0.48 & 0.43  \\ 256 & 0.2 & 0.31 & 0.14 & 0.84 & 0.72 & 0.9  \\
 \bottomrule
     \end{tabular}
@@ -193,7 +193,7 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Normalisation method & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Normalisation method & Validation & Training & Test & Validation & Training & Test \\ \midrule
     % max & 0.53 & 0.58 & 0.45 & 0.67 & 0.62 & 0.78  \\ naive & 0.68 & 0.86 & 0.82 & 0.55 & 0.21 & 0.27  \\ \rowcolor{lightgray} z-score & 0.77 & 0.87 & 0.87 & 0.41 & 0.18 & 0.18  \\
     max & 0.69 & 0.87 & 0.71 & 0.49 & 0.18 & 0.41  \\ \rowcolor{lightgray} naive & 0.75 & 0.89 & 0.8 & 0.39 & 0.16 & 0.27  \\ z score & 0.7 & 0.92 & 0.8 & 0.5 & 0.13 & 0.28  \\
     \bottomrule
@@ -264,7 +264,7 @@ As introduced  in section \ref{optimiser}, there are several optimisers that cou
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Optimiser & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Optimiser & Validation & Training & Test & Validation & Training & Test  \\ \midrule
 
     adam & 0.75 & 0.89 & 0.72 & 0.55 & 0.16 & 0.4  \\ nadam & 0.77 & 0.9 & 0.72 & 0.55 & 0.15 & 0.38  \\ sgd & 0.56 & 0.62 & 0.62 & 0.78 & 0.57 & 0.51  \\ \rowcolor{lightgray} rmsprop & 0.79 & 0.9 & 0.76 & 0.53 & 0.15 & 0.34  \\ 
     
@@ -292,7 +292,7 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Learning rate & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Learning rate & Validation & Training & Test & Validation & Training & Test \\ \midrule
     0.01 & 0.35 & 0.35 & 0.33 & 1.03 & 0.91 & 0.9  \\ 0.001 & 0.75 & 0.92 & 0.8 & 0.86 & 0.11 & 0.28  \\ \rowcolor{lightgray} 0.0001 & 0.79 & 0.9 & 0.76 & 0.53 & 0.15 & 0.34  \\
 \bottomrule
     \end{tabular}
@@ -316,7 +316,7 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$, based on th
 \end{figure}
 
 Figure \ref{lr_dice} shows a big difference between the performance of $0.01$ learning rate and the other values, this could be due to the large learning rate overshooting the global or a local minimum and arriving at a suboptimal final set of weights.
-In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD}  optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the \textit{ReduceLROnPlateau} learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
+In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD} optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the \textit{ReduceLROnPlateau} learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
 
 The top learning rate for the RMSProp optimiser was $0.0001$, therefore this will be used for the experiments.
 
@@ -324,14 +324,14 @@ The top learning rate for the RMSProp optimiser was $0.0001$, therefore this wil
 \paragraph{}
 Varying the mini-batch size has great implications in the convergence of the model, given its small labelled dataset, this project is working with smaller batch sizes than it is standard in the industry.
 
-This is validated by the results of the experience, as it can be seen in Table \ref{tab_batch} the batch sizes that show the worst performance are the $2$  highest values of $16$ and $20$ mini-batch size. All the other values display a very close performance, with the best being a batch size of $1$.
+This is validated by the results of the experience, as it can be seen in Table \ref{tab_batch} the batch sizes that show the worst performance are the two highest values of $16$ and $20$ mini-batch size. All the other values display a very close performance, with the best being a batch size of one.
 
 \begin{table}[ht!] 
     \begin{center}
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Batch size & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Learning rate & Validation & Training & Test & Validation & Training & Test \\ \midrule
 %\rowcolor{lightgray}
     \rowcolor{lightgray} 1 & 0.85 & 0.93 & 0.8 & 0.47 & 0.1 & 0.29  \\ 2 & 0.79 & 0.88 & 0.77 & 0.46 & 0.17 & 0.31  \\ 4 & 0.68 & 0.84 & 0.71 & 0.6 & 0.23 & 0.39  \\ 6 & 0.67 & 0.83 & 0.73 & 0.61 & 0.25 & 0.37  \\ 10 & 0.58 & 0.65 & 0.64 & 0.65 & 0.51 & 0.49  \\ 16 & 0.55 & 0.7 & 0.5 & 0.63 & 0.45 & 0.7  \\ 20 & 0.49 & 0.65 & 0.66 & 0.82 & 0.51 & 0.48  \\
     \bottomrule
@@ -353,9 +353,9 @@ In a complete opposite way, using the random uniform initialisation function lea
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Initialisation method & Validation & Training & Test & Validation    & Training    & Test   \\ \midrule
+    Initialisation method & Validation & Training & Test & Validation & Training & Test \\ \midrule
 %\rowcolor{lightgray}
-    \rowcolor{lightgray} he normal & 0.82 & 0.93 & 0.76 & 0.57 & 0.1 & 0.35  \\ he uniform & 0.8 & 0.92 & 0.77 & 0.65 & 0.11 & 0.34  \\ glorot normal & 0.79 & 0.87 & 0.71 & 0.47 & 0.19 & 0.4  \\ glorot uniform & 0.77 & 0.85 & 0.75 & 0.51 & 0.24 & 0.34  \\ random normal & 0.82 & 0.91 & 0.76 & 0.59 & 0.14 & 0.34  \\ random uniform & 0.69 & 0.72 & 0.67 & 0.64 & 0.45 & 0.45  \\
+    \rowcolor{lightgray} he normal & 0.82 & 0.93 & 0.76 & 0.57 & 0.1 & 0.35  \\ he uniform & 0.8 & 0.92 & 0.77 & 0.65 & 0.11 & 0.34  \\ glorot normal & 0.79 & 0.87 & 0.71 & 0.47 & 0.19 & 0.4 \\ glorot uniform & 0.77 & 0.85 & 0.75 & 0.51 & 0.24 & 0.34  \\ random normal & 0.82 & 0.91 & 0.76 & 0.59 & 0.14 & 0.34  \\ random uniform & 0.69 & 0.72 & 0.67 & 0.64 & 0.45 & 0.45  \\
     \bottomrule
     \end{tabular}
   \end{center} 
@@ -395,7 +395,7 @@ The \gls{SELU} function was also considered but as it is self normalising the \g
     \begin{tabular}{ccccccc}
         \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Activation Function & Validation & Training & Test & Validation    & Training & Test   \\ 
+    Activation Function & Validation & Training & Test & Validation & Training & Test \\
     \rowcolor{lightgray} \gls{ELU} & 0.85 & 0.93 & 0.78 & 0.26 & 0.11 & 0.31  \\ \gls{ReLU} & 0.67 & 0.73 & 0.64 & 0.53 & 0.45 & 0.52  \\ tanh & 0.8 & 0.88 & 0.77 & 0.33 & 0.19 & 0.32  \\
                     \bottomrule
     \end{tabular}
@@ -425,7 +425,7 @@ Figure \ref{loss_dice} shows that they are all successfully training the model a
     \begin{tabular}{ccccccc} 
     \toprule
        & \multicolumn{3}{c}{Dice Coefficient}     & \multicolumn{3}{c}{Loss} \\
-    Loss Function & Validation & Training & Test & Validation    & Training & Test   \\ 
+    Loss Function & Validation & Training & Test & Validation & Training & Test \\ 
     \midrule
     dice coef loss & 0.81 & 0.9 & 0.75 & 0.19 & 0.1 & 0.25  \\ \rowcolor{lightgray} \gls{CE} dice loss & 0.82 & 0.93 & 0.81 & 0.57 & 0.1 & 0.28  \\ iou loss & 0.81 & 0.91 & 0.71 & 0.29 & 0.15 & 0.45  \\ \gls{CE} jaccard loss & 0.78 & 0.93 & 0.8 & 1.06 & 0.18 & 0.51  \\ binary focal loss & 0.78 & 0.86 & 0.77 & 2.2 & 0.25 & 0.45  \\
     \bottomrule
@@ -473,7 +473,7 @@ In summary, there are a few things that have been concluded from the experiments
 \begin{enumerate}
     \item{When there is a background and foreground class, where the foreground class represents the \gls{ROI}, in this case the \gls{RTS} pixels, it is important to adjust the patch size of the image as a way of reducing pixel imbalance between the negative more frequent background class and the positive more valuable foreground class. Depending on the size of the \gls{ROI} this has to be done taking into consideration that context around the \gls{ROI} is also valuable in its correct identification. For example in the context of this thesis reducing the patch size showed improvement until the $64$x$64$ patch size, but once it was further reduced to $32$x$32$ the performance was worst.}
     \item{The relationship between the learning rate hyperparameter and the optimiser is very strong, this was particularly evident with a higher learning rate of $0.1$, which incredibly benefitted the \gls{SGD} optimiser but drastically reduced the performance of the other optimisers, perhaps more experiments with the other parameters of optimisers and different learning rate schedules would be interesting, given more time.}
-    \item{The relationship between mini-batch size and learning rate also seems to be very important, despite changing optimiser, it was observed through the grid search experiment that batch size of $1$ works better with $0.0001$ learning rate, whereas batch size of $10$ performs better with $0.001$ learning rate, this may be due to the fact that by seeing more data with a bigger batch size the model is less likely to overshoot a minimum and hence can tolerate a higher initial learning rate and vice-versa.}
+    \item{The relationship between mini-batch size and learning rate also seems to be very important, despite changing optimiser, it was observed through the grid search experiment that batch size of one works better with $0.0001$ learning rate, whereas batch size of $10$ performs better with $0.001$ learning rate, this may be due to the fact that by seeing more data with a bigger batch size the model is less likely to overshoot a minimum and hence can tolerate a higher initial learning rate and vice-versa.}
     \item {The correct technical implementation of loss functions is challenging, specially when dealing with bespoke data ingested from GeoTiFF file format but essential for the successful training of the model.}
     \item {\gls{ES} is very effective in preventing overfitting.}
     \item {Dropout is very effective in preventing exploding gradients.}

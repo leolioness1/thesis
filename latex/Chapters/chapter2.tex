@@ -6,11 +6,10 @@ All the necessary scientific concepts and ideas will be discussed in this sectio
 \section{Permafrost and its degradation}  \label{perma_intro}
 \paragraph{}
 Permafrost is characterised as frozen ground that has a temperature colder than 0 degrees C continuously for two or more years (\cite{everdingen_multi-language_1998}).
-% Regions can be classified according to the percentage of permafrost present in the area: continuous, discontinuous, boundary. 
 
 As the Arctic has warmed twice as fast as the globe on average, \gls{a.k.a.} Arctic amplification (\cite{climatechangefur}) the consequences of global warming are disproportionally felt in the Arctic. 
 
-In the Northern Hemisphere, immense amounts of soil organic carbon are trapped in permafrost soils. Any change in boundary conditions that causes the ground to warm will result in the thaw of permafrost. These abrupt thaw processes will expose previously frozen soil organic matter, causing it to undergo microbial degradation and release \gls{GHGs} \gls{e.g.} methane and carbon dioxide as a result.
+In the Northern Hemisphere, immense amounts of soil organic carbon are trapped in permafrost soils. Boundaries are the region where permafrost stays frozen throughout the year,  despite seasonal changes in temperature. Any change in boundary conditions that causes the ground to warm will result in the thaw of permafrost. These abrupt thaw processes will expose previously frozen soil organic matter, causing it to undergo microbial degradation and release \gls{GHGs} \gls{e.g.} methane and carbon dioxide as a result.
 
 The thaw of permafrost can not only lead to damage to roads and other infrastructure, but also to the release of said trapped \gls{GHGs}. These consequently could contribute further to global warming and even more permafrost degradation (\cite{MURTON2021857}), as it warms and thaws at a faster rate, creating a vicious cycle of global warming.
 
@@ -63,18 +62,15 @@ Before the rise in popularity of \gls{DL} applications in Remote Sensing imagery
 In a study (\cite{isprs-archives-XLII-3-79-2018}) on extracting built-up areas from Sentinel-2 remote sensing imagery, \gls{DL} techniques were compared against the most widely used conventional \gls{ML} methods in remote sensing classification to show the benefits of using \gls{DL} algorithms, both Gaussian \gls{SVM} and \gls{BPNN} were evaluated.
 
 \paragraph{\gls{SVM}}
-\paragraph{}
 According to a 2010 review (\cite{MOUNTRAKIS2011247}) of over 100 studies on the use of \gls{SVM} in remote sensing, this model's popularity in the field came from its ability to generalise well even when there is limited training data, which is quite common in remote sensing problems. Their major limitation comes in the form of parameter assignment issues, which affect the quality of the results.
 
 \paragraph{\gls{RF}}
-\paragraph{}
 \gls{RF} has always been a popular method, as it is an ensemble classifier that makes use of multiple decision trees combined with random subsampling of the training data and variables. 
 
 According to a review on the use of \gls{RF} in remote sensing, (\cite{BELGIU201624}) \gls{RF} became a popular classifier in remote sensing due to the high accuracy of its classifications. It also seems to successfully handle the high dimensionality and multicollinearity of remote sensing data, being fast and not prone to overfitting. Its main limitation is its sensitivity to the sampling design.
 
 \paragraph{\gls{BPNN}}
-\paragraph{}
-The traditional \gls{BPNN} is a popular \gls{ML} algorithm, according to a review (\cite{YUAN2020111716}) in environmental remote sensing it has been used extensively for research in this field. Yuan et al. report improvement in accuracy against traditional regression methods across several papers by using \gls{BPNN} but highlights a couple of limitations: the slow convergence of the algorithm and how much it is affected by weight initialisation, being susceptible to getting stuck in local minimums. 
+The traditional \gls{BPNN} is a popular \gls{ML} algorithm, according to a review (\cite{YUAN2020111716}) in environmental remote sensing it has been used extensively for research in this field. Yuan et al. report improvement in accuracy against traditional regression methods across several papers by using \gls{BPNN} but highlights a couple of limitations: the slow convergence of the algorithm and how much it is affected by weight initialisation, being susceptible to getting stuck in local minima. 
 
 This traditional Neural Network forms the back-bone of many \gls{DL} models, so it is imperitive to understand its inner works.
 
@@ -168,7 +164,7 @@ Each image is represented as a 3D matrix with dimensions of width (W), height (H
 \subsubsection{Convolutional Layer}
 \paragraph{}
 The objective of the Convolution Operation, after which the layer has been named, is to extract features from an image. It is the key differentiator from a Dense layer, as it enables the ability to capture dependencies between pixels through the application of filters. It learns local patterns rather than global patterns.
-In abstract mathematical terms, it takes the matrix of the image and the matrix of a filter/kernel and merges the information in both. By making the filter smaller than the input dimension, sparse interaction can be achieved, reducing the memory requirements and improving the model's efficiency.
+In layman's terms, it takes the matrix of the image and the matrix of a filter/kernel and merges the information in both. By making the filter smaller than the input dimension, sparse interaction can be achieved, reducing the memory requirements and improving the model's efficiency.
 
 It also means that neurons are constrained to using the same set of weights for getting the output, \gls{a.k.a.} shared parameters. This parameter sharing gives the Convolution Operator the property of translation equivariance, meaning that if we translate the input, the output will also be translated, giving \gls{CNN}s the ability to learn features regardless of their position.
 
@@ -265,9 +261,9 @@ To achieve this several spatial pooling types can be applied interchangeably, th
 \paragraph{}
 Finally, once the outputs of all the layers above successfully represent the high-level features of the input image, this output is flattened into a 1D matrix that can be fed to the Fully Connected Layers. The first few layers of this type learn non-linear combinations of these features to identify which features most strongly correlate with the output classes.
 
-In a scene classification problem, to identify the most likely output class the last of these fully connected layers usually has a softmax (multi-class problem) or sigmoid (binary class problem) activation function to output a $1$x$N$ matrix of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class and all of these probabilities summing to one.
+In a scene classification problem, to identify the most likely output class the last of these fully connected layers usually has a softmax (multi-class problem) or sigmoid (binary class problem) activation function to output a vector of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class and all of these probabilities summing to one.
 
-In a pixel-wise classification problem, the final layer could be used to perform a pixel-wise prediction and output a $W$x$H$ matrix of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class. More detail on how the necessary $W$x$H$ dimensions are upsampled is given in the following layer.
+In a pixel-wise classification problem, the final layer could be used to perform a pixel-wise prediction and output a square matrix of probabilities with the same dimensions as the input matrix, with each element in this matrix corresponding to the probability of an object belonging to a specific class. More detail on how the necessary matrix dimensions are upsampled is given in the following layer.
 
 \subsubsection{Fractionally-strided/ Transposed Convolutional Layer}
 \paragraph{}
@@ -277,10 +273,22 @@ In a pixel-wise classification problem, this could also be used as the last laye
 
 \subsection{Activation Functions} \label{cnn_activation}
 \paragraph{}
-There are several activation functions used for different purposes. Those commonly used in hidden layers are the Tahn, Sigmoid, and \gls{ReLU} activation functions.
+There are several activation functions used for different purposes. Those commonly used in hidden layers are the Sigmoid, Softmax, Tanh and \gls{ReLU} activation functions.
 In a \gls{CNN}, it is usual to have an activation function following every convolution layer to introduce non-linearity, the recommendation in modern \gls{NN} is the use of \gls{ReLU} activation functions(\cite{GoodBengCour16}).
 
 We will start by introducing some activation functions commonly used in the output layer - softmax and sigmoid.
+
+\subsubsection{Sigmoid}
+\paragraph{}
+Although the Sigmoid activation function was popular in the 90s as a non-linear layer to normalise the output of each neuron in hidden layers, it lost popularity (\cite{GoodBengCour16}) to both the activation functions that follow.
+
+These days, since it outputs values between zero and one, the sigmoid activation function is usually used in the output layer for single label/multi-label binary classification problems. 
+
+\begin{equation}
+    \label{sigmoid_eq}
+    % sigmoid(x) = \frac{1}{1 + e^{-\alpha x}} 
+    \sigma(z) = \frac{1} {1 + e^{-z}}
+\end{equation}
 
 \subsubsection{Softmax}
 \paragraph{}
@@ -293,7 +301,7 @@ Anytime we want to represent a probability distribution over a discrete variable
 
 In \gls{NN}, the softmax activation function is commonly used for multi-class classification, being an output layer that predicts the multinomial probability distribution described above.
 
-As it can be seen in Figure \ref{fig_softmax}, the softmax activation will output one value for each node in the output layer, this outputted vector of probabilities that sum to $1$ is interpreted as the probability of membership for each class.
+As it can be seen in Figure \ref{fig_softmax}, the softmax activation will output one value for each node in the output layer, this outputted vector of probabilities that sum to one is interpreted as the probability of membership for each class.
 
 \begin{figure}[hbt!]
     \centering
@@ -302,32 +310,19 @@ As it can be seen in Figure \ref{fig_softmax}, the softmax activation will outpu
     \label{fig_softmax}
 \end{figure}
 
-\subsubsection{Sigmoid}
-\paragraph{}
-Although the Sigmoid activation function was popular in the 90s as a non-linear layer to normalise the output of each neuron in hidden layers, it lost popularity (\cite{GoodBengCour16}) to both the activation functions that follow.
-
-These days, since it outputs values between $0$ and $1$, the sigmoid activation function is usually used in the output layer for single label/multi-label binary classification problems. 
-
-\begin{equation}
-    \label{sigmoid_eq}
-    % sigmoid(x) = \frac{1}{1 + e^{-\alpha x}} 
-    \sigma(z) = \frac{1} {1 + e^{-z}}
-\end{equation}
-
-
 \subsubsection{Tanh}
 \paragraph{}
 The hyperbolic tangent activation function \gls{a.k.a.} Tanh function was used as the default activation function for hidden layers in the late 90s to 2010s after it showed signs of typically performing better than the logistic sigmoid activation function (\cite{GoodBengCour16}).
 Both of these activation functions are depicted in Figure \ref{fig_tahn_sigmoid}.
 
-As shown in Equation \ref{tanh_eq}, it takes as input any real value and outputs values between -1 and 1.
+As shown in Equation \ref{tanh_eq}, it takes as input any real value and outputs values between $-1$ and $1$.
 
 \begin{equation}
     \label{tanh_eq}
-    Tanh(x) = \frac{1 - e^{-\alpha x}}{1 + e^{-\alpha x}} 
+    tanh(z) = \frac{e^{2z} - 1}{ e^{2z} + 1} 
 \end{equation}
 
-Despite their ability to learn complex mapping functions, both the Sigmoid and Tahn activation functions have a known limitation, they saturate for extreme values of z, only being strongly sensitive to their input when z is near 0, which can be seen from Figure \ref{fig_tahn_sigmoid}. 
+Despite their ability to learn complex mapping functions, both the Sigmoid and Tahn activation functions have a known limitation, they saturate for extreme values of $z$, only being strongly sensitive to their input when $z$ is near zero, which can be seen from Figure \ref{fig_tahn_sigmoid}. 
 
 This problem is known as vanishing gradients and makes it very difficult to know how the parameters should change to improve the cost function (\cite{GoodBengCour16}) and consequently for Deep Neural Networks to learn effectively.
 
@@ -343,16 +338,16 @@ This problem is known as vanishing gradients and makes it very difficult to know
 \paragraph{}
 \gls{ReLU}s were introduced to address the problem of vanishing gradients and quickly replaced the Sigmoid and Tahn activation functions by providing performance improvements. Deep \gls{CNN}s with \gls{ReLU}s trained several times faster than the same ones with Tahn units(\cite{GoodBengCour16}).
 
-The rectified linear activation function returns its input value if the value is greater than $0$ or $0$ if the input is $0$ or less.
+The rectified linear activation function returns its input value if the value is greater than zero or zero if the input is zero or less.
 
 \begin{equation}
     \label{eq_relu}
     Relu(z) = max(0, z)
 \end{equation}
 
-In this sense, it can be said that because \gls{ReLU}s are nearly linear, they preserve properties that make linear models easy to optimise and generalise well (\cite{GoodBengCour16}).
+In this sense, it can be said that because \gls{ReLU}s are nearly linear, they preserve properties that make linear models easy to optimise and generalise well (\cite{GoodBengCour16}.
 
-\gls{ReLU}s do not come without limitations, large updates to the weights could mean that the input to the activation function is always negative meaning the activation value will always be $0$, this is known as the dying \gls{ReLU} problem. This means the gradient is $0$, so the unit will never activate, the weights will not be adjusted, so like the vanishing gradient problem the learning will be slow with constant 0 gradients (\cite{Maas13rectifiernonlinearities}).
+\gls{ReLU}s do not come without limitations, large updates to the weights could mean that the input to the activation function is always negative meaning the activation value will always be zero, this is known as the dying \gls{ReLU} problem. This means the gradient is zero, so the unit will never activate, the weights will not be adjusted, so like the vanishing gradient problem the learning will be slow with constant 0 gradients (\cite{Maas13rectifiernonlinearities}).
 
 This can be corrected by several variations of the \gls{ReLU}, for example, Leaky and Parametric \gls{ReLU}s that change the slope to the left of $x < 0$. Either by a fixed parameter in Leaky \gls{ReLU} as shown in Figure \ref{fig_relu} or by a parameter that is learned by backpropagation using weights and biases in Parametric \gls{ReLU}. 
 
@@ -416,7 +411,7 @@ Several meaningful contributions were made by other architectures, such as:
 
 \begin{itemize}
 
-    \item \textbf{\gls{NiN}}  A \gls{NiN} block(\cite{lin2014network}) applies a fully-connected layer to each pixel, they consist of a convolutional layer and multiple 1x1 convolutional layers, this design has influenced many other \gls{CNN} designs.
+    \item \textbf{\gls{NiN}} A \gls{NiN} block(\cite{lin2014network}) applies a fully-connected layer to each pixel, they consist of a convolutional layer and multiple 1x1 convolutional layers, this design has influenced many other \gls{CNN} designs.
  
     \item \textbf{GoogleNet } Also working with blocks, each of its Inception (\cite{7298594}) blocks has 4 paths, extracting information in parallel through convolutional layers of different filter dimensions and max-pooling layers. It also makes use of the 1x1 convolution introduced in \gls{NiN} to reduce channel dimensionality per pixel. This makes it a very efficient network architecture with a low computational cost.
     
@@ -448,7 +443,7 @@ Despite this, \gls{FCN} is still being used widely in remote sensing application
 \paragraph{}
 Huang et al. (\cite{HUANG2020111534}) (\cite{HUANG2021102399}) uses DeepLabv3+ (\cite{Chen_2018_ECCV}), the latest version of DeepLab, to classify each pixel that has an \gls{RTS} present and to quantify their evolution, making it extremely relevant to this project.
 
-The DeepLab models raise output resolution by using the “atrous” convolution instead of the classic one, doing the same with the density of the labels predicted for each class, Chen et al.(\cite{chen2017deeplab}) also use \gls{CRF} to adjust region boundaries in post-processing and capture small details.
+The DeepLab models raise output resolution by using the “atrous” convolution instead of the classic one, doing the same with the density of the labels predicted for each class, Chen et al. (\cite{chen2017deeplab}) also use \gls{CRF} to adjust region boundaries in post-processing and capture small details.
 
 \subsection{U-Net}
 U-Net (\cite{ronneberger2015unet}) was originally presented to solve medical imaging segmentation problems, since it identifies global image context while maintaining spatial accuracy. As shown in Figure \ref{fig_unet}, this is achieved by a combination of encoder, stacked convolution (conv 3x3, \gls{ReLU} arrow), and max-pooling layers (max pool 2x2 arrow) that capture the context through the feature map and the decoder to enable that specific localisation through transposed convolutions (up-conv 2x2 arrow). It introduced the bottom-up/top-down architecture with skip connections (copy and crop arrow) to reach the final result.
