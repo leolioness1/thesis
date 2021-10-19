@@ -129,7 +129,7 @@ The overall performance of the model at image level is summarised in Table \ref{
         \label{scatter_test_scores}
     \end{figure}
 
-A short image-by-image analysis will be performed for two images of each category, where purple colour represents background (non-\gls{RTS}) pixels and yellow represents foreground (\gls{RTS}) pixels, with varying opacity according to prediction confidence, the lighter the shade the lower the confidence, there is also a red contour which represents the ground truth mask outline.
+A short image-by-image analysis will be performed for two images of each category, where purple colour represents background (non-\gls{RTS}) pixels and yellow represents foreground (\gls{RTS}) pixels. The pixels have varying opacity according to prediction confidence where the lighter the shade the lower the confidence and there is also a red contour which represents the ground truth mask outline.
 
 As can be seen from Figure \ref{high_score_pic} the algorithm can deal with both simpler thaw slump shapes (on the left) and more complex shapes (on the right), although the latter shows lower confidence in the pixel prediction confidence, as can be seen by lower intensity pixel shading and is also reflected in a lower dice score.
     \begin{figure}[htp]

@@ -205,7 +205,7 @@ Given the better performance of the  na\"ive normalisation method seen in Figure
 \paragraph{}
 Data Augmentation can be invaluable when the dataset is small, and even more when the data collection is biased. The main purpose of data augmentation in this project is to correct the bias of \gls{RTS} positive pixels always being in the centre of the image.
 
-In that sense, the most useful data augmentation transformation is translation or shift, where the image is translated to the right or left according to certain parameter. The implementation of this was done in the \gls{NN} itself has one of the initial layers with Keras's “RandomTranslation” layer. One layer with an output shifted vertically and horizontal by a random amount of $20\%$ in each direction, to fill the pixels left blank by this translation the fill mode of choice was bipolar interpolation of the nearest pixels.
+In that sense, the most useful data augmentation transformation is translation or shift, where the image is translated to the right or left according to a certain parameter. The implementation of this was done in the \gls{NN} itself and has one of the initial layers with Keras's “RandomTranslation” layer. One layer with an output shifted vertically and horizontally by a random amount of $20\%$ in each direction, to fill the pixels left blank by this translation the fill mode of choice was bipolar interpolation of the nearest pixels.
 
 At this stage a rotation augmentation method was also implemented for comparison, in the same way with the same parameter settings but using Keras's “RandomRotation” layer instead, which rotates the image clockwise or anti-clockwise instead by the random amount of $20\%$, with the same fill method. 
 
@@ -227,8 +227,9 @@ This could be due to changes in the geometry or lighting causing the \gls{ROI} o
     %     \label{aug_loss}
     % \end{minipage}
 \end{figure}
+
 \paragraph{}
-At this point in the experiment process, the experiments will proceed without any augmentation, other options will be explored to address the data collection bias element.
+ The following experiments will not use any augmentation. Although using different augmentation techniques could have proved beneficial this author did not have time to fully evaluate more. The bias in the data will be addressed instead by training the model on \gls{JP2} data, as will be seen in Chapter \ref{new_data_train}.
 
 % \subsection{Most effective spectral bands to use}
 % \subsection{Image resizing methodology}
@@ -344,7 +345,7 @@ This is validated by the results of the experience, as it can be seen in Table \
 \paragraph{}
 As presented in section \ref{initialisation}, He initialisation methods outperform the Xavier (Glorot) initialisation method. According to the literature, He initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
 
-The random normal initialiser has the same final performance as the He normal method in Table \ref{tab_init}, this results may have been due to a particularly good random weight initialisation, in order to assess its validity it should be run several times to establish its significance, however due to time and computational constraints this author did not investigate this further.
+The random normal initialiser has the same final performance as the He normal method in Table \ref{tab_init}, this result may have been due to a particularly good random weight initialisation, in order to assess its validity it should be run several times to establish its significance, however due to time and computational constraints this author did not investigate this further.
 
 In a complete opposite way, using the random uniform initialisation function leads to a low stagnated validation dice coefficient, as can be seen from Figure \ref{init_dice}. This may be due to a bad initialisation, which lead to the backpropagation algorithm being unable to identify the right direction to transform the weights to optimise the cost function, which consequently stalls training.
 
@@ -375,7 +376,7 @@ From here on, He Normal initialisation will be used for the consequent experimen
 
 \subsection{Activation function}
 \paragraph{}
-The discussion of the advantages and disadvantages of different the different activation functions has been discussed in detail in section \ref{cnn_activation}.
+The discussion of the advantages and disadvantages of the different activation functions has been discussed in detail in section \ref{cnn_activation}.
 
 From Figure \ref{loss_dice} \gls{ReLU} stands out since the validation loss completely stalls which indicates that the entire network has died, leading to unsuccessful convergence despite increasing the number of epochs. Dying \gls{ReLU} is a known phenomena with many explanations on how neurons become inactive always outputting $0$ for any given input. Lu et al. argue that symmetric probability distributions such as He initialisation for initialisation is a big cause of dying \gls{ReLU} and propose their own randomised asymmetric initialisation (\cite{Lu_2020}).
 
@@ -474,7 +475,7 @@ In summary, there are a few things that have been concluded from the experiments
     \item{When there is a background and foreground class, where the foreground class represents the \gls{ROI}, in this case the \gls{RTS} pixels, it is important to adjust the patch size of the image as a way of reducing pixel imbalance between the negative more frequent background class and the positive more valuable foreground class. Depending on the size of the \gls{ROI} this has to be done taking into consideration that context around the \gls{ROI} is also valuable in its correct identification. For example in the context of this thesis reducing the patch size showed improvement until the $64$x$64$ patch size, but once it was further reduced to $32$x$32$ the performance was worst.}
     \item{The relationship between the learning rate hyperparameter and the optimiser is very strong, this was particularly evident with a higher learning rate of $0.1$, which incredibly benefitted the \gls{SGD} optimiser but drastically reduced the performance of the other optimisers, perhaps more experiments with the other parameters of optimisers and different learning rate schedules would be interesting, given more time.}
     \item{The relationship between mini-batch size and learning rate also seems to be very important, despite changing optimiser, it was observed through the grid search experiment that batch size of one works better with $0.0001$ learning rate, whereas batch size of $10$ performs better with $0.001$ learning rate, this may be due to the fact that by seeing more data with a bigger batch size the model is less likely to overshoot a minimum and hence can tolerate a higher initial learning rate and vice-versa.}
-    \item {The correct technical implementation of loss functions is challenging, specially when dealing with bespoke data ingested from GeoTiFF file format but essential for the successful training of the model.}
+    \item {The correct technical implementation of loss functions is challenging, especially when dealing with bespoke data ingested from GeoTiFF file format but essential for the successful training of the model.}
     \item {\gls{ES} is very effective in preventing overfitting.}
     \item {Dropout is very effective in preventing exploding gradients.}
 \end{enumerate}

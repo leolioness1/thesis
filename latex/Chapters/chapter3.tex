@@ -25,7 +25,7 @@ There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands - Blu
 In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two \SI{60}{\metre} bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
 \subsubsection{\gls{GEE} and JavaScript}
 \paragraph{}
-\gls{GEE} provides the ability of extracting satellite data using bespoke JavaScript queries through a Console \gls{UI} (shown in Figure \ref{gee_console_ui}, the Sentinel-2 data is available in the \gls{GEE} image collection with ID \textit{COPERNICUS/S2}.
+\gls{GEE} provides the ability of extracting satellite data using bespoke JavaScript queries through a Console \gls{UI} (shown in Figure \ref{gee_console_ui}), the Sentinel-2 data is available in the \gls{GEE} image collection with ID \textit{COPERNICUS/S2}.
 
     \begin{figure}[hbt!]
         \centering
@@ -36,20 +36,20 @@ In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNI
 
 A bespoke JavaScript script was created that extracts satellite data for a fixed area and stores it in \gls{GCS}, this method of data collection will hereby be referred to as \textit{\gls{GEE} data}. This is an area of \SI{2.56}{\kilo\metre\squared}, so that the input size is close to 256x256 pixel representation, since for the highest resolution band one pixel represents a $10$x\SI{10}{\metre} area.
 
-For positive label, when a (retrogressive) thaw slump is present in the area the data is extracted so that the \gls{RTS} polygons presented in section \ref{labeled_data} are at the centre of the image for the extraction.
+For positive labels, when a (retrogressive) thaw slump is present in the area the data is extracted so that the \gls{RTS} polygons presented in section \ref{labeled_data} are at the centre of the image for the extraction.
 For negative labels, control images are extracted based on \SI{2.56}{\kilo\metre\squared} squares centred around random points, that are checked for intersection with \gls{RTS} polygons and any overlapping random features are removed. 
 
 This method has the limitation of introducing bias towards positive pixels always being in the centre of the image. This is a type of selection bias, as the subsample of images the model is being trained on does not represent the overall population of images, leading to a poor generalisation of the model. For example, if the positive \gls{RTS} pixels are anywhere else but the centre of the image, the model would display poor performance.
 % , as will be shown and discussed in section \ref{}.
 
-All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus the \gls{RTS} mask with the ground truth labels. These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}),\gls{NIR} (B8) plus an additional thaw slump mask. This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a \SI{20}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s). The reason why only these 4 bands were taken was due to the extra challenge of resampling other 20-meter or 60-meter resolution bands to 10-meter or vice-versa, given the limited timeframe of this project, doing this would have introduced extra complexity to the problem.
+All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus the \gls{RTS} mask with the ground truth labels. These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}), \gls{NIR} (B8) plus an additional thaw slump mask. This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a \SI{20}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s). The reason why only these 4 bands were taken was due to the extra challenge of resampling other 20-meter or 60-meter resolution bands to 10-meter or vice-versa, given the limited timeframe of this project, doing this would have introduced extra complexity to the problem.
 
 Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
 Files are in GeoTiff format with float32 pixel values that have not been scaled, so are in raw format at this stage, these values returned by the \gls{GEE} API that can reach values of $10,000$ or more in some instances. This is the case as even though reflectances are typically percentage values between $0$ and $100$ (or $0$-$1$), these are often scaled by a certain factor (e.g. $1 e^4$) to be able to use integer values instead to save disk space. 
 
 The \gls{CRS}, which associates numerical coordinates with a position on the Earth's surface, is defined by organisations such as the \gls{EPSG}.
 
-The projections are identified through an authority: code format, where the authority is, for example, “\gls{EPSG}” and the code is a unique number for a given \gls{CRS}. For example, \gls{EPSG}:32604 was used for this project's data extraction for \gls{RTS}s located in Herschel Island.
+The projections are identified through an “authority: code” format, where the authority is, for example, “\gls{EPSG}” and the code is a unique number for a given \gls{CRS}. For example, \gls{EPSG}:32604 was used for this project's data extraction for \gls{RTS}s located in Herschel Island.
 
 This method of data collection came with its limitations. The \gls{GEE} \gls{UI} would crash for more than 30 images extracted at any one time and would freeze while extracting those images, taking hours at a time. This method was not automatable, which explains why the number of images collected is so low compared to the number of features present in the ground truth polygons.
 
@@ -231,7 +231,7 @@ For that purpose and also the general purpose of introducing noise in the model 
         \item \textbf{Shifting} shifts the coordinates of every pixel along the image axis, important to avoid that centred \gls{ROI} bias.
     \end{itemize}
 \subsection{Preparing the data for modelling using Tensorflow} \label{tf_dataprep}
-A bespoke script was created to code a data generator compatible with Tensorflow models there are a few steps in the model:
+A bespoke script was created to code a data generator compatible with Tensorflow models. The steps performed in this script are as follows:
 
 \begin{enumerate}
     \item Read GeoTiff file and convert it to tensor format
@@ -263,7 +263,7 @@ To successfully train any \gls{NN}, there are a few key components that are nece
         \label{fig_hyperparameter}
     \end{figure}
 \subsubsection{Loss function} \label{loss_functions}
-The loss function is one of the essential components in the learning process of \gls{DL} models, since it enables the \gls{DL} algorithms to learn and optimise the objective through gradient descent. The loss function is responsible for ensuring that the mathematical representation of the objectives is accurate, so that it can assess how well the predicted values match the ground truth.
+The loss function is one of the essential components in the learning process of \gls{DL} models, since it enables the \gls{DL} algorithms to learn and optimise the objective through gradient descent. The loss function is responsible for ensuring that the mathematical representation of the objective is accurate, so that it can assess how well the predicted values match the ground truth.
 
 Ma (\cite{LossOdyssey}) breaks down known segmentation loss functions into categories according to different optimisation objectives, which can be seen in Figure \ref{fig_loss_odissey}. Some of these will be described in this section.
 
@@ -403,7 +403,7 @@ The difference between this He and the Xavier initialisation is the $\frac{1}{2}
 \subsubsection{Regulariser} \label{regulariser}
 When fine-tuning pre-trained models, it is very likely that overfitting will become a problem. To help address this, either $l1$ or $l2$ regularisation can be helpful with early stopping, as well as, the introduction of Dropout or Batch normalisation.
 \paragraph{$l1$ and $l2$ regularisation}
-Performing $l2$ regularisation \gls{a.k.a.} weight decay constrains weight values towards 0 (but not actually zero) whereas $l1$ regularisation \gls{a.k.a.} Lasso regression drives the weights to be $0$, tends to work well as a feature selection technique. 
+Performing $l2$ regularisation \gls{a.k.a.} weight decay constrains weight values towards 0 (but not actually zero) whereas $l1$ regularisation \gls{a.k.a.} Lasso regression drives the weights to be $0$ and so tends to work well as a feature selection technique. 
 
 Regularisers are usually attached to the loss function as a penalty term, $l1$ penalises the absolute value whereas $l2$ penalises the square value of the weights (\cite{shanmugamani2018deep}. 
 
@@ -485,7 +485,7 @@ The dice coefficient (\cite{7785132}), ranging between zero and one, is the most
 \end{equation}
 
 \paragraph{\gls{IoU}}
-From the definition of the two metrics, we have that \gls{IoU} and Dice score are within a factor of two of each other $F/2 \leq \gls{IoU} \leq F$. It has been defined in section \ref{loss_functions} with Equation \ref{eq_jaccard}
+From the definition of the two metrics, we have that \gls{IoU} and Dice score are within a factor of two of each other $F/2 \leq \gls{IoU} \leq F$. It has been defined in section \ref{loss_functions} with Equation \ref{eq_jaccard}.
 
 In general, like $l2$ penalises the biggest mistakes more than $l1$ regularisation, the \gls{IoU} metric penalises a single instances of wrong classification more than the Dice score. The \gls{IoU} metric has a squaring effect on the errors in comparison with the Dice score, making it more focused on the worst performance, rather than the average.
 

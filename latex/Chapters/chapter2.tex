@@ -43,7 +43,7 @@ This means that \gls{RTS}s have particular parts that can ease their visual iden
         \centering
         \includegraphics[width=1 \textwidth]{RTS.png}
         \caption{Example of an \gls{RTS} with added legend. (b) and (c) are the
-ground photo and remote sensing image of an \gls{RTS} whose central location is 92.912° E, 34.848° N. (\cite{HUANG2020111534})}
+ground photo and Remote Sensing image of an \gls{RTS} whose central location is 92.912° E, 34.848° N. (\cite{HUANG2020111534})}
         \label{fig_RTS}
     \end{figure}
 
@@ -51,26 +51,26 @@ ground photo and remote sensing image of an \gls{RTS} whose central location is 
 As some sections of the slump scar stabilise they become vegetated (\cite{KOKELJ201556}) and thus harder to identify using only visual Red (R), Green(G) and Blue (B) channels, this is where other spectral bands can identify, features not seen with the naked eye (\cite{HUANG2020111534})
 \section{Artificial Intelligence Applications in Remote Sensing}  \label{ai_rs}
 \paragraph{}
-The advancements in Artificial Intelligence have made it possible to identify and classify particular features in images, even remote sensing imagery. This section will introduce the techniques used in this field.
+The advancements in Artificial Intelligence have made it possible to identify and classify particular features in images, even Remote Sensing imagery. This section will introduce the techniques used in this field.
 
-Given the lack of research found on the specific task of identifying \gls{RTS}s using remote sensing imagery, a more expansive approach on looking at \gls{DL} and \gls{ML} techniques using remote sensing imagery was taken.
+Given the lack of research found on the specific task of identifying \gls{RTS}s using Remote Sensing imagery, a more expansive approach on looking at \gls{DL} and \gls{ML} techniques using Remote Sensing imagery was taken.
 
 \subsection{Conventional \gls{ML} applications in Remote Sensing}  \label{ml_rs}
 \paragraph{}
 Before the rise in popularity of \gls{DL} applications in Remote Sensing imagery, more shallow structures that process features extracted from the satellite images, such as \gls{RF}, were used. This type of \gls{ML} require features to be extracted by experts and flattened to enable the algorithm to use them. This process can be time-consuming and can be overcome by the use of \gls{DL}, which does the feature map extraction as part of the algorithm, as will be seen in section \ref{cnn_layers}.
 
-In a study (\cite{isprs-archives-XLII-3-79-2018}) on extracting built-up areas from Sentinel-2 remote sensing imagery, \gls{DL} techniques were compared against the most widely used conventional \gls{ML} methods in remote sensing classification to show the benefits of using \gls{DL} algorithms, both Gaussian \gls{SVM} and \gls{BPNN} were evaluated.
+In a study (\cite{isprs-archives-XLII-3-79-2018}) on extracting built-up areas from Sentinel-2 Remote Sensing imagery, \gls{DL} techniques were compared against the most widely used conventional \gls{ML} methods in Remote Sensing classification to show the benefits of using \gls{DL} algorithms, both Gaussian \gls{SVM} and \gls{BPNN} were evaluated.
 
 \paragraph{\gls{SVM}}
-According to a 2010 review (\cite{MOUNTRAKIS2011247}) of over 100 studies on the use of \gls{SVM} in remote sensing, this model's popularity in the field came from its ability to generalise well even when there is limited training data, which is quite common in remote sensing problems. Their major limitation comes in the form of parameter assignment issues, which affect the quality of the results.
+According to a 2010 review (\cite{MOUNTRAKIS2011247}) of over 100 studies on the use of \gls{SVM} in Remote Sensing, this model's popularity in the field came from its ability to generalise well even when there is limited training data, which is quite common in Remote Sensing problems. Their major limitation comes in the form of parameter assignment issues, which affect the quality of the results.
 
 \paragraph{\gls{RF}}
 \gls{RF} has always been a popular method, as it is an ensemble classifier that makes use of multiple decision trees combined with random subsampling of the training data and variables. 
 
-According to a review on the use of \gls{RF} in remote sensing, (\cite{BELGIU201624}) \gls{RF} became a popular classifier in remote sensing due to the high accuracy of its classifications. It also seems to successfully handle the high dimensionality and multicollinearity of remote sensing data, being fast and not prone to overfitting. Its main limitation is its sensitivity to the sampling design.
+According to a review on the use of \gls{RF} in Remote Sensing, (\cite{BELGIU201624}) \gls{RF} became a popular classifier in Remote Sensing due to the high accuracy of its classifications. It also seems to successfully handle the high dimensionality and multicollinearity of Remote Sensing data, being fast and not prone to overfitting. Its main limitation is its sensitivity to the sampling design.
 
 \paragraph{\gls{BPNN}}
-The traditional \gls{BPNN} is a popular \gls{ML} algorithm, according to a review (\cite{YUAN2020111716}) in environmental remote sensing it has been used extensively for research in this field. Yuan et al. report improvement in accuracy against traditional regression methods across several papers by using \gls{BPNN} but highlights a couple of limitations: the slow convergence of the algorithm and how much it is affected by weight initialisation, being susceptible to getting stuck in local minima. 
+The traditional \gls{BPNN} is a popular \gls{ML} algorithm, according to a review (\cite{YUAN2020111716}) in environmental Remote Sensing it has been used extensively for research in this field. Yuan et al. report improvement in accuracy against traditional regression methods across several papers by using \gls{BPNN} but highlights a couple of limitations: the slow convergence of the algorithm and how much it is affected by weight initialisation, being susceptible to getting stuck in local minima. 
 
 This traditional Neural Network forms the back-bone of many \gls{DL} models, so it is imperitive to understand its inner works.
 
@@ -87,7 +87,7 @@ Straight after the error is calculated, it is propagated backwards to update the
 
 \subsection{\gls{DL} applications in Remote Sensing Imagery} \label{dl_rs}
 \paragraph{}
-Looking at the field of \gls{DL} with Remote Sensing, most studies have been focused on the field of \gls{LULC} classification, as suggested by a \gls{DL} in Remote sensing application review (\cite{MA2019166}) in Figure \ref{fig_dl_studies}. Object detection, Scene Classification and Segmentation (\gls{a.k.a.} pixel-wise classification) are also techniques to classify images or areas of these images.
+Looking at the field of \gls{DL} with Remote Sensing, most studies have been focused on the field of \gls{LULC} classification, as suggested by a \gls{DL} in Remote Sensing application review (\cite{MA2019166}) in Figure \ref{fig_dl_studies}. Object detection, Scene Classification and Segmentation (\gls{a.k.a.} pixel-wise classification) are also techniques to classify images or areas of these images.
 
     \begin{figure}[hbt!]
         \centering
@@ -96,11 +96,11 @@ Looking at the field of \gls{DL} with Remote Sensing, most studies have been foc
         \label{fig_dl_studies}
     \end{figure}
 
-In traditional natural images, image classification assigns a label to a whole input image, either by outputting a class or a probability of classes that describe that image. However, this is not the case in remote sensing, where the concept is broader, referring to either pixel-wise or scene classification, as shown in Figure \ref{fig_img_class_frame}.
+In traditional natural images, image classification assigns a label to a whole input image, either by outputting a class or a probability of classes that describe that image. However, this is not the case in Remote Sensing, where the concept is broader, referring to either pixel-wise or scene classification, as shown in Figure \ref{fig_img_class_frame}.
 
-\paragraph{Pixel-wise classification} The classification of each pixel, similar to the concept of image segmentation, as it is known when performed in natural images. Each pixel in a remote sensing image could represent, as an example, a 10 by 10-meter area, which would usually be associated with a natural image area. 
+\paragraph{Pixel-wise classification} The classification of each pixel, similar to the concept of image segmentation, as it is known when performed in natural images. Each pixel in a Remote Sensing image could represent, as an example, a 10 by 10-meter area, which would usually be associated with a natural image area. 
 
-So by classifying each pixel in a remote sensing image, we are classifying a 10x10 meter area, each class represented by the different colours at the top right of Figure \ref{fig_img_class_frame} for example. 
+So by classifying each pixel in a Remote Sensing image, we are classifying a 10x10 meter area, each class represented by the different colours at the top right of Figure \ref{fig_img_class_frame} for example. 
 
 \paragraph{Scene classification} The automatic assignment of a semantic label to a scene, represented by the different coloured containers at the bottom right of Figure \ref{fig_img_class_frame}. A scene being a local image patch that is usually manually extracted from large-scale satellite images that contain classes (e.g. forest areas, residential area)(\cite{https://doi.org/10.1002/widm.1264}).
 
@@ -112,7 +112,7 @@ So by classifying each pixel in a remote sensing image, we are classifying a 10x
     \end{figure}
 
 
-\paragraph{Object detection} In remote sensing images, it is used to find out if a satellite image has one or more objects belonging to a given class and find the position of each object predicted in the image (\cite{CHENG201611}).
+\paragraph{Object detection} In Remote Sensing images, it is used to find out if a satellite image has one or more objects belonging to a given class and find the position of each object predicted in the image (\cite{CHENG201611}).
 
 \subsection{\gls{DL} Models in Remote Sensing} \label{dl_models_rs}
 \paragraph{}
@@ -126,7 +126,7 @@ The same review (\cite{MA2019166}) also suggests that the most used \gls{DL} mod
     
 The models in Figure \ref{fig_dl_rs} can be classified into two types of \gls{DL} models: \gls{CNN}, \gls{RNN}, and \gls{FCN} are supervised models, whereas \gls{AE}, \gls{DBN}, \gls{GAN} models are unsupervised models. 
 
-Supervised models require labelled data to learn from the ground truth, whereas unsupervised ones do not.  For example, Alvarez et al. (\cite{alvarez2020s2cgan}) use \gls{GAN} to solve the binary change detection problems in remote sensing. This is done by using the discriminator likelihood to generate the distribution of unchanged samples.
+Supervised models require labelled data to learn from the ground truth, whereas unsupervised ones do not.  For example, Alvarez et al. (\cite{alvarez2020s2cgan}) use \gls{GAN} to solve the binary change detection problems in Remote Sensing. This is done by using the discriminator likelihood to generate the distribution of unchanged samples.
 
 As labelled data has been collected for this project, its focus will be on a supervised \gls{DL} model. \gls{CNN} has been chosen as it is the most popular supervised technique, so section \ref{cnn_sect} will expand on this.
 
@@ -159,14 +159,14 @@ The hidden layers usually consist of convolutional, non-linearity, pooling, and 
 
 \subsubsection{Input Layer}
 \paragraph{}
-Each image is represented as a 3D matrix with dimensions of width (W), height (H), and depth (D), respectively. In the field of natural images, the third dimension (depth) may take the value of $3$ for \gls{RGB} channels of images or $1$ for grey colour images. In the field of remote sensing imagery, this dimension can have N channels, each associated with readings from a different sensor. For example, Sentinel-2 images have 13 channels that will be explored in detail in section \ref{rs_data_collection}. 
+Each image is represented as a 3D matrix with dimensions of width (W), height (H), and depth (D), respectively. In the field of natural images, the third dimension (depth) may take the value of $3$ for \gls{RGB} channels of images or $1$ for grey colour images. In the field of Remote Sensing imagery, this dimension can have N channels, each associated with readings from a different sensor. For example, Sentinel-2 images have 13 channels that will be explored in detail in section \ref{rs_data_collection}. 
 
 \subsubsection{Convolutional Layer}
 \paragraph{}
 The objective of the Convolution Operation, after which the layer has been named, is to extract features from an image. It is the key differentiator from a Dense layer, as it enables the ability to capture dependencies between pixels through the application of filters. It learns local patterns rather than global patterns.
 In layman's terms, it takes the matrix of the image and the matrix of a filter/kernel and merges the information in both. By making the filter smaller than the input dimension, sparse interaction can be achieved, reducing the memory requirements and improving the model's efficiency.
 
-It also means that neurons are constrained to using the same set of weights for getting the output, \gls{a.k.a.} shared parameters. This parameter sharing gives the Convolution Operator the property of translation equivariance, meaning that if we translate the input, the output will also be translated, giving \gls{CNN}s the ability to learn features regardless of their position.
+The fact that a given filter with some set of weights is convolved across the whole input image means that neurons are constrained to using those same set of weights for getting the output, \gls{a.k.a.} shared parameters. This parameter sharing gives the Convolution Operator the property of translation equivariance, meaning that if we translate the input, the output will also be translated, giving \gls{CNN}s the ability to learn features regardless of their position.
 
 A Convolutional layer is a layer that applies different convolution operations to the data. This makes it the most essential building block of a \gls{CNN} and the most computationally expensive too. To fully understand this process, it will be broken down below.
 
@@ -228,7 +228,7 @@ The different activation functions are described in section \ref{cnn_activation}
 The Pooling Layer, \gls{a.k.a.} subsampling or downsampling layer, usually follows a Convolutional Layer or a Non-Linearity Layer if these are separate. 
 Its main function is to reduce the dimensionality and subsequently the number of parameters in the network, whilst retaining the most important information of the activation map. This can reduce the training time/computational power required and increase training efficiency through extracting the dominant translation-invariant features.
 
-Just like the convolutional layer above, a window slides through each feature map applying the pooling operation, so spatial neighbourhood dimensions/pooling kernel size ($K_p$) and stride ($s$) are important parameters that need to be defined beforehand. For example, in an overlapping pooling layer $K_p > s$, one can calculate the feature map output dimensions following a pooling layer as follows (\cite{dumoulin2018guide}) using equations \ref{pool_dim_eq} and \ref{pool_depth_eq}:
+Just like the convolutional layer above, a window slides through each feature map applying the pooling operation, so spatial neighbourhood dimensions \gls{a.k.a.} pooling kernel size ($K_p$) and stride ($s$) are important parameters that need to be defined beforehand. For example, in an overlapping pooling layer $K_p > s$, one can calculate the feature map output dimensions following a pooling layer as follows (\cite{dumoulin2018guide}) using equations \ref{pool_dim_eq} and \ref{pool_depth_eq}:
 
 \begin{equation}
     \label{pool_dim_eq}
@@ -263,7 +263,7 @@ Finally, once the outputs of all the layers above successfully represent the hig
 
 In a scene classification problem, to identify the most likely output class the last of these fully connected layers usually has a softmax (multi-class problem) or sigmoid (binary class problem) activation function to output a vector of probabilities, with each element in this matrix corresponding to the probability of an object belonging to a specific class and all of these probabilities summing to one.
 
-In a pixel-wise classification problem, the final layer could be used to perform a pixel-wise prediction and output a square matrix of probabilities with the same dimensions as the input matrix, with each element in this matrix corresponding to the probability of an object belonging to a specific class. More detail on how the necessary matrix dimensions are upsampled is given in the following layer.
+In a pixel-wise classification problem, the final layer could be used to perform a pixel-wise prediction and output a square matrix of probabilities with the same dimensions as the input matrix, with each element in this matrix corresponding to the probability of an object belonging to a specific class. More detail on how the necessary matrix dimensions are upsampled is given in the following section.
 
 \subsubsection{Fractionally-strided/ Transposed Convolutional Layer}
 \paragraph{}
@@ -366,7 +366,7 @@ Architecture is the arrangement of the layers introduced thus far into set patte
 
 \subsubsection{LeNet}
 \paragraph{}
-In 1989, LeCun et al. proposed the first multilayered \gls{CNN} successfully trained via backpropagation. After a decade of improvement iterations, LeNet-5 (\cite{726791}) was the famous architecture depicted below that started the use of \gls{CNN}s for Optical Character Recognition (OCR) tasks, but it did not perform well in other computer vision problems.
+In 1989, LeCun et al. proposed the first multilayered \gls{CNN} successfully trained via backpropagation. After a decade of improvement iterations, LeNet-5 (\cite{726791}) was the famous architecture depicted in Figure \ref{fig_lenet} that started the use of \gls{CNN}s for Optical Character Recognition (OCR) tasks, but it did not perform well in other computer vision problems.
 
     \begin{figure}[hbt!]
         \centering
@@ -377,12 +377,12 @@ In 1989, LeCun et al. proposed the first multilayered \gls{CNN} successfully tra
     
 \subsubsection{AlexNet}
 \paragraph{}
-In 2012, Krizhevsky et al.(\cite{10.5555/2999134.2999257}) took LeNet's work as inspiration to create a much deeper \gls{CNN} and implemented a few novel contributions which are still essential to the success of \gls{CNN}s to this day:
+In 2012, Krizhevsky et al. (\cite{10.5555/2999134.2999257}) took LeNet's work as inspiration to create a much deeper \gls{CNN} and implemented a few novel contributions which are still essential to the success of \gls{CNN}s to this day:
 \begin{itemize}
     \item \textbf{\gls{ReLU}s} The benefits of these have been highlighted in section \ref{cnn_activation}, contributing to faster training times than the Sigmoid activation function used in LeNet's implementation.
     \item \textbf{Dropout} The use of Dropout layers as a regularisation method helped avoid the problem of overfitting.
     \item \textbf{Data Augmentation} Using artificial data augmentation techniques to increase the size and variety of the training dataset by translating and reflecting existing images improved the performance of the model.
-     \item \textbf{Training on a \gls{GPU}} Using a couple of \gls{GPU}s to train AlexNet allowed for faster training on great amounts of larger images, which set a milestone for the success of \gls{CNN}s, the delineation of responsibilities between the $2$ \gls{GPU}s is shown in Figure \ref{fig_alexnet}.
+     \item \textbf{Training on a \gls{GPU}} Using a couple of \gls{GPU}s to train AlexNet allowed for faster training on a greater number of larger images, which set a milestone for the success of \gls{CNN}s, the delineation of responsibilities between the $2$ \gls{GPU}s is shown in Figure \ref{fig_alexnet}.
 \end{itemize}
 
     \begin{figure}[hbt!]
@@ -423,7 +423,7 @@ Several meaningful contributions were made by other architectures, such as:
 \end{itemize}
 
 \section{The various architectures used in Remote Sensing applications} \label{seg_nets}
-In the field of Remote Sensing applications, the goal is usually pixel-wise classification, which can be thought of as natural image segmentation. For this, the main state-of-the-art \gls{CNN}-based segmentation models used in remote sensing have been introduced.
+In the field of Remote Sensing applications, the goal is usually pixel-wise classification, which can be thought of as natural image segmentation. For this, the main state-of-the-art \gls{CNN}-based segmentation models used in Remote Sensing have been introduced.
 
 \subsection{\gls{FCN}} 
 \paragraph{}
@@ -437,7 +437,7 @@ The authors (\cite{long2015fully}) note that even though bilinearly upsampling w
 
 Many of the architectures introduced below are extensions of the \gls{FCN} architecture (\cite{long2015fully}), bringing new evolutions to the field of Semantic Segmentation namely Deeplab models (\cite{chen2017deeplab}), \gls{CRF}-\gls{RNN} (\cite{Zheng_2015}), ParseNet (\cite{liu2015parsenet}), U-NET(\cite{ronneberger2015unet}) and dilated convolutions (\cite{yu2016multiscale}).
 
-Despite this, \gls{FCN} is still being used widely in remote sensing applications, it has been used together with a \gls{DSM} on remote sensing imagery (\cite{8281008}), for multi-label remote sensing image retrieval by extracting a segmentation map (\cite{8954885}), for the classification of multi-source remote sensing data with Fusion-\gls{FCN} (\cite{8518295}) amongst others.
+Despite this, \gls{FCN} is still being used widely in Remote Sensing applications, it has been used together with a \gls{DSM} on Remote Sensing imagery (\cite{8281008}), for multi-label Remote Sensing image retrieval by extracting a segmentation map (\cite{8954885}), for the classification of multi-source Remote Sensing data with Fusion-\gls{FCN} (\cite{8518295}) amongst others.
 
 \subsection{DeepLab models}
 \paragraph{}
@@ -448,7 +448,7 @@ The DeepLab models raise output resolution by using the “atrous” convolution
 \subsection{U-Net}
 U-Net (\cite{ronneberger2015unet}) was originally presented to solve medical imaging segmentation problems, since it identifies global image context while maintaining spatial accuracy. As shown in Figure \ref{fig_unet}, this is achieved by a combination of encoder, stacked convolution (conv 3x3, \gls{ReLU} arrow), and max-pooling layers (max pool 2x2 arrow) that capture the context through the feature map and the decoder to enable that specific localisation through transposed convolutions (up-conv 2x2 arrow). It introduced the bottom-up/top-down architecture with skip connections (copy and crop arrow) to reach the final result.
 
-Yi et al.(\cite{rs11151774}) use U-Net as a base for DeepResUnet, a residual learning adaptation for complex building segmentation using remote sensing imagery. Another application is the use of U-Net as the base for cloud detection with Cloud-AttU (\cite{sym12061056}), which incorporates an attention mechanism to complete the cloud detection task in remote sensing images.
+Yi et al.(\cite{rs11151774}) use U-Net as a base for DeepResUnet, a residual learning adaptation for complex building segmentation using Remote Sensing imagery. Another application is the use of U-Net as the base for cloud detection with Cloud-AttU (\cite{sym12061056}), which incorporates an attention mechanism to complete the cloud detection task in Remote Sensing images.
 
     \begin{figure}[hbt!]
         \centering
