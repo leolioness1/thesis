@@ -4,7 +4,7 @@
 The input data is one of the essential aspects of the model, characteristics such as image dimensions (in terms of pixels $W$x$H$), the number of bands ($D$) and even the number of images used for training, validation and test can influence the speed and performance of the chosen model.
 \subsection{Labelled data} \label{labeled_data}
 \paragraph{}
-To be able to train a supervised \gls{DL} model, the availability of labelled data is essential in the process of training the model. This ground truth is the key in calculating the error and updating the weights of the model until its loss and performance metric show good performance.
+To be able to train a supervised \gls{DL} model, the availability of labelled data is essential in the process of training the model. This ground truth is the key in calculating the error and updating the weights of the model until its loss and evaluation metric show good performance.
 \paragraph{Thaw Slump Shape files}
 The ground truth \gls{RTS} polygons were very kindly provided by Doctor Ingmar Nitze and the \gls{AWI}. These were collected across pre-defined sites in different locations at different timestamps and georeferenced for consistency and ease of use.
 
@@ -20,7 +20,7 @@ As mentioned in Section \ref{introduction}, the primary data source for this pro
 The latter is the one used in this project, as it is pre-processed to minimise atmospheric effects, leading to better normalisation across different regions.
 There are 13 spectral bands available, from the \gls{VNIR} and \gls{NIR} all the way to the \gls{SWIR} (\cite{sentinel2}).
 
-There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands - Blue ($\approx$493 nm), Green ($\approx$560 nm), and Red (665 nm) plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
+There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands -Red (665 nm), Green ($\approx$560 nm) and Blue ($\approx$493 nm), plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
 
 In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two \SI{60}{\metre} bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
 \subsubsection{\gls{GEE} and JavaScript}
@@ -36,20 +36,20 @@ In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNI
 
 A bespoke JavaScript script was created that extracts satellite data for a fixed area and stores it in \gls{GCS}, this method of data collection will hereby be referred to as \textit{\gls{GEE} data}. This is an area of \SI{2.56}{\kilo\metre\squared}, so that the input size is close to 256x256 pixel representation, since for the highest resolution band one pixel represents a $10$x\SI{10}{\metre} area.
 
-For positive labels, when a (retrogressive) thaw slump is present in the area the data is extracted so that the \gls{RTS} polygons presented in section \ref{labeled_data} are at the centre of the image for the extraction.
+To source positive labels, the data is extracted when a (retrogressive) thaw slump is present in the area with the \gls{RTS} polygons (presented in section \ref{labeled_data}) at the centre of the image for the extraction.
 For negative labels, control images are extracted based on \SI{2.56}{\kilo\metre\squared} squares centred around random points, that are checked for intersection with \gls{RTS} polygons and any overlapping random features are removed. 
 
 This method has the limitation of introducing bias towards positive pixels always being in the centre of the image. This is a type of selection bias, as the subsample of images the model is being trained on does not represent the overall population of images, leading to a poor generalisation of the model. For example, if the positive \gls{RTS} pixels are anywhere else but the centre of the image, the model would display poor performance.
 % , as will be shown and discussed in section \ref{}.
 
-All images have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus the \gls{RTS} mask with the ground truth labels. These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}), \gls{NIR} (B8) plus an additional thaw slump mask. This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a \SI{20}{\metre} (approximately 2 pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all 0s). The reason why only these 4 bands were taken was due to the extra challenge of resampling other 20-meter or 60-meter resolution bands to 10-meter or vice-versa, given the limited timeframe of this project, doing this would have introduced extra complexity to the problem.
+All GeoTiff files have the 10m resolution bands (\gls{RGB}, \gls{NIR} channels) plus the \gls{RTS} mask with the ground truth labels. These correspond to the original Sentinel 2A bands B4, B3, B2 (\gls{RGB}), \gls{NIR} (B8) plus an additional thaw slump mask. This \gls{RTS} mask indicates pixels within thaw slump polygons, plus a \SI{20}{\metre} (approximately two pixels) edge buffer, with value 1 and all other pixels set as 0 in other parts of the image (in control images this band is all zeros). The reason why only these four bands were taken was due to the extra challenge of resampling other 20-meter or 60-meter resolution bands to 10-meter or vice-versa, given the limited timeframe of this project, doing this would have introduced extra complexity to the problem.
 
-Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ 2-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
-Files are in GeoTiff format with float32 pixel values that have not been scaled, so are in raw format at this stage, these values returned by the \gls{GEE} API that can reach values of $10,000$ or more in some instances. This is the case as even though reflectances are typically percentage values between $0$ and $100$ (or $0$-$1$), these are often scaled by a certain factor (e.g. $1 e^4$) to be able to use integer values instead to save disk space. 
+Each satellite image has been collected to match the polygon image date as closely as possible, within a $+/-$ two-week window. This range is wide as the images extracted exclude any images with cirrus and clouds. This dataset will be hereby referred to as \textit{\gls{GEE} data}.
+Files are in GeoTiff format with pixel values that have not been scaled, so are in raw format at this stage, these values returned by the \gls{GEE} API that can reach values of $10,000$ or more in some instances. This is the case as even though reflectances are typically percentage values between $0$ and $100$ (or $0$-$1$), these are often scaled by a certain factor (e.g. $1 e^4$) to be able to use integer values instead to save disk space. 
 
 The \gls{CRS}, which associates numerical coordinates with a position on the Earth's surface, is defined by organisations such as the \gls{EPSG}.
 
-The projections are identified through an “authority: code” format, where the authority is, for example, “\gls{EPSG}” and the code is a unique number for a given \gls{CRS}. For example, \gls{EPSG}:32604 was used for this project's data extraction for \gls{RTS}s located in Herschel Island.
+The projections are identified through an “authority: code” format, where the authority is, for example, “\gls{EPSG}” and the code is a unique number for a given \gls{CRS}. For example, \gls{EPSG}:32607 was used for this project's data extraction for \gls{RTS}s located in Herschel Island.
 
 This method of data collection came with its limitations. The \gls{GEE} \gls{UI} would crash for more than 30 images extracted at any one time and would freeze while extracting those images, taking hours at a time. This method was not automatable, which explains why the number of images collected is so low compared to the number of features present in the ground truth polygons.
 
@@ -171,7 +171,7 @@ Figure \ref{jp2_rts_pixel_dist} depicts the distribution of pixels with \gls{RTS
 \paragraph{}
 Given the literature on remote sensing \gls{DL} problems, along with the labelled \gls{RTS} data available in a mask format, where each pixel is labelled, it makes sense to make the focus of this project the semantic segmentation networks based on CNN models that were introduced in section \ref{seg_nets}.
 
-The different architectures, as well as the architecture parameters (Kernel sizes, stride, number of layers, number of filters among others), which nowadays are also considered hyperparameters that feed into the learning process won't be described in section \ref{nn_hyperparameters}, since these were already covered in section \ref{seg_nets} and \ref{cnn_layers}, respectively.
+The different architectures, as well as the architecture parameters (kernel sizes, stride, number of layers, number of filters among others), which nowadays are also considered hyperparameters that feed into the learning process, won't be described in section \ref{nn_hyperparameters} since these were already covered in section \ref{seg_nets} and \ref{cnn_layers}, respectively.
 
 To evaluate the success of the task at hand, the ground truth is encoded as a mask of values, $1$ for thaw slump and $0$ for background. The other input is the satellite image itself. To bring the best out of the model architecture, this data needs to be pre-processed to be turned into the input that the network is expecting, usually in tensor form with values between $0$ and $1$.
 
@@ -194,7 +194,7 @@ There are a few ways of increasing the dimensions of an image through different 
     \end{itemize}
 \subsubsection{Normalisation techniques} \label{img_norm}
 \paragraph{}
-Unlike natural images that have a known value between $0$ and $255$, remote sensing imagery depends highly on the scale of the reflectance values returned by the \gls{GEE} API varying widely and reaching values of over $10,000$ in some instances, therefore the normalisation of input becomes quite important.
+Unlike natural images that have a known value between $0$ and $255$, remote sensing imagery depends highly on the scale of the reflectance values varying widely and reaching values of over $10,000$ in some instances, therefore the normalisation of input becomes quite important.
 
 To feed input values into the \gls{NN} it is better to normalise them between $[0,1]$, this is particularly challenging in remote sensing imagery as the spectral data has a big variation of reflectance values across bands and images. 
 
@@ -246,7 +246,7 @@ To successfully train any \gls{NN}, there are a few key components that are nece
 \begin{enumerate}
     \item \textbf{Loss/cost function} that evaluates how well the model performs on any given task, where the goal is usually to minimise the loss.
     \item \textbf{Activation function} will define how the activation map is calculated after convolution and fully connected layers. These were covered in detail in section \ref{cnn_activation}, the ones most widely used in pixel-wise classification architectures in remote sensing are \gls{ReLU} and its variants.
-    \item \textbf{Optimiser} responsible for updating the model parameters at each iteration to optimise the cost function. To learn the model parameters (\gls{a.k.a.} weights in a \gls{NN}) efficiently, essential hyperparameters that estimate the parameters need to be adjusted manually as depicted in Figure \ref{fig_hyperparameter}:
+    \item \textbf{Optimiser} that is responsible for updating the model parameters at each iteration to optimise the cost function. To learn the model parameters (\gls{a.k.a.} weights in a \gls{NN}) efficiently, essential hyperparameters that estimate the parameters need to be adjusted manually as depicted in Figure \ref{fig_hyperparameter}:
         \begin{enumerate}
             \item \textbf{Batch Size} determines the frequency of updates influencing convergence and generalisation.
             \item \textbf{Initialiser} a good initialisation can accelerate optimisation and enable convergence.
@@ -328,7 +328,7 @@ L_{\gls{CE} Dice} = L_{B\gls{CE}} + L_{dice}
 \paragraph{}
 In Deep Learning, optimisation refers to the process of finding the parameters $\theta$ of a \gls{NN} that attempt to minimise a loss function $J(\theta)$ (\cite{GoodBengCour16}). This process usually involves using a subset of data to calculate each update to the parameters based on an expected value of the cost function. The optimiser also takes into account any regularisers, weight initialisation, learning rate and batch size, which influence the success of the optimisation strategy.
 
-Most algorithms used for \gls{DL} use more than one but less than all the training examples \gls{a.k.a.} mini-batch. Even though they do not use only one example, they are nowadays referred to as just stochastic methods rather than mini-batch stochastic methods. In a similarly confusing way, even though that \gls{BGD} implies the processing of the whole training set, the term batch size is usually referring to the mini-batch size, which Goodfellow et al.(\cite{GoodBengCour16}) clarify very well.
+Most algorithms used for \gls{DL} use more than one but less than all the training examples \gls{a.k.a.} mini-batch. Even though they do not use only one example, they are nowadays referred to as just stochastic methods rather than mini-batch stochastic methods. In a similarly confusing way, even though that \gls{BGD} implies the processing of the whole training set, the term batch size is usually referring to the mini-batch size, which Goodfellow et al. (\cite{GoodBengCour16}) clarify very well.
 \paragraph{\gls{SGD}}
 \gls{SGD} and its variants are probably the most popular algorithms in \gls{DL} as it can converge even when the training dataset gets very large, however it has slower asymptotic convergence then \gls{BGD} for example.
 
@@ -366,7 +366,8 @@ Batch size is the number of data points used to train a model in each iteration.
 
 The larger the batch size, the more accurate cost gradient \gls{w.r.t.} parameters and faster training speed (\cite{deeplearning_ai}). Large batch sizes can however negatively impact the generalisation of the network (\cite{keskar2017largebatch}).
 
-Common mini-batch sizes range between $50$ and $256$, but vary for different applications (\cite{ruder2017overview}), for the semantic segmentation models introduced in section \ref{seg_nets} it tends to be between $12$ and $20$ images, with for example U-Net (\cite{ronneberger2015unet}) as one of the exceptions being 1 image making it a pure stochastic gradient optimisation process.
+Common mini-batch sizes range between $50$ and $256$, but vary for different applications (\cite{ruder2017overview}), for the semantic segmentation models introduced in section \ref{seg_nets} it tends to be between $12$ and $20$ images, with for example U-Net (\cite{ronneberger2015unet}) being an exception by using only one image making it a pure stochastic gradient optimisation process.
+
 \subsubsection{Initialisation} \label{initialisation}
 \paragraph{}
 Some algorithms are very sensitive to weight initialisation and the success of its convergence depends a lot on the chosen initialiser. To prevent gradients from vanishing (weight initialisation too small) or exploding (too large), as a rule of thumb, the mean of the activations should be $0$ and the variance of the activations should stay consistent across all layers.
@@ -375,7 +376,7 @@ For simplicity, let us assume the same initialisation methods are usually applie
 
 \paragraph{Random normal initialiser} The weights are randomly initialised usually from a zero-mean normal distribution, however other values of mean and standard deviation can be defined. 
 
-It has been used with the default configuration of zero mean and unit standard deviation in remote sensing applications by Kemker et al. (\cite{kemker2018algorithms}) in initialisation experiences Deep \gls{NN} for Semantic Segmentation.
+It has been used with the default configuration of zero mean and unit standard deviation in remote sensing applications by Kemker et al. (\cite{kemker2018algorithms}) in initialisation experiments using Deep \gls{NN}s for Semantic Segmentation.
 
 \paragraph{Uniform initialiser} In Uniform initialisation, known to work well with the sigmoid activation function (see equation \ref{sigmoid_eq}), where the weights $X$ draw values from the uniform distribution:
 $X \sim \mathcal{U}(a,b)$
@@ -423,7 +424,7 @@ In Figure \ref{fig_dropout} it can be seen that after dropout is applied in \ref
     \end{figure}
 
 \paragraph{Batch Normalisation}
-Its main purpose as discussed in section \ref{cnn_layers} is to make optimisation better through reparametrisation, this introduces both additive and multiplicative noise.
+Its main purpose, as discussed in section \ref{cnn_layers}, is to make optimisation better through reparametrisation, this introduces both additive and multiplicative noise.
 
 This noise introduced in the hidden units during training can have a regularisation effect, so that there is no need for Dropout (\cite{GoodBengCour16}).
 \paragraph{Early Stopping} 
@@ -437,9 +438,9 @@ It is argued that early stopping is advantageous over weight decay as it automat
 \paragraph{}
 Goodfellow et al. (\cite{GoodBengCour16}) suggests that the best way of choosing an initial learning rate is to monitor leaning curves, plots of loss function as a function of learning time, usually epochs. 
 
-There are a couple of things to watch out for, big oscillations where the loss increases drastically indicate the learning rate is too high. Small oscillations are okay, especially if the loss function contains stochastic features such as dropout. 
+There are a couple of things to watch out for: big oscillations, where the loss increases drastically, indicate the learning rate is too high; small oscillations are okay, especially if the loss function contains stochastic features such as dropout. 
 
-If the initial learning rate is too small, the function might be stuck with high loss values, getting stuck and potentially triggering early stopping. As a rule of thumb, it is advised that the initial learning rate is higher than the best performing rate after approximately $100$ iterations(\cite{GoodBengCour16}).
+If the initial learning rate is too small, the function might be stuck with high loss values, getting stuck and potentially triggering early stopping. As a rule of thumb, it is advised that the initial learning rate is higher than the best performing rate after approximately $100$ iterations (\cite{GoodBengCour16}).
 \paragraph{Linear Decay} 
 It is common to decay the learning rate until it makes a couple of hundred passes through the training dataset (until iteration $\tau$)(\cite{GoodBengCour16}). Therefore, we define learning rate at iteration $k$ as $\epsilon_k$:
 

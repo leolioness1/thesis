@@ -17,9 +17,9 @@ Two models trained on different datasets were fine-tuned and evaluated in this p
 \paragraph{}
 The data extraction part of the project came with many limitations. The dependency on third-party tools to extract data led to a small dataset to work with, given the limited time constraints, it was hard to focus on a more automated process for data extraction.
 
-The \gls{GEE} and JavaScript data extraction method introduced bias and potentially a misalignment between the input data and the mask.  This was addressed by the second batch of data extraction, where \gls{JP2} tiles were extracted directly and processed into 64x64 windows. This allowed for debiased images and larger sample size to work with, improving generalisation. The misalignment between the input data and the mask may still be present as this author did not have enough time to investigate this thoroughly.
+The \gls{GEE} and JavaScript data extraction method introduced bias and potentially a misalignment between the input data and the mask. This was addressed by the second batch of data extraction, where \gls{JP2} tiles were extracted directly and processed into 64x64 windows. This allowed for debiased images and larger sample size to work with, improving generalisation. The misalignment between the input data and the mask may still be present as this author did not have enough time or expert knowledge to investigate this thoroughly.
 
-Since this model was only trained on tiles containing positive labels, it does not know how to identify tiles with no thaw slumps, which is an important characteristic when performing inference across the Arctic. For example, there could be input patches that do not contain any \gls{RTS} positive pixels.
+Since this model was only trained on tiles containing positive labels, it does not know how to identify tiles with no thaw slumps, which is an important characteristic when performing inference across the Arctic. For example, there could be input patches that do not contain any \gls{RTS} positive pixels, this would lead to many false positives being found in these patches.
 
 No model architecture hyperparameter tuning was performed, that is the number of filters, kernel size, padding type, stride, pooling stride, type of pooling were not optimised and other model architectures were not evaluated, so potentially the solution presented may not be the most efficient or the network might be too deep for the problem at hand.
 
@@ -29,7 +29,7 @@ In the future, an approach that aims to measure the change in \gls{RTS}s through
 
 Revisiting data augmentation techniques would be beneficial since the results on the $64$x$64$ pixel patches cannot be generalised and only a handful of techniques were explored. For example, perhaps performing random cropping on the larger $256$x$256$ input patches would have been more beneficial in reducing the data collection bias and avoided the effort of collecting more data.
 
-It would also be beneficial to try different architecture parameters such as filter size and kernel size or even other architectures such as DeepLab v3+ or \gls{FCN} and assess the impact on the model performance.
+It would also be beneficial to try different architecture parameters such as filter size and kernel size or even other architectures such as DeepLab v3+, UNet++ or \gls{FCN} and assess the impact on the model performance.
 
 To improve the generalisation of the model, a wider research area, not limited to the sites where labels were provided, should be covered so that the model can be used in other geographical regions with different characteristics.
 
@@ -38,5 +38,5 @@ Given more time, there are considerations on model inference latency, throughput
 The use of Bayesian optimisation techniques or even Constraint Active Search (\cite{pmlr-v139-malkomes21a}) to perform hyperparameter tuning rather than using Random Search techniques, would likely lead to better model optimisation without the time-consuming experiment set up presented in Chapter \ref{experiments_chapter}.
 
 In the future, the model could be trained on higher resolution images such as those available through Planet data (\SI{3}{\metre} resolution) to evaluate how it affects model performance, especially when dealing with smaller \gls{RTS} and those with more complex shapes.
-
+\gls{CRF} could also be used to adjust region boundaries in post-processing and capture small details, like Chen et al. (\cite{chen2017deeplab}) does.
 To increase model performance on tiles with a small number or no \gls{RTS} at all, the model should be trained on a balanced dataset of tiles containing thaw slumps, as well as some not containing any.
