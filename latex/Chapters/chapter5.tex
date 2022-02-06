@@ -19,7 +19,7 @@ Using the frozen weights did not improve model performance, it had the opposite 
 Early stopping is also triggered in the model using frozen weights around $30$ epochs before the model being trained from scratch, which makes sense since when there is less data the model has a greater likelihood of overfitting.
 
 \section{Training the model from scratch on new data} \label{new_data_fs}
-\subsection{Comparison with the \gls{GEE} dataset model - same parameters}
+\subsection{Comparison with the Google Earth Engine (GEE) dataset model - same parameters}
 \paragraph{}
 With the same model architecture and hyperparameters as in the previous Chapter, the \gls{DL} model was trained on the \textit{JP2 data} for the same number of epochs to evaluate the effect of using more data on the model performance.
 
@@ -125,7 +125,7 @@ The overall performance of the model at image level is summarised in Table \ref{
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.75 \textwidth]{test images scores.png}
-        \caption{Dice Score vs. \gls{IoU} Score Test images scatter plot}
+        \caption{Dice Score vs. IoU Score Test images scatter plot}
         \label{scatter_test_scores}
     \end{figure}
 

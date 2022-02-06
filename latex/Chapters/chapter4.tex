@@ -241,7 +241,7 @@ This could be due to changes in the geometry or lighting causing the \gls{ROI} o
 Given the complexity of an optimiser's performance and its interaction with the learning rate and batch size parameters, a comprehensive grid search experiment was performed to avoid a misleading evaluation of the parameters to follow.
 % Full results of this grid search experiment can be found in the Annex. 
 
-For simplicity, the same approach of only varying one parameter at a time, to ease interpretation, will be presented in the following subsections.
+For simplicity, the same approach of only varying one parameter at a time, to ease interpretation, will be presented in the following sections.
 
 \subsection{Optimiser}
 \paragraph{}
@@ -319,7 +319,7 @@ The initial learning rate was chosen from $0.01$, $0.001$, $0.0001$ for this exp
 \end{figure}
 
 Figure \ref{lr_dice} shows a big difference between the performance of $0.01$ learning rate and the other values, this could be due to the large learning rate overshooting the global or a local minimum and arriving at a suboptimal final set of weights.
-In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD} optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the \textit{ReduceLROnPlateau} learning rate schedule allowing for the explotation of the search space in later epochs to get closer to the optimal loss.
+In the grid search experiment, the initial learning rate of $0.01$ seemed to only perform well with the \gls{SGD} optimiser and vice versa, the \gls{SGD} optimiser only performed well with the $0.01$ learning rate. This could be because the initital large learning rate allows SGD to do exploration of the search space early on and later on reducing through the \textit{ReduceLROnPlateau} learning rate schedule allowing for the exploitation of the search space in later epochs to get closer to the optimal loss.
 
 The top learning rate for the RMSProp optimiser was $0.0001$, therefore this will be used for the experiments.
 
@@ -345,7 +345,7 @@ This is validated by the results of the experience, as it can be seen in Table \
 
 \subsection{Initialisation}
 \paragraph{}
-As presented in section \ref{initialisation},the He initialisation methods outperform the Xavier (Glorot) initialisation methods. According to the literature, He initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
+As presented in section \ref{initialisation}, the He initialisation methods outperform the Xavier (Glorot) initialisation methods. According to the literature, He initialisation works better mathematically by adressing the nonlinearities of the \gls{ReLU} activation function, which are also present in the \gls{ELU} activation function. 
 
 The random normal initialiser has the same final performance as the He normal method in Table \ref{tab_init}, this result may have been due to a particularly good random weight initialisation. To assess its validity it should be run several times to establish its significance, however due to time and computational constraints this author did not investigate this further.
 
@@ -438,7 +438,7 @@ Figure \ref{loss_dice} shows that they are all successfully training the model a
 The best loss function is still the \gls{CE} dice loss, this could be because combining the two losses allows for some diversity, whilst still benefitting from the stability of \gls{CE}, so it will continue to be used in the following experiments.
 
 \subsection{Preventing overfitting} \label{regularisation_sec}
-\subsubsection{\gls{ES}}
+\subsubsection{Early Stopping (ES)}
 \paragraph{}
 In the previous section the models ran for $50$ epochs without \gls{ES} implementation, given the experiments performed what is the impact of running a couple of the experiments applying \gls{ES} and how it affects the performance of the model.
 
@@ -449,7 +449,7 @@ In order to perform this experiment an arbitrarily large number of epochs was se
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=0.75\textwidth]{early stoppping_Validation loss.png}
-    \caption{\gls{ES} usage Loss comparison}
+    \caption{ES usage Loss comparison}
     \label{es_loss}
 \end{figure}
 

@@ -23,14 +23,14 @@ There are 13 spectral bands available, from the \gls{VNIR} and \gls{NIR} all the
 There are four \SI{10}{\metre} resolution bands: the three \gls{RGB} bands -Red (665 nm), Green ($\approx$560 nm) and Blue ($\approx$493 nm), plus a \gls{NIR} ($\approx$833 nm) band which is very important for vegetation detection. These are the ones initially used in this project.
 
 In addition, there are six \SI{20}{\metre} bands: 4 narrow bands in the \gls{VNIR} vegetation red edge spectral-domain ($\approx$704 nm,$\approx$740 nm, $\approx$783 nm, and $\approx$865 nm) and 2 wider \gls{SWIR} bands ($\approx$1610 nm and $\approx$2190 nm) commonly used for snow/ice/cloud detection, or vegetation moisture assessments. Finally, two \SI{60}{\metre} bands mainly focused on cloud screening and atmospheric correction ($\approx$443 nm for aerosols and $\approx$945 nm for water vapour) and cirrus detection ($\approx$1374 nm).
-\subsubsection{\gls{GEE} and JavaScript}
+\subsubsection{Google Earth Engine (GEE) and JavaScript}
 \paragraph{}
 \gls{GEE} provides the ability of extracting satellite data using bespoke JavaScript queries through a Console \gls{UI} (shown in Figure \ref{gee_console_ui}), the Sentinel-2 data is available in the \gls{GEE} image collection with ID \textit{COPERNICUS/S2}.
 
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.85\textwidth]{gee_console_example.PNG}
-        \caption{\gls{GEE} Console \gls{UI} showing a snippet of the bespoke JavaScript script}
+        \caption{GEE Console UI showing a snippet of the bespoke JavaScript script}
         \label{gee_console_ui}
     \end{figure}
 
@@ -53,11 +53,11 @@ The projections are identified through an “authority: code” format, where th
 
 This method of data collection came with its limitations. The \gls{GEE} \gls{UI} would crash for more than 30 images extracted at any one time and would freeze while extracting those images, taking hours at a time. This method was not automatable, which explains why the number of images collected is so low compared to the number of features present in the ground truth polygons.
 
-\subsection{\gls{GCS} and \gls{JP2} data}
+\subsection{Google Cloud Storage (GCS) and JPEG 2000 (JP2) data}
 \paragraph{}
 To address both the bias and automation limitations of the \gls{GEE} method, downloading images directly from \gls{GCS} was explored later in the project.
 
-Sentinel-2 data is made free and available on \gls{GCP} by the European Commission and the European Space Agency(ESA) as part of the Google Public Cloud Data program. The data is made available in a \gls{GCS} public bucket (\textit{gs://gcp-public-data-sentinel-2}) in the \gls{JP2} format, it is stored as tiles of approximately \SI{100}{\kilo\metre\squared}, according to the Sentinel-2 tiling grid (based on the Military grid reference system) at a particular point in time, referred to as a \textit{granule} (\cite{sentinel2_gcp}).
+Sentinel-2 data is made free and available on \gls{GCP} by the European Commission and the European Space Agency (ESA) as part of the Google Public Cloud Data program. The data is made available in a \gls{GCS} public bucket (\textit{gs://gcp-public-data-sentinel-2}) in the \gls{JP2} format, it is stored as tiles of approximately \SI{100}{\kilo\metre\squared}, according to the Sentinel-2 tiling grid (based on the Military grid reference system) at a particular point in time, referred to as a \textit{granule} (\cite{sentinel2_gcp}).
 
 This method involved downloading granules that contained sites used for the collection of the merged thaw slumps validated labelled data presented in section \ref{labeled_data}. The date of the granules corresponded to the date the labels were delineated +/- one month, with a filter to guaranty low ($0-10\%$) cloud coverage was applied.
 
@@ -66,13 +66,13 @@ The polygons were reprojected from \gls{EPSG}:$4326$ to the respective \gls{CRS}
 \begin{figure}[hbt!]
     \begin{minipage}[c]{0.45\linewidth}
         \includegraphics[width=\linewidth]{thaw_slump_z_score.PNG}
-        \caption{Example of the \gls{RGB} channels normalised using z-score}
+        \caption{Example of the RGB channels normalised using z-score}
         \label{thaw_slump_img}        
         \end{minipage}
         \hfill
         \begin{minipage}[c]{0.45\linewidth}
         \includegraphics[width=\linewidth]{thaw_slump_mask_z_score.PNG}
-        \caption{Example of a \gls{RTS} mask}
+        \caption{Example of a RTS mask}
         \label{thaw_slump_mask}
     \end{minipage}
 \end{figure}
@@ -100,7 +100,7 @@ The original \textit{\gls{GEE} data} collection method extracted a total of $313
     \hline
     \end{tabular}
     \end{center}
-    \caption{Distribution of \gls{GEE} data for scene classification}\label{table_label_data_class}
+    \caption{Distribution of GEE data for scene classification}\label{table_label_data_class}
 \end{table}
 \subsubsection{Pixel-wise classification labelled data}
 \paragraph{}
@@ -109,7 +109,7 @@ Figure \ref{rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} po
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.55\textwidth]{Distribution of RTS Positive Pixels.png}
-        \caption{Distribution of \gls{GEE} data \gls{RTS} positive pixels}
+        \caption{Distribution of GEE data RTS positive pixels}
         \label{rts_pixel_dist}
     \end{figure}
     
@@ -132,7 +132,7 @@ To train the segmentation models only the $313$ images in the \textit{\gls{GEE} 
     &  313 & 100\% \\
     \hline
     \end{tabular}
-    \caption{Train/ Validation/ Test split of samples for \gls{GEE} data} \label{table_label_data_gee}
+    \caption{Train/ Validation/ Test split of samples for GEE data} \label{table_label_data_gee}
     \end{center}
 \end{table}
 
@@ -156,7 +156,7 @@ Later in the project the \textit{\gls{JP2} data} was introduced with a total of 
     \hline
     \end{tabular}
     \end{center}
-    \caption{Train/Validation/Test split of samples for \gls{JP2} data} \label{table_label_data_jp2}
+    \caption{Train/Validation/Test split of samples for JP2 data} \label{table_label_data_jp2}
 \end{table}
 
 Figure \ref{jp2_rts_pixel_dist} depicts the distribution of pixels with \gls{RTS} positive label in the \textit{\gls{JP2} data} across different datasets, to attempt a stratified sampling method the random seed was changed until the distribution looked similar across the datasets.
@@ -164,7 +164,7 @@ Figure \ref{jp2_rts_pixel_dist} depicts the distribution of pixels with \gls{RTS
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.75\textwidth]{jp2_rtscount_split.png}
-        \caption{Distribution of \gls{JP2} data \gls{RTS} positive pixels across datasets}
+        \caption{Distribution of JP2 data RTS positive pixels across datasets}
         \label{jp2_rts_pixel_dist}
     \end{figure}
 \section{Introduction to semantic segmentation models}
@@ -239,7 +239,7 @@ A bespoke script was created to code a data generator compatible with Tensorflow
     \item Image normalisation technique applied
     \item Generates batches of data for training
 \end{enumerate}
-\subsection{\gls{DL} Learning process} \label{nn_hyperparameters}
+\subsection{Deep Learning process} \label{nn_hyperparameters}
 \paragraph{}
 To successfully train any \gls{NN}, there are a few key components that are necessary to ensure any given model with its own architecture and parameters to enable it to accurately perform the task of matching its predictions with the ground truth. These will be covered in this section:
 
@@ -275,7 +275,7 @@ Ma (\cite{LossOdyssey}) breaks down known segmentation loss functions into categ
     \end{figure}
 
 
-\paragraph{Binary \gls{CE}}
+\paragraph{Binary Cross Entropy (CE)}
 \gls{CE} is an example of a distribution-based loss, it is derived from Kullback-Leibler (KL) divergence, which measures the dissimilarity of two distributions (\cite{LossOdyssey}). This makes the objective of this category of loss to minimise this dissimilarity. 
 
 For this project, the most relevant \gls{CE} for binary classification tasks is the Binary \gls{CE}, which can be defined as follows:
@@ -296,7 +296,7 @@ Dice Loss is the key element of region-based loss functions, which aim to minimi
 L_{dice}=1-\frac{2\sum_{{i}}^{N}\widehat{y}_{i}y_{i}}{\sum_{i}^{N}\widehat{y}_{i}^{2}+\sum_{i}^{N}y_{{i}}^{2}}
 \end{equation}
 
-\paragraph{\gls{IoU} loss}
+\paragraph{Interseciton over Union (IoU) loss}
 The \gls{IoU} \gls{a.k.a.} Jaccard index is used to directly optimise the segmentation class metric, it can be seen as a similarity measure between two sets $A$ and $B$ is defined as the following:
 \begin{equation}
 \label{eq_jaccard}
@@ -329,7 +329,7 @@ L_{\gls{CE} Dice} = L_{B\gls{CE}} + L_{dice}
 In Deep Learning, optimisation refers to the process of finding the parameters $\theta$ of a \gls{NN} that attempt to minimise a loss function $J(\theta)$ (\cite{GoodBengCour16}). This process usually involves using a subset of data to calculate each update to the parameters based on an expected value of the cost function. The optimiser also takes into account any regularisers, weight initialisation, learning rate and batch size, which influence the success of the optimisation strategy.
 
 Most algorithms used for \gls{DL} use more than one but less than all the training examples \gls{a.k.a.} mini-batch. Even though they do not use only one example, they are nowadays referred to as just stochastic methods rather than mini-batch stochastic methods. In a similarly confusing way, even though that \gls{BGD} implies the processing of the whole training set, the term batch size is usually referring to the mini-batch size, which Goodfellow et al. (\cite{GoodBengCour16}) clarify very well.
-\paragraph{\gls{SGD}}
+\paragraph{Stochastic Gradient Descent (SGD)}
 \gls{SGD} and its variants are probably the most popular algorithms in \gls{DL} as it can converge even when the training dataset gets very large, however it has slower asymptotic convergence then \gls{BGD} for example.
 
 \gls{SGD} aims to get an unbiased estimate of the gradient by averaging the gradient in the mini-batch drawn randomly from the training data and follow the gradient downhill (\cite{GoodBengCour16}).
@@ -345,16 +345,16 @@ Common values of $\alpha$ used in practice are $0.5$, $0.9$, and $0.99$, for the
 
 The next few variations of stochastic gradient descent have adaptive learning rates, so it is recommended not to change its default parameters.
 
-\paragraph{\gls{RMSProp}}
+\paragraph{Root Mean Square Propagation (RMSProp)}
 \gls{RMSProp}, is an unpublished optimiser created by Tijemen Tieleman and Geoffrey Hinton in $2012$. It divides the learning rate by an exponentially decaying average of squared gradients to discard history from the extreme past so that it can converge rapidly. It has been shown it is effective and practical for \gls{DL} problems (\cite{GoodBengCour16}).
 
-\paragraph{\gls{Adam}}
+\paragraph{Adaptive Momentum Estimation (Adam)}
 The \gls{Adam} optimiser (\cite{kingma2017adam}) is a variation of the combination of momentum, which points the model in a better direction and \gls{RMSProp}, which adapts how far the model goes in the direction to converge quickly.
 
 Unlike the previous algorithms, \gls{Adam} includes bias correction to both the ﬁrst-order moments (the momentum term) and the (uncentered) second-order moments (also in \gls{RMSProp}) making \gls{Adam} fairly robust to the choice of hyperparameters (\cite{GoodBengCour16}).
 
 The authors (\cite{kingma2017adam}) show that \gls{Adam} works well in practice and compares well with other adaptive learning-method algorithms.
-\paragraph{\gls{NAdam} Optimiser}
+\paragraph{Nestrov-accelerated Adaptive Momentum Estimation (NAdam)}
 \gls{NAdam} showed dramatic improvements in this paper (\cite{nadam}) the authors argue that it is a no-brainer to incorporate Nesterov momentum into \gls{Adam}, specially where combining momentum and \gls{RMSProp} is concerned, this was actually present in Chapter 8 of Goodfellow et al.'s book (\cite{GoodBengCour16}).
 
 It was also derived and explained by Ruder (\cite{ruder2017overview}), who also emphasizes that \gls{NAG} is superior to vanilla momentum, thus combining \gls{Adam} and NAG seems to make sense theoretically. 
@@ -398,7 +398,7 @@ The difference between this He and the Xavier initialisation is the $\frac{1}{2}
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=0.5\textwidth]{xavier vs he init.png}
-    \caption{Convergence of a 30-layer \gls{CNN} in He et al.'s paper (\cite{He_2015_ICCV})}
+    \caption{Convergence of a 30-layer CNN in He et al.'s paper (\cite{He_2015_ICCV})}
     \label{fig_he_xavier}
 \end{figure}
 \subsubsection{Regulariser} \label{regulariser}
@@ -419,7 +419,7 @@ In Figure \ref{fig_dropout} it can be seen that after dropout is applied in \ref
     \begin{figure}[hbt!]
         \centering
         \includegraphics[width=0.6\textwidth]{droupout_example.png}
-        \caption{(a) Regular 2-layer \gls{NN} (b) Example of \gls{NN} after dropout applied. Crossed neurons have been turned off. (\cite{shanmugamani2018deep})}
+        \caption{(a) Regular 2-layer NN (b) Example of NN after dropout applied. Crossed neurons have been turned off. (\cite{shanmugamani2018deep})}
         \label{fig_dropout}
     \end{figure}
 
@@ -436,13 +436,13 @@ It is argued that early stopping is advantageous over weight decay as it automat
 
 \subsubsection{Learning Rate} \label{learning_rate}
 \paragraph{}
-Goodfellow et al. (\cite{GoodBengCour16}) suggests that the best way of choosing an initial learning rate is to monitor leaning curves, plots of loss function as a function of learning time, usually epochs. 
+(\cite{GoodBengCour16}) suggests that the best way of choosing an initial learning rate is to monitor learning curves, plots of loss function as a function of learning time, usually epochs. 
 
 There are a couple of things to watch out for: big oscillations, where the loss increases drastically, indicate the learning rate is too high; small oscillations are okay, especially if the loss function contains stochastic features such as dropout. 
 
 If the initial learning rate is too small, the function might be stuck with high loss values, getting stuck and potentially triggering early stopping. As a rule of thumb, it is advised that the initial learning rate is higher than the best performing rate after approximately $100$ iterations (\cite{GoodBengCour16}).
 \paragraph{Linear Decay} 
-It is common to decay the learning rate until it makes a couple of hundred passes through the training dataset (until iteration $\tau$)(\cite{GoodBengCour16}). Therefore, we define learning rate at iteration $k$ as $\epsilon_k$:
+It is common to decay the learning rate until it makes a couple of hundred passes through the training dataset (until iteration $\tau$) (\cite{GoodBengCour16}). Therefore, we define learning rate at iteration $k$ as $\epsilon_k$:
 
 \begin{equation} \label{eq_linear_lr}
 \epsilon_k = (1 - \alpha)\epsilon_0 + \alpha\epsilon_\tau
@@ -485,7 +485,7 @@ The dice coefficient (\cite{7785132}), ranging between zero and one, is the most
     Dice=\frac{2\sum_{{i}}^{N}p_{i}g_{i}}{\sum_{i}^{N}p_{i}^{2}+\sum_{i}^{N}g_{{i}}^{2}}
 \end{equation}
 
-\paragraph{\gls{IoU}}
+\paragraph{Intersection over Union (IoU)}
 From the definition of the two metrics, we have that \gls{IoU} and Dice score are within a factor of two of each other $F/2 \leq \gls{IoU} \leq F$. It has been defined in section \ref{loss_functions} with Equation \ref{eq_jaccard}.
 
 In general, like $l2$ penalises the biggest mistakes more than $l1$ regularisation, the \gls{IoU} metric penalises a single instances of wrong classification more than the Dice score. The \gls{IoU} metric has a squaring effect on the errors in comparison with the Dice score, making it more focused on the worst performance, rather than the average.
