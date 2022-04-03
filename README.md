@@ -1,4 +1,4 @@
-# Master's thesis project
+# Master's thesis project: Retrogressive Thaw Slump identification using U-Net and Satellite Image Inputs - Remote Sensing Imagery Segmentation using Deep Learning techniques
 
 Code repository for Master's thesis project, the published work can be found on:
 
